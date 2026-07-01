@@ -85,6 +85,47 @@ export interface MemberStats {
   byPhase: PhaseProgress[];
 }
 
+export interface QuizQuestion {
+  index: number;
+  question: string;
+  options: string[];
+}
+
+export interface QuizQuestionsPayload {
+  topicId: string;
+  topicTitle: string;
+  questions: QuizQuestion[];
+}
+
+export interface QuizAnswerSubmission {
+  memberId: number;
+  topicId: string;
+  answers: number[];
+}
+
+export interface QuizFeedbackItem {
+  questionIndex: number;
+  correct: boolean;
+  correctOption: number;
+  explanation: string;
+}
+
+export interface QuizResult {
+  passed: boolean;
+  score: number;
+  totalQuestions: number;
+  percentScore: number;
+  feedback: QuizFeedbackItem[];
+}
+
+export interface QuizStatus {
+  memberId: number;
+  topicId: string;
+  passed: boolean;
+  bestScore: number;
+  attempts: number;
+}
+
 export type ListTopicsParams = {
 phase?: string;
 category?: string;

@@ -2,7 +2,7 @@ import React from "react";
 import { useGetStats } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Users, BookOpen, CheckCircle, Trophy, Activity } from "lucide-react";
+import { Users, BookOpen, TrendingUp, Trophy } from "lucide-react";
 
 export default function Dashboard() {
   const { data: stats, isLoading } = useGetStats();
@@ -10,85 +10,107 @@ export default function Dashboard() {
   if (isLoading || !stats) {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
-        <div className="font-mono text-primary animate-pulse">INITIATING DIAGNOSTICS...</div>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          <p className="text-sm text-muted-foreground">Loading dashboard…</p>
+        </div>
       </div>
     );
   }
 
+  const statCards = [
+    {
+      label: "Team Members",
+      value: stats.totalMembers,
+      icon: Users,
+      color: "text-violet-600",
+      bg: "bg-violet-50",
+    },
+    {
+      label: "Total Modules",
+      value: stats.totalTopics,
+      icon: BookOpen,
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+    },
+    {
+      label: "Avg. Completion",
+      value: `${Math.round(stats.avgCompletionPercent)}%`,
+      icon: TrendingUp,
+      color: "text-emerald-600",
+      bg: "bg-emerald-50",
+      progress: stats.avgCompletionPercent,
+    },
+    {
+      label: "Top Performer",
+      value: stats.topPerformer || "—",
+      icon: Trophy,
+      color: "text-amber-600",
+      bg: "bg-amber-50",
+    },
+  ];
+
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
       <div>
-        <h1 className="text-3xl font-bold font-mono text-foreground mb-2 flex items-center">
-          <Activity className="w-8 h-8 text-primary mr-3" />
-          SYSTEM_OVERVIEW
-        </h1>
-        <p className="text-muted-foreground">Command center for team training progress.</p>
+        <h1 className="text-2xl font-bold text-foreground">Team Overview</h1>
+        <p className="text-muted-foreground mt-1 text-sm">Track your team's IT training progress across all modules.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-border bg-card shadow-md">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active Operatives</CardTitle>
-            <Users className="w-4 h-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold font-mono">{stats.totalMembers}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-card shadow-md">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Modules</CardTitle>
-            <BookOpen className="w-4 h-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold font-mono">{stats.totalTopics}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-card shadow-md">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Avg. Completion</CardTitle>
-            <CheckCircle className="w-4 h-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold font-mono">{Math.round(stats.avgCompletionPercent)}%</div>
-            <Progress value={stats.avgCompletionPercent} className="mt-3 h-1" />
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-card shadow-md">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Top Performer</CardTitle>
-            <Trophy className="w-4 h-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold truncate" title={stats.topPerformer || "N/A"}>
-              {stats.topPerformer || "N/A"}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="mt-8">
-        <h2 className="text-xl font-bold font-mono text-foreground mb-4">PHASE_ANALYSIS</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {stats.phaseBreakdown.map((phase) => (
-            <Card key={phase.phase} className="border-border bg-card/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium truncate" title={phase.phase}>
-                  {phase.phase}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-between text-xs text-muted-foreground mb-2">
-                  <span className="font-mono">{phase.avgCompleted.toFixed(1)} / {phase.totalTopics} avg</span>
-                  <span className="font-mono">{Math.round((phase.avgCompleted / phase.totalTopics) * 100)}%</span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {statCards.map((s) => {
+          const Icon = s.icon;
+          return (
+            <Card key={s.label} className="border shadow-sm">
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{s.label}</p>
+                    <p className="text-2xl font-bold text-foreground mt-1">{s.value}</p>
+                  </div>
+                  <div className={`w-9 h-9 rounded-lg ${s.bg} flex items-center justify-center shrink-0`}>
+                    <Icon className={`w-4.5 h-4.5 ${s.color}`} />
+                  </div>
                 </div>
-                <Progress value={(phase.avgCompleted / phase.totalTopics) * 100} className="h-1.5" />
+                {s.progress !== undefined && (
+                  <Progress value={s.progress} className="mt-3 h-1.5" />
+                )}
               </CardContent>
             </Card>
-          ))}
+          );
+        })}
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-4">Progress by Phase</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {stats.phaseBreakdown.map((phase) => {
+            const pct = phase.totalTopics > 0
+              ? Math.round((phase.avgCompleted / phase.totalTopics) * 100)
+              : 0;
+            return (
+              <Card key={phase.phase} className="border shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-medium text-foreground truncate" title={phase.phase}>
+                      {phase.phase}
+                    </p>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                      pct >= 75 ? "bg-emerald-50 text-emerald-700" :
+                      pct >= 40 ? "bg-amber-50 text-amber-700" :
+                      "bg-slate-100 text-slate-600"
+                    }`}>
+                      {pct}%
+                    </span>
+                  </div>
+                  <Progress value={pct} className="h-2" />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {phase.avgCompleted.toFixed(1)} / {phase.totalTopics} modules avg
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </div>

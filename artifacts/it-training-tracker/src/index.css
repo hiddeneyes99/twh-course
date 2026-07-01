@@ -67,64 +67,64 @@
 }
 
 :root {
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
+  --button-outline: rgba(124,58,237, .15);
+  --badge-outline: rgba(124,58,237, .10);
   --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
+  --elevate-1: rgba(124,58,237, .04);
+  --elevate-2: rgba(124,58,237, .08);
 
-  /* Deep dark #0d1117 (216, 28%, 7%) */
-  --background: 216 28% 7%;
-  /* Text bright #c9d1d9 */
-  --foreground: 210 17% 82%;
+  /* Clean white background */
+  --background: 0 0% 98%;
+  --foreground: 240 10% 10%;
 
-  --card: 216 28% 10%;
-  --card-foreground: 210 17% 82%;
-  --card-border: 216 28% 20%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 10%;
+  --card-border: 240 10% 90%;
 
-  --popover: 216 28% 10%;
-  --popover-foreground: 210 17% 82%;
-  --popover-border: 216 28% 20%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 10%;
+  --popover-border: 240 10% 90%;
 
-  /* Neon green #00ff41 -> 135 100% 50% */
-  --primary: 135 100% 50%;
-  --primary-foreground: 216 28% 7%;
+  /* Purple primary #7C3AED */
+  --primary: 263 70% 57%;
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 216 28% 20%;
-  --secondary-foreground: 210 17% 82%;
+  --secondary: 263 20% 95%;
+  --secondary-foreground: 263 70% 40%;
 
-  --muted: 216 28% 15%;
-  --muted-foreground: 210 17% 60%;
+  --muted: 240 10% 96%;
+  --muted-foreground: 240 10% 45%;
 
-  --accent: 135 100% 50%;
-  --accent-foreground: 216 28% 7%;
+  --accent: 263 70% 57%;
+  --accent-foreground: 0 0% 100%;
 
   --destructive: 0 84% 60%;
-  --destructive-foreground: 210 40% 98%;
+  --destructive-foreground: 0 0% 100%;
 
-  --border: 216 28% 20%;
-  --input: 216 28% 20%;
-  --ring: 135 100% 50%;
+  --border: 240 10% 90%;
+  --input: 240 10% 90%;
+  --ring: 263 70% 57%;
 
-  --sidebar: 216 28% 7%;
-  --sidebar-foreground: 210 17% 82%;
-  --sidebar-border: 216 28% 20%;
-  --sidebar-primary: 135 100% 50%;
-  --sidebar-primary-foreground: 216 28% 7%;
-  --sidebar-accent: 216 28% 15%;
-  --sidebar-accent-foreground: 210 17% 82%;
-  --sidebar-ring: 135 100% 50%;
+  /* Sidebar: deep purple */
+  --sidebar: 263 50% 16%;
+  --sidebar-foreground: 263 20% 90%;
+  --sidebar-border: 263 40% 25%;
+  --sidebar-primary: 263 80% 75%;
+  --sidebar-primary-foreground: 263 50% 16%;
+  --sidebar-accent: 263 40% 25%;
+  --sidebar-accent-foreground: 263 20% 90%;
+  --sidebar-ring: 263 70% 57%;
 
-  --chart-1: 135 100% 50%;
-  --chart-2: 190 100% 50%;
-  --chart-3: 45 100% 50%;
-  --chart-4: 280 100% 60%;
-  --chart-5: 10 100% 60%;
+  --chart-1: 263 70% 57%;
+  --chart-2: 200 80% 50%;
+  --chart-3: 142 70% 45%;
+  --chart-4: 38 90% 55%;
+  --chart-5: 0 70% 60%;
 
-  --app-font-sans: 'Inter', sans-serif;
+  --app-font-sans: 'Inter', system-ui, sans-serif;
   --app-font-serif: Georgia, serif;
-  --app-font-mono: 'Space Mono', 'Menlo', monospace;
-  --radius: 0.25rem;
+  --app-font-mono: 'JetBrains Mono', 'Menlo', monospace;
+  --radius: 0.5rem;
 
   --sidebar-primary-border: hsl(var(--sidebar-primary));
   --sidebar-accent-border: hsl(var(--sidebar-accent));
@@ -133,10 +133,6 @@
   --muted-border: hsl(var(--muted));
   --accent-border: hsl(var(--accent));
   --destructive-border: hsl(var(--destructive));
-}
-
-.dark {
-  /* We use the same for dark since it's dark by default */
 }
 
 @layer base {

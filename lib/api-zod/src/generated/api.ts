@@ -173,3 +173,78 @@ export const GetMemberStatsResponse = zod.object({
 })
 
 
+/**
+ * @summary Generate AI quiz questions for a topic
+ */
+export const GenerateQuizParams = zod.object({
+  "topicId": zod.coerce.string()
+})
+
+export const GenerateQuizResponse = zod.object({
+  "topicId": zod.string(),
+  "topicTitle": zod.string(),
+  "questions": zod.array(zod.object({
+  "index": zod.number(),
+  "question": zod.string(),
+  "options": zod.array(zod.string())
+}))
+})
+
+
+/**
+ * @summary Submit quiz answers and get result
+ */
+export const SubmitQuizBody = zod.object({
+  "memberId": zod.number(),
+  "topicId": zod.string(),
+  "answers": zod.array(zod.number())
+})
+
+export const SubmitQuizResponse = zod.object({
+  "passed": zod.boolean(),
+  "score": zod.number(),
+  "totalQuestions": zod.number(),
+  "percentScore": zod.number(),
+  "feedback": zod.array(zod.object({
+  "questionIndex": zod.number(),
+  "correct": zod.boolean(),
+  "correctOption": zod.number(),
+  "explanation": zod.string()
+}))
+})
+
+
+/**
+ * @summary Get quiz pass/fail status for a member+topic
+ */
+export const GetQuizStatusParams = zod.object({
+  "memberId": zod.coerce.number(),
+  "topicId": zod.coerce.string()
+})
+
+export const GetQuizStatusResponse = zod.object({
+  "memberId": zod.number(),
+  "topicId": zod.string(),
+  "passed": zod.boolean(),
+  "bestScore": zod.number(),
+  "attempts": zod.number()
+})
+
+
+/**
+ * @summary Get all quiz statuses for a member
+ */
+export const GetMemberQuizStatusesParams = zod.object({
+  "memberId": zod.coerce.number()
+})
+
+export const GetMemberQuizStatusesResponseItem = zod.object({
+  "memberId": zod.number(),
+  "topicId": zod.string(),
+  "passed": zod.boolean(),
+  "bestScore": zod.number(),
+  "attempts": zod.number()
+})
+export const GetMemberQuizStatusesResponse = zod.array(GetMemberQuizStatusesResponseItem)
+
+
