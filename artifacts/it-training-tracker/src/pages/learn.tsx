@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import {
-  useExplainTopic,
   useGenerateQuiz,
   useSubmitQuiz,
   useListTopics,
@@ -16,11 +15,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, Brain, Trophy, XCircle, CheckCircle2, ChevronLeft,
-  ChevronRight, Loader2, BookOpen, Sparkles, RefreshCw, Star,
+  ChevronRight, Loader2, BookOpen, RefreshCw, Star, Sparkles,
 } from "lucide-react";
+import { topicContent } from "@/data/topicContent";
 
 type Phase =
-  | "loading-explain"
   | "explain"
   | "loading-quiz"
   | "quiz"
@@ -48,7 +47,7 @@ export default function Learn() {
   const queryClient = useQueryClient();
   const { currentMemberId } = useCurrentUser();
 
-  const [phase, setPhase] = useState<Phase>("loading-explain");
+  const [phase, setPhase] = useState<Phase>("explain");
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [currentQ, setCurrentQ] = useState(0);
   const [result, setResult] = useState<QuizResult | null>(null);
@@ -56,19 +55,13 @@ export default function Learn() {
   const [imgError, setImgError] = useState(false);
 
   const { data: allTopics } = useListTopics();
-  const { data: explanation, isSuccess: explainReady } = useExplainTopic(topicId);
   const { data: quiz, isSuccess: quizReady, refetch: refetchQuiz } = useGenerateQuiz(topicId, {
     query: { enabled: false, queryKey: getGenerateQuizQueryKey(topicId) },
   });
   const submitQuiz = useSubmitQuiz();
 
   const topic = allTopics?.find(t => t.id === topicId);
-
-  useEffect(() => {
-    if (explainReady && phase === "loading-explain") {
-      setPhase("explain");
-    }
-  }, [explainReady, phase]);
+  const content = topicContent[topicId];
 
   useEffect(() => {
     if (quizReady && quiz && (phase === "loading-quiz" || phase === "re-loading-quiz")) {
@@ -123,6 +116,49 @@ export default function Learn() {
   const totalQ = questions.length;
   const allAnswered = Object.keys(answers).length === totalQ && totalQ > 0;
 
+  if (!content) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
+        <BookOpen className="w-12 h-12 text-muted-foreground/30" />
+        <p className="text-muted-foreground">Is topic ka content abhi available nahi hai.</p>
+        <Button variant="outline" onClick={() => setLocation("/curriculum")}>
+          <ArrowLeft className="w-4 h-4 mr-2" /> Curriculum par wapas jao
+        </Button>
+      </div>
+    );
+  }
+
+  // ─── Loading Quiz ────────────────────────────────────────────────────────
+  if (phase === "loading-quiz" || phase === "re-loading-quiz") {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <Brain className="w-8 h-8 text-primary animate-pulse" />
+          </div>
+          <div>
+            <p className="font-bold text-foreground text-lg">Quiz generate ho raha hai...</p>
+            <p className="text-sm text-muted-foreground mt-1">AI Hinglish mein sawaal bana raha hai 🧠</p>
+          </div>
+          <Loader2 className="w-5 h-5 text-primary animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Submitting ──────────────────────────────────────────────────────────
+  if (phase === "submitting" || phase === "re-submitting") {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <p className="text-sm text-muted-foreground">Jawab check ho rahe hain...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Quiz UI Component ───────────────────────────────────────────────────
   function QuizUI({ onSubmit }: { onSubmit: () => void }) {
     const question = questions[currentQ];
     return (
@@ -131,7 +167,7 @@ export default function Learn() {
           <Brain className="w-5 h-5 text-primary shrink-0" />
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">AI Quiz — Hinglish</p>
-            <p className="text-sm font-semibold text-foreground leading-tight">{explanation?.topicTitle ?? topic?.title}</p>
+            <p className="text-sm font-semibold text-foreground leading-tight">{content.title}</p>
           </div>
         </div>
 
@@ -194,182 +230,31 @@ export default function Learn() {
     );
   }
 
-  if (phase === "loading-explain") {
+  // ─── Quiz Phase ──────────────────────────────────────────────────────────
+  if (phase === "quiz") {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <BookOpen className="w-7 h-7 text-primary animate-pulse" />
-          </div>
-          <div>
-            <p className="font-semibold text-foreground">AI explanation taiyaar ho raha hai...</p>
-            <p className="text-sm text-muted-foreground mt-1">Topic samjhane ke liye AI kaam kar raha hai 🤖</p>
-          </div>
-          <Loader2 className="w-5 h-5 text-primary animate-spin" />
-        </div>
+      <div className="max-w-lg mx-auto space-y-4 animate-in fade-in duration-300">
+        <Button variant="ghost" size="sm" onClick={() => setPhase("explain")} className="gap-1.5 text-muted-foreground hover:text-foreground p-0">
+          <ArrowLeft className="w-4 h-4" /> Wapas padho
+        </Button>
+        <Card className="border shadow-md">
+          <CardContent className="p-6">
+            <QuizUI onSubmit={() => handleSubmit(false)} />
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  if (phase === "loading-quiz" || phase === "re-loading-quiz") {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <Brain className="w-7 h-7 text-primary animate-pulse" />
-          </div>
-          <div>
-            <p className="font-semibold text-foreground">Quiz generate ho raha hai...</p>
-            <p className="text-sm text-muted-foreground mt-1">AI Hinglish mein sawaal bana raha hai 🧠</p>
-          </div>
-          <Loader2 className="w-5 h-5 text-primary animate-spin" />
-        </div>
-      </div>
-    );
-  }
-
-  if (phase === "submitting" || phase === "re-submitting") {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-primary animate-spin" />
-          <p className="text-sm text-muted-foreground">Jawab check ho rahe hain...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (phase === "passed") {
-    return (
-      <div className="max-w-lg mx-auto py-8 animate-in fade-in zoom-in-95 duration-500">
-        <div className="text-center space-y-6">
-          <div className="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center mx-auto">
-            <Trophy className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Zabardast! 🎉</h1>
-            <p className="text-emerald-600 dark:text-emerald-400 font-medium mt-2">Module complete ho gaya!</p>
-            <div className="mt-3 inline-flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-700 rounded-full px-4 py-1.5">
-              <Star className="w-4 h-4 text-amber-500" />
-              <span className="font-bold text-emerald-700 dark:text-emerald-300 text-lg">{result?.percentScore}%</span>
-              <span className="text-emerald-600 dark:text-emerald-400 text-sm">score mila!</span>
-            </div>
-          </div>
-          <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-5 text-left space-y-2">
-            {result?.feedback.map((fb, i) => (
-              <div key={i} className="flex items-start gap-2">
-                {fb.correct
-                  ? <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
-                  : <XCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />}
-                <span className="text-xs text-foreground/80">{questions[i]?.question}</span>
-              </div>
-            ))}
-          </div>
-          <p className="text-sm text-muted-foreground italic">
-            "Tum ne bahut accha kiya! {topic?.phase} mein ek aur step aage badh gaye. Keep it up! 💪"
-          </p>
-          <div className="flex gap-3 justify-center">
-            <Button variant="outline" onClick={() => setLocation("/curriculum")} className="gap-2">
-              <ArrowLeft className="w-4 h-4" /> Curriculum par wapas jao
-            </Button>
-            <Button onClick={() => setLocation("/leaderboard")} className="gap-2">
-              <Trophy className="w-4 h-4" /> Leaderboard dekho
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (phase === "failed") {
-    return (
-      <div className="max-w-lg mx-auto py-8 animate-in fade-in zoom-in-95 duration-500">
-        <div className="text-center space-y-6">
-          <div className="w-20 h-20 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center mx-auto">
-            <XCircle className="w-10 h-10 text-amber-600 dark:text-amber-400" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Koi baat nahi! 💪</h1>
-            <p className="text-muted-foreground mt-2 text-sm">Score {result?.percentScore}% tha, pass ke liye 70% chahiye.</p>
-            <p className="text-foreground/80 font-medium mt-1">AI dobara samjhata hai, tension mat lo!</p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              onClick={() => setPhase("re-explaining")}
-              className="gap-2 bg-primary"
-            >
-              <Sparkles className="w-4 h-4" /> AI se dobara samjho
-            </Button>
-            <Button variant="outline" onClick={() => setLocation("/curriculum")} className="gap-2">
-              <ArrowLeft className="w-4 h-4" /> Baad mein karta hoon
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (phase === "re-explaining") {
-    return (
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-400">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => setLocation("/curriculum")} className="gap-1.5 text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="w-4 h-4" /> Curriculum
-          </Button>
-        </div>
-
-        <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700 p-4 text-center">
-          <p className="text-amber-700 dark:text-amber-300 font-semibold">🔄 Dobara Samjho</p>
-          <p className="text-amber-600 dark:text-amber-400 text-sm mt-1">Is baar dhyan se padho, phir quiz dena!</p>
-        </div>
-
-        {explanation && (
-          <>
-            {!imgError && (
-              <div className="rounded-2xl overflow-hidden h-48 md:h-64 relative">
-                <img
-                  src={explanation.imageUrl}
-                  alt={explanation.topicTitle}
-                  className="w-full h-full object-cover"
-                  onError={() => setImgError(true)}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end p-4">
-                  <h2 className="text-white font-bold text-xl drop-shadow">{explanation.topicTitle}</h2>
-                </div>
-              </div>
-            )}
-            <div className="space-y-4">
-              {explanation.sections.map((section, i) => (
-                <Card key={i} className="border shadow-sm">
-                  <CardContent className="p-5">
-                    <h3 className="font-bold text-foreground mb-2">{section.heading}</h3>
-                    <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{section.content}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </>
-        )}
-
-        <div className="flex justify-center pt-2">
-          <Button onClick={startReQuiz} size="lg" className="gap-2 px-8">
-            <Brain className="w-5 h-5" /> Ab Quiz do!
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
+  // ─── Re-Quiz Phase ───────────────────────────────────────────────────────
   if (phase === "re-quiz") {
     return (
       <div className="max-w-lg mx-auto space-y-4 animate-in fade-in duration-300">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => setLocation("/curriculum")} className="gap-1.5 text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="w-4 h-4" /> Curriculum
-          </Button>
-        </div>
+        <Button variant="ghost" size="sm" onClick={() => setLocation("/curriculum")} className="gap-1.5 text-muted-foreground hover:text-foreground p-0">
+          <ArrowLeft className="w-4 h-4" /> Curriculum
+        </Button>
         <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700 rounded-xl p-3 text-center">
-          <p className="text-amber-700 dark:text-amber-300 text-sm font-medium">🔄 Second Attempt — Tum kar sakte ho!</p>
+          <p className="text-amber-700 dark:text-amber-300 text-sm font-medium">🔄 Doosri Koshish — Tum kar sakte ho!</p>
         </div>
         <Card className="border shadow-md">
           <CardContent className="p-6">
@@ -380,15 +265,137 @@ export default function Learn() {
     );
   }
 
+  // ─── Passed ──────────────────────────────────────────────────────────────
+  if (phase === "passed") {
+    return (
+      <div className="max-w-lg mx-auto py-8 animate-in fade-in zoom-in-95 duration-500">
+        <div className="text-center space-y-6">
+          <div className="w-24 h-24 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center mx-auto">
+            <Trophy className="w-12 h-12 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Zabardast! 🎉</h1>
+            <p className="text-emerald-600 dark:text-emerald-400 font-semibold mt-2">Module complete ho gaya!</p>
+            <div className="mt-3 inline-flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-700 rounded-full px-5 py-2">
+              <Star className="w-4 h-4 text-amber-500" />
+              <span className="font-bold text-emerald-700 dark:text-emerald-300 text-xl">{result?.percentScore}%</span>
+              <span className="text-emerald-600 dark:text-emerald-400 text-sm">score!</span>
+            </div>
+          </div>
+
+          <div className="bg-card border border-border rounded-2xl p-5 text-left space-y-2">
+            {result?.feedback.map((fb, i) => (
+              <div key={i} className="flex items-start gap-2">
+                {fb.correct
+                  ? <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                  : <XCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />}
+                <span className="text-xs text-foreground/80">{questions[i]?.question}</span>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-sm text-muted-foreground italic">
+            "Tum ne bahut accha kiya! Aage badhte raho, yahi attitude success dilata hai 💪"
+          </p>
+          <div className="flex gap-3 justify-center flex-wrap">
+            <Button variant="outline" onClick={() => setLocation("/curriculum")} className="gap-2">
+              <ArrowLeft className="w-4 h-4" /> Curriculum
+            </Button>
+            <Button onClick={() => setLocation("/leaderboard")} className="gap-2">
+              <Trophy className="w-4 h-4" /> Leaderboard
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Failed ──────────────────────────────────────────────────────────────
+  if (phase === "failed") {
+    return (
+      <div className="max-w-lg mx-auto py-8 animate-in fade-in zoom-in-95 duration-500">
+        <div className="text-center space-y-6">
+          <div className="w-24 h-24 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center mx-auto">
+            <XCircle className="w-12 h-12 text-amber-500" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Koi baat nahi! 💪</h1>
+            <p className="text-muted-foreground mt-2">Score {result?.percentScore}% tha, pass ke liye 70% chahiye.</p>
+            <p className="text-foreground/80 font-medium mt-1">Dobara padho, phir quiz do!</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button onClick={() => setPhase("re-explaining")} className="gap-2">
+              <BookOpen className="w-4 h-4" /> Dobara padho
+            </Button>
+            <Button variant="outline" onClick={() => setLocation("/curriculum")} className="gap-2">
+              <ArrowLeft className="w-4 h-4" /> Baad mein karta hoon
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Re-Explaining ───────────────────────────────────────────────────────
+  if (phase === "re-explaining") {
+    return (
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-400 max-w-3xl">
+        <Button variant="ghost" size="sm" onClick={() => setLocation("/curriculum")} className="gap-1.5 text-muted-foreground hover:text-foreground p-0">
+          <ArrowLeft className="w-4 h-4" /> Curriculum
+        </Button>
+
+        <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700 p-4 text-center">
+          <p className="text-amber-700 dark:text-amber-300 font-semibold">🔄 Dobara Padho — Is Baar Dhyan Se!</p>
+          <p className="text-amber-600 dark:text-amber-400 text-sm mt-1">Pehle sab samjho, phir quiz dena</p>
+        </div>
+
+        {!imgError && (
+          <div className="rounded-2xl overflow-hidden h-48 md:h-56 relative shadow-md">
+            <img
+              src={content.image}
+              alt={content.title}
+              className="w-full h-full object-cover"
+              onError={() => setImgError(true)}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-5">
+              <h2 className="text-white font-bold text-xl drop-shadow">{content.title}</h2>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-4">
+          {content.sections.map((section, i) => (
+            <Card key={i} className="border shadow-sm">
+              <CardContent className="p-5">
+                <h3 className="font-bold text-foreground text-base mb-3">{section.heading}</h3>
+                <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{section.content}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="bg-card border border-border rounded-2xl p-5 text-center shadow-sm">
+          <Brain className="w-8 h-8 text-primary mx-auto mb-3" />
+          <h3 className="font-bold text-foreground text-lg mb-1">Ab ready ho? Dobara Quiz do! 🎯</h3>
+          <p className="text-sm text-muted-foreground mb-4">Is baar 70% se upar lao — tum kar sakte ho!</p>
+          <Button onClick={startReQuiz} size="lg" className="gap-2 px-8 w-full sm:w-auto">
+            <Brain className="w-5 h-5" /> Quiz Shuru Karo
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Final Result ─────────────────────────────────────────────────────────
   if (phase === "final-result") {
     const fr = reResult;
     return (
       <div className="max-w-lg mx-auto py-8 animate-in fade-in zoom-in-95 duration-500">
         <div className="text-center space-y-6">
-          <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto ${fr?.passed ? "bg-emerald-100 dark:bg-emerald-900/40" : "bg-red-100 dark:bg-red-900/30"}`}>
+          <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto ${fr?.passed ? "bg-emerald-100 dark:bg-emerald-900/40" : "bg-red-100 dark:bg-red-900/30"}`}>
             {fr?.passed
-              ? <Trophy className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
-              : <RefreshCw className="w-10 h-10 text-red-500" />}
+              ? <Trophy className="w-12 h-12 text-emerald-600 dark:text-emerald-400" />
+              : <RefreshCw className="w-12 h-12 text-red-500" />}
           </div>
           <div>
             <h1 className="text-2xl font-bold text-foreground">
@@ -399,21 +406,16 @@ export default function Learn() {
               {fr?.passed && " — Module complete ho gaya!"}
             </p>
           </div>
-          {fr?.passed && (
-            <p className="text-sm text-muted-foreground italic">
-              "Tum ne haar nahi maani aur jeet liya! Yeh wali spirit hi success dilati hai. 🌟"
-            </p>
-          )}
-          {!fr?.passed && (
-            <p className="text-sm text-muted-foreground italic">
-              "Har expert pehle ek beginner tha. Aaj ki galti kal ki seekh hai. Dobara aao! 🚀"
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground italic">
+            {fr?.passed
+              ? "\"Tum ne haar nahi maani aur jeet liya! Yeh wali spirit hi success dilati hai. 🌟\""
+              : "\"Har expert pehle ek beginner tha. Aao dobara padhein — is baar zaroor milega! 🚀\""}
+          </p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Button variant="outline" onClick={() => setLocation("/curriculum")} className="gap-2">
               <ArrowLeft className="w-4 h-4" /> Curriculum
             </Button>
-            <Button onClick={() => { setPhase("explain"); setAnswers({}); setCurrentQ(0); }} className="gap-2" variant="outline">
+            <Button onClick={() => { setPhase("explain"); setAnswers({}); setCurrentQ(0); }} variant="outline" className="gap-2">
               <RefreshCw className="w-4 h-4" /> Dobara padho
             </Button>
             <Button onClick={() => setLocation("/leaderboard")} className="gap-2">
@@ -425,94 +427,113 @@ export default function Learn() {
     );
   }
 
-  if (phase === "quiz") {
-    return (
-      <div className="max-w-lg mx-auto space-y-4 animate-in fade-in duration-300">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => setPhase("explain")} className="gap-1.5 text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="w-4 h-4" /> Wapas padho
-          </Button>
-        </div>
-        <Card className="border shadow-md">
-          <CardContent className="p-6">
-            <QuizUI onSubmit={() => handleSubmit(false)} />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // "explain" phase - default
+  // ─── Explain Phase (DEFAULT) ──────────────────────────────────────────────
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-400 max-w-3xl">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={() => setLocation("/curriculum")} className="gap-1.5 text-muted-foreground hover:text-foreground p-0">
-          <ArrowLeft className="w-4 h-4" /> Curriculum
-        </Button>
+      {/* Back */}
+      <Button variant="ghost" size="sm" onClick={() => setLocation("/curriculum")} className="gap-1.5 text-muted-foreground hover:text-foreground p-0">
+        <ArrowLeft className="w-4 h-4" /> Curriculum
+      </Button>
+
+      {/* Hero Image */}
+      {!imgError ? (
+        <div className="rounded-2xl overflow-hidden h-52 md:h-72 relative shadow-lg">
+          <img
+            src={content.image}
+            alt={content.title}
+            className="w-full h-full object-cover"
+            onError={() => setImgError(true)}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-end p-6">
+            <div>
+              {topic && (
+                <div className="flex gap-2 mb-2 flex-wrap">
+                  <Badge className="text-xs capitalize bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                    {topic.level}
+                  </Badge>
+                  <Badge className="text-xs bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                    {topic.phase?.replace("Phase ", "P")}
+                  </Badge>
+                </div>
+              )}
+              <h1 className="text-white font-bold text-2xl md:text-3xl drop-shadow-lg">{content.title}</h1>
+              <p className="text-white/80 text-sm mt-1 drop-shadow">{content.tagline}</p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 p-8 text-center">
+          <BookOpen className="w-10 h-10 text-primary mx-auto mb-3" />
+          <h1 className="font-bold text-2xl text-foreground">{content.title}</h1>
+          <p className="text-muted-foreground mt-1 text-sm">{content.tagline}</p>
+        </div>
+      )}
+
+      {/* Tagline card */}
+      <div className="bg-primary/8 dark:bg-primary/15 border border-primary/20 rounded-xl p-4 flex items-start gap-3">
+        <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+        <p className="text-sm font-medium text-primary leading-relaxed">{content.tagline}</p>
       </div>
 
-      {explanation && (
-        <>
-          {/* Hero image */}
-          {!imgError ? (
-            <div className="rounded-2xl overflow-hidden h-48 md:h-64 relative shadow-md">
-              <img
-                src={explanation.imageUrl}
-                alt={explanation.topicTitle}
-                className="w-full h-full object-cover"
-                onError={() => setImgError(true)}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-5">
-                <div>
-                  {topic && (
-                    <Badge className="mb-2 text-xs capitalize bg-white/20 text-white border-white/30">
-                      {topic.level} · {topic.phase}
-                    </Badge>
-                  )}
-                  <h1 className="text-white font-bold text-2xl drop-shadow">{explanation.topicTitle}</h1>
-                </div>
+      {/* Content Sections */}
+      <div className="space-y-4">
+        {content.sections.map((section, i) => (
+          <Card key={i} className="border shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-5 md:p-6">
+              <h3 className="font-bold text-foreground text-base mb-3 flex items-center gap-2">
+                {section.heading}
+              </h3>
+              <div className="text-sm text-foreground/80 leading-relaxed space-y-2">
+                {section.content.split('\n').map((line, j) => {
+                  if (line.startsWith('```')) return null;
+                  if (line.trim() === '') return <br key={j} />;
+                  // Bold text between **
+                  const boldFormatted = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                  return (
+                    <p key={j}
+                      dangerouslySetInnerHTML={{ __html: boldFormatted }}
+                      className={line.startsWith('•') || line.startsWith('-') ? 'ml-2' : ''}
+                    />
+                  );
+                })}
               </div>
-            </div>
-          ) : (
-            <div className="rounded-2xl bg-primary/10 p-6 text-center">
-              <BookOpen className="w-10 h-10 text-primary mx-auto mb-2" />
-              <h1 className="font-bold text-2xl text-foreground">{explanation.topicTitle}</h1>
-            </div>
-          )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-          {/* Summary */}
-          <div className="bg-primary/8 dark:bg-primary/15 border border-primary/20 rounded-xl p-4">
-            <p className="text-sm font-medium text-primary flex items-start gap-2">
-              <Sparkles className="w-4 h-4 mt-0.5 shrink-0" />
-              {explanation.summary}
-            </p>
-          </div>
-
-          {/* Sections */}
-          <div className="space-y-4">
-            {explanation.sections.map((section, i) => (
-              <Card key={i} className="border shadow-sm">
-                <CardContent className="p-5">
-                  <h3 className="font-bold text-foreground text-base mb-3">{section.heading}</h3>
-                  <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{section.content}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* CTA */}
-          <div className="bg-card border border-border rounded-2xl p-6 text-center shadow-sm">
-            <Brain className="w-8 h-8 text-primary mx-auto mb-3" />
-            <h3 className="font-bold text-foreground text-lg mb-1">Padh liya? Quiz do! 🧠</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              AI aapke liye Hinglish mein sawaal banayega. 70% se upar laao to module complete!
-            </p>
-            <Button onClick={startQuiz} size="lg" className="gap-2 px-8 w-full sm:w-auto">
-              <Brain className="w-5 h-5" /> Quiz Shuru Karo
-            </Button>
-          </div>
-        </>
+      {/* Key Points */}
+      {content.keyPoints.length > 0 && (
+        <Card className="border border-primary/20 bg-primary/5 shadow-sm">
+          <CardContent className="p-5">
+            <h3 className="font-bold text-primary mb-3 flex items-center gap-2">
+              <Star className="w-4 h-4" /> Key Points — Yaad Rakho!
+            </h3>
+            <ul className="space-y-2">
+              {content.keyPoints.map((point, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-foreground/80">
+                  <span className="text-primary font-bold shrink-0 mt-0.5">✓</span>
+                  <span>{point}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       )}
+
+      {/* Quiz CTA */}
+      <div className="bg-card border-2 border-primary/20 rounded-2xl p-6 text-center shadow-sm">
+        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+          <Brain className="w-7 h-7 text-primary" />
+        </div>
+        <h3 className="font-bold text-foreground text-xl mb-2">Padh liya? Ab Quiz do! 🧠</h3>
+        <p className="text-sm text-muted-foreground mb-5 max-w-sm mx-auto">
+          AI Hinglish mein sawaal banega. 70% se upar lao to module complete ho jaayega!
+        </p>
+        <Button onClick={startQuiz} size="lg" className="gap-2 px-10 w-full sm:w-auto text-base">
+          <Brain className="w-5 h-5" /> Quiz Shuru Karo
+        </Button>
+      </div>
     </div>
   );
 }
