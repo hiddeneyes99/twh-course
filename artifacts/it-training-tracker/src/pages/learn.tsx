@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, Brain, Trophy, XCircle, CheckCircle2, ChevronLeft,
   ChevronRight, Loader2, BookOpen, RefreshCw, Star, Sparkles,
+  Monitor, ExternalLink,
 } from "lucide-react";
 import { topicContent } from "@/data/topicContent";
 
@@ -61,7 +62,7 @@ export default function Learn() {
   });
   const submitQuiz = useSubmitQuiz();
   const { data: explained, isLoading: explainLoading } = useExplainTopic(topicId, {
-    query: { enabled: !!topicId },
+    query: { enabled: !!topicId && !staticContent },
   });
 
   const topic = allTopics?.find(t => t.id === topicId);

@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { BookOpen, CheckCircle2, Brain, ChevronDown, ChevronUp } from "lucide-react";
+import { BookOpen, CheckCircle2, Brain, ChevronDown, ChevronUp, Search, Award, X } from "lucide-react";
 
 const levelColors: Record<string, string> = {
   beginner: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800",
@@ -25,6 +25,8 @@ export default function Curriculum() {
   const [, setLocation] = useLocation();
   const { currentMemberId } = useCurrentUser();
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState("");
+  const [certPhase, setCertPhase] = useState<string | null>(null);
 
   const { data: topics, isLoading: isLoadingTopics } = useListTopics();
   const { data: members } = useListMembers();
