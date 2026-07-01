@@ -1,45 +1,53 @@
-# [Project name]
+# CYBER_TRACK — IT Training Tracker
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
-
-## Run & Operate
-
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+A team IT training curriculum and progress tracker built for the CYBER_TRACK team.
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- **Monorepo:** pnpm workspaces
+- **Frontend:** React 19 + Vite + Tailwind CSS 4 + Radix UI + TanStack Query + Wouter
+- **Backend:** Express 5 + Node.js 24
+- **Database:** PostgreSQL via Drizzle ORM (hosted on Supabase)
+- **Auth:** Supabase Auth
+- **API:** OpenAPI spec-first; Orval generates React hooks and Zod schemas
 
-## Where things live
+## Project Layout
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+| Path | What it is |
+|---|---|
+| `artifacts/it-training-tracker` | React frontend (preview at `/`) |
+| `artifacts/api-server` | Express API server (preview at `/api`) |
+| `artifacts/mockup-sandbox` | UI component sandbox |
+| `lib/db` | Drizzle schema + DB client |
+| `lib/api-spec` | OpenAPI definition + Orval codegen config |
+| `lib/api-client-react` | Generated React query hooks |
+| `lib/api-zod` | Generated Zod schemas |
 
-## Architecture decisions
+## How to Run
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+Three workflows are configured and start automatically:
 
-## Product
+1. **Frontend** — `pnpm --filter @workspace/it-training-tracker run dev`
+2. **API Server** — `pnpm --filter @workspace/api-server run dev`
+3. **Mockup Sandbox** — `pnpm --filter @workspace/mockup-sandbox run dev`
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+## Database
 
-## User preferences
+Supabase PostgreSQL — connection config is already in the environment. To push schema changes:
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+```bash
+pnpm --filter @workspace/db run push
+```
 
-## Gotchas
+## API Codegen
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+If `lib/api-spec/openapi.yaml` changes, regenerate client code:
 
-## Pointers
+```bash
+pnpm --filter @workspace/api-spec run codegen
+```
 
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+## User Preferences
+
+- Keep existing Supabase setup — do not swap the database or auth provider.
+- Do not restructure the monorepo layout.

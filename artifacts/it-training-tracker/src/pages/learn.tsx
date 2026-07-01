@@ -61,12 +61,12 @@ export default function Learn() {
     query: { enabled: false, queryKey: getGenerateQuizQueryKey(topicId) },
   });
   const submitQuiz = useSubmitQuiz();
+  const staticContent = topicContent[topicId];
   const { data: explained, isLoading: explainLoading } = useExplainTopic(topicId, {
     query: { enabled: !!topicId && !staticContent },
   });
 
   const topic = allTopics?.find(t => t.id === topicId);
-  const staticContent = topicContent[topicId];
 
   const content = React.useMemo(() => {
     if (explained) {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   useListTopics,
   useGetMemberProgress,
@@ -7,7 +7,7 @@ import {
   getGetMemberProgressQueryKey,
   getGetMemberQuizStatusesQueryKey,
 } from "@workspace/api-client-react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { useCurrentUser } from "@/context/UserContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,12 +23,34 @@ const levelColors: Record<string, string> = {
 
 export default function Curriculum() {
   const [, setLocation] = useLocation();
+  const searchString = useSearch();
   const { currentMemberId } = useCurrentUser();
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
   const [certPhase, setCertPhase] = useState<string | null>(null);
+  const phaseRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const { data: topics, isLoading: isLoadingTopics } = useListTopics();
+
+  // Auto-expand and scroll to phase when navigated from dashboard.
+  // Keyed on both searchString and topics so scroll runs only after cards have rendered.
+  useEffect(() => {
+    const params = new URLSearchParams(searchString);
+    const targetPhase = params.get("phase");
+    if (!targetPhase || !topics) return;
+
+    setExpandedPhases(prev => {
+      const next = new Set(prev);
+      next.add(targetPhase);
+      return next;
+    });
+
+    // Use rAF so the DOM has flushed the newly expanded card before scrolling.
+    const raf = requestAnimationFrame(() => {
+      phaseRefs.current[targetPhase]?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [searchString, topics]);
   const { data: members } = useListMembers();
   const { data: progress } = useGetMemberProgress(currentMemberId || 0, {
     query: { enabled: !!currentMemberId, queryKey: getGetMemberProgressQueryKey(currentMemberId || 0) },
@@ -110,7 +132,7 @@ export default function Curriculum() {
           const isExpanded = expandedPhases.has(phase);
 
           return (
-            <Card key={phase} className="border shadow-sm overflow-hidden">
+            <Card key={phase} ref={el => { phaseRefs.current[phase] = el as HTMLDivElement | null; }} className="border shadow-sm overflow-hidden">
               <button className="w-full text-left" onClick={() => togglePhase(phase)}>
                 <CardHeader className="py-4 px-5 hover:bg-muted/30 transition-colors">
                   <div className="flex flex-col sm:flex-row justify-between gap-3">
@@ -146,7 +168,15 @@ export default function Curriculum() {
                       return (
                         <div
                           key={topic.id}
-                          className={`px-5 py-4 transition-colors ${isCompleted ? "bg-emerald-50/40 dark:bg-emerald-950/20" : "hover:bg-muted/15"}`}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setLocation(`/learn/${topic.id}`)}
+                          onKeyDown={e => e.key === "Enter" && setLocation(`/learn/${topic.id}`)}
+                          className={`px-5 py-4 transition-colors cursor-pointer ${
+                            isCompleted
+                              ? "bg-emerald-50/40 dark:bg-emerald-950/20 hover:bg-emerald-50/70 dark:hover:bg-emerald-950/30"
+                              : "hover:bg-muted/30"
+                          }`}
                         >
                           <div className="flex items-start gap-3">
                             <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
@@ -174,7 +204,7 @@ export default function Curriculum() {
                               </p>
                             </div>
 
-                            <div className="flex items-center gap-2 shrink-0">
+                            <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
                               {!isCompleted ? (
                                 <Button
                                   size="sm"

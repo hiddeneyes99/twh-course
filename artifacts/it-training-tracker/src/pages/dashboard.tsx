@@ -3,8 +3,10 @@ import { useGetStats } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Users, BookOpen, TrendingUp, Trophy } from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function Dashboard() {
+  const [, setLocation] = useLocation();
   const { data: stats, isLoading } = useGetStats();
 
   if (isLoading || !stats) {
@@ -89,7 +91,12 @@ export default function Dashboard() {
               ? Math.round((phase.avgCompleted / phase.totalTopics) * 100)
               : 0;
             return (
-              <Card key={phase.phase} className="border shadow-sm">
+              <Card
+                key={phase.phase}
+                className="border shadow-sm cursor-pointer hover:shadow-md hover:border-primary/40 transition-all duration-200"
+                onClick={() => setLocation(`/curriculum?phase=${encodeURIComponent(phase.phase)}`)}
+                title={`${phase.phase} ke topics dekho`}
+              >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-sm font-medium text-foreground truncate" title={phase.phase}>
@@ -107,6 +114,7 @@ export default function Dashboard() {
                   <p className="text-xs text-muted-foreground mt-2">
                     {phase.avgCompleted.toFixed(1)} / {phase.totalTopics} modules avg
                   </p>
+                  <p className="text-xs text-primary/70 mt-1 font-medium">Topics dekho →</p>
                 </CardContent>
               </Card>
             );

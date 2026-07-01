@@ -14,7 +14,16 @@ import Layout from "@/components/layout";
 import WhoAreYou from "@/components/who-are-you";
 import { UserProvider, useCurrentUser } from "@/context/UserContext";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,   // 5 min — don't refetch if data is fresh
+      gcTime: 15 * 60 * 1000,     // 15 min — keep in memory after unmount
+      refetchOnWindowFocus: false, // don't refetch just because the window regained focus
+      retry: 1,
+    },
+  },
+});
 
 function Router() {
   return (

