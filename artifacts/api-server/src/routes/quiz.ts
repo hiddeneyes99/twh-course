@@ -1,6 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, and } from "drizzle-orm";
-import { db, quizAttemptsTable, progressTable } from "@workspace/db";
+import { supabase } from "../lib/supabase";
 import { curriculum } from "../lib/curriculum";
 import {
   GenerateQuizResponse,
@@ -68,14 +67,8 @@ Sirf valid JSON array return karo, koi markdown nahi, koi extra text nahi.`;
 router.get("/quiz/generate/:topicId", async (req, res): Promise<void> => {
   const rawId = Array.isArray(req.params.topicId) ? req.params.topicId[0] : req.params.topicId;
   const topic = curriculum.find((t) => t.id === rawId);
-  if (!topic) {
-    res.status(404).json({ error: "Topic not found" });
-    return;
-  }
-  if (!GEMINI_API_KEY) {
-    res.status(500).json({ error: "GEMINI_API_KEY not configured" });
-    return;
-  }
+  if (!topic) { res.status(404).json({ error: "Topic not found" }); return; }
+  if (!GEMINI_API_KEY) { res.status(500).json({ error: "GEMINI_API_KEY not configured" }); return; }
 
   const questions = await generateQuestionsWithGemini(topic.title, topic.description);
   quizCache.set(rawId, questions);
@@ -83,27 +76,17 @@ router.get("/quiz/generate/:topicId", async (req, res): Promise<void> => {
   res.json(GenerateQuizResponse.parse({
     topicId: topic.id,
     topicTitle: topic.title,
-    questions: questions.map((q, i) => ({
-      index: i,
-      question: q.question,
-      options: q.options,
-    })),
+    questions: questions.map((q, i) => ({ index: i, question: q.question, options: q.options })),
   }));
 });
 
 router.post("/quiz/submit", async (req, res): Promise<void> => {
   const parsed = SubmitQuizBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const { memberId, topicId, answers } = parsed.data;
   const topic = curriculum.find((t) => t.id === topicId);
-  if (!topic) {
-    res.status(404).json({ error: "Topic not found" });
-    return;
-  }
+  if (!topic) { res.status(404).json({ error: "Topic not found" }); return; }
 
   let questions = quizCache.get(topicId);
   if (!questions && GEMINI_API_KEY) {
@@ -127,21 +110,24 @@ router.post("/quiz/submit", async (req, res): Promise<void> => {
   const percentScore = Math.round((score / totalQuestions) * 100);
   const passed = percentScore >= 70;
 
-  await db.insert(quizAttemptsTable).values({
-    memberId,
-    topicId,
+  await supabase.from("quiz_attempts").insert({
+    member_id: memberId,
+    topic_id: topicId,
     score,
-    totalQuestions,
+    total_questions: totalQuestions,
     passed,
-    answers: answers as number[],
+    answers,
   });
 
   if (passed) {
-    const existing = await db.select().from(progressTable).where(
-      and(eq(progressTable.memberId, memberId), eq(progressTable.topicId, topicId))
-    );
-    if (existing.length === 0) {
-      await db.insert(progressTable).values({ memberId, topicId });
+    const { data: existing } = await supabase
+      .from("progress")
+      .select("id")
+      .eq("member_id", memberId)
+      .eq("topic_id", topicId)
+      .single();
+    if (!existing) {
+      await supabase.from("progress").insert({ member_id: memberId, topic_id: topicId });
     }
   }
 
@@ -153,29 +139,35 @@ router.get("/quiz/status/:memberId/:topicId", async (req, res): Promise<void> =>
   const rawTopicId = Array.isArray(req.params.topicId) ? req.params.topicId[0] : req.params.topicId;
   const memberId = parseInt(rawMemberId, 10);
 
-  const attempts = await db.select().from(quizAttemptsTable).where(
-    and(eq(quizAttemptsTable.memberId, memberId), eq(quizAttemptsTable.topicId, rawTopicId))
-  );
+  const { data: attempts } = await supabase
+    .from("quiz_attempts")
+    .select("*")
+    .eq("member_id", memberId)
+    .eq("topic_id", rawTopicId);
 
-  const passed = attempts.some((a) => a.passed);
-  const bestScore = attempts.length > 0 ? Math.max(...attempts.map((a) => a.score)) : 0;
+  const list = attempts ?? [];
+  const passed = list.some((a) => a.passed);
+  const bestScore = list.length > 0 ? Math.max(...list.map((a) => a.score)) : 0;
 
-  res.json(GetQuizStatusResponse.parse({ memberId, topicId: rawTopicId, passed, bestScore, attempts: attempts.length }));
+  res.json(GetQuizStatusResponse.parse({ memberId, topicId: rawTopicId, passed, bestScore, attempts: list.length }));
 });
 
 router.get("/quiz/member/:memberId", async (req, res): Promise<void> => {
   const rawId = Array.isArray(req.params.memberId) ? req.params.memberId[0] : req.params.memberId;
   const memberId = parseInt(rawId, 10);
 
-  const attempts = await db.select().from(quizAttemptsTable).where(eq(quizAttemptsTable.memberId, memberId));
+  const { data: attempts } = await supabase
+    .from("quiz_attempts")
+    .select("*")
+    .eq("member_id", memberId);
 
   const byTopic = new Map<string, { passed: boolean; bestScore: number; attempts: number }>();
-  for (const a of attempts) {
-    const ex = byTopic.get(a.topicId);
+  for (const a of (attempts ?? [])) {
+    const ex = byTopic.get(a.topic_id);
     if (!ex) {
-      byTopic.set(a.topicId, { passed: a.passed, bestScore: a.score, attempts: 1 });
+      byTopic.set(a.topic_id, { passed: a.passed, bestScore: a.score, attempts: 1 });
     } else {
-      byTopic.set(a.topicId, {
+      byTopic.set(a.topic_id, {
         passed: ex.passed || a.passed,
         bestScore: Math.max(ex.bestScore, a.score),
         attempts: ex.attempts + 1,
