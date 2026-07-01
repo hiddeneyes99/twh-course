@@ -66,7 +66,11 @@ export default function Curriculum() {
     return acc;
   }, {} as Record<string, typeof topics>);
 
-  const phases = Object.keys(topicsByPhase).sort();
+  const phases = Object.keys(topicsByPhase).sort((a, b) => {
+    const numA = parseInt(a.match(/\d+/)?.[0] ?? "0", 10);
+    const numB = parseInt(b.match(/\d+/)?.[0] ?? "0", 10);
+    return numA - numB;
+  });
   const totalCompleted = completedTopicIds.size;
   const totalTopics = topics.length;
 
