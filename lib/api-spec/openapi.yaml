@@ -3,20 +3,27 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: IT Training Tracker API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: members
+    description: Team member operations
+  - name: topics
+    description: IT curriculum topic operations
+  - name: progress
+    description: Progress tracking operations
+  - name: stats
+    description: Dashboard stats operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +31,191 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /members:
+    get:
+      operationId: listMembers
+      tags: [members]
+      summary: List all team members
+      responses:
+        "200":
+          description: List of members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Member"
+    post:
+      operationId: createMember
+      tags: [members]
+      summary: Add a new team member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemberInput"
+      responses:
+        "201":
+          description: Created member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Member"
+
+  /members/{id}:
+    get:
+      operationId: getMember
+      tags: [members]
+      summary: Get a specific member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Member details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Member"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteMember
+      tags: [members]
+      summary: Remove a team member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /topics:
+    get:
+      operationId: listTopics
+      tags: [topics]
+      summary: Get full IT curriculum topics
+      parameters:
+        - name: phase
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of topics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Topic"
+
+  /progress/{memberId}:
+    get:
+      operationId: getMemberProgress
+      tags: [progress]
+      summary: Get all progress for a member
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of completed topic IDs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Progress"
+
+  /progress:
+    post:
+      operationId: markComplete
+      tags: [progress]
+      summary: Mark a topic as complete for a member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProgressInput"
+      responses:
+        "201":
+          description: Progress recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Progress"
+
+  /progress/{memberId}/{topicId}:
+    delete:
+      operationId: unmarkComplete
+      tags: [progress]
+      summary: Unmark a topic as complete
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: topicId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /stats:
+    get:
+      operationId: getStats
+      tags: [stats]
+      summary: Get overall dashboard stats
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /stats/member/{memberId}:
+    get:
+      operationId: getMemberStats
+      tags: [stats]
+      summary: Get stats for a specific member
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Member stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberStats"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +226,161 @@ components:
       required:
         - status
 
+    Member:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        role:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - createdAt
+
+    MemberInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        role:
+          type: string
+      required:
+        - name
+
+    Topic:
+      type: object
+      properties:
+        id:
+          type: string
+        phase:
+          type: string
+        category:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        level:
+          type: string
+          enum: [beginner, intermediate, advanced]
+        order:
+          type: integer
+      required:
+        - id
+        - phase
+        - category
+        - title
+        - description
+        - level
+        - order
+
+    Progress:
+      type: object
+      properties:
+        id:
+          type: integer
+        memberId:
+          type: integer
+        topicId:
+          type: string
+        completedAt:
+          type: string
+      required:
+        - id
+        - memberId
+        - topicId
+        - completedAt
+
+    ProgressInput:
+      type: object
+      properties:
+        memberId:
+          type: integer
+        topicId:
+          type: string
+      required:
+        - memberId
+        - topicId
+
+    DashboardStats:
+      type: object
+      properties:
+        totalMembers:
+          type: integer
+        totalTopics:
+          type: integer
+        totalCompletions:
+          type: integer
+        avgCompletionPercent:
+          type: number
+        topPerformer:
+          type: ["string", "null"]
+        phaseBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/PhaseBreakdown"
+      required:
+        - totalMembers
+        - totalTopics
+        - totalCompletions
+        - avgCompletionPercent
+        - phaseBreakdown
+
+    PhaseBreakdown:
+      type: object
+      properties:
+        phase:
+          type: string
+        totalTopics:
+          type: integer
+        avgCompleted:
+          type: number
+      required:
+        - phase
+        - totalTopics
+        - avgCompleted
+
+    MemberStats:
+      type: object
+      properties:
+        memberId:
+          type: integer
+        memberName:
+          type: string
+        totalCompleted:
+          type: integer
+        totalTopics:
+          type: integer
+        completionPercent:
+          type: number
+        byPhase:
+          type: array
+          items:
+            $ref: "#/components/schemas/PhaseProgress"
+      required:
+        - memberId
+        - memberName
+        - totalCompleted
+        - totalTopics
+        - completionPercent
+        - byPhase
+
+    PhaseProgress:
+      type: object
+      properties:
+        phase:
+          type: string
+        completed:
+          type: integer
+        total:
+          type: integer
+      required:
+        - phase
+        - completed
+        - total
