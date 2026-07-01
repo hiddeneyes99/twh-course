@@ -4,6 +4,7 @@ import {
   useGenerateQuiz,
   useSubmitQuiz,
   useListTopics,
+  useExplainTopic,
   getGetMemberProgressQueryKey,
   getGenerateQuizQueryKey,
 } from "@workspace/api-client-react";
@@ -59,9 +60,34 @@ export default function Learn() {
     query: { enabled: false, queryKey: getGenerateQuizQueryKey(topicId) },
   });
   const submitQuiz = useSubmitQuiz();
+  const { data: explained, isLoading: explainLoading } = useExplainTopic(topicId, {
+    query: { enabled: !!topicId },
+  });
 
   const topic = allTopics?.find(t => t.id === topicId);
-  const content = topicContent[topicId];
+  const staticContent = topicContent[topicId];
+
+  const content = React.useMemo(() => {
+    if (explained) {
+      return {
+        title: explained.topicTitle,
+        image: explained.imageUrl,
+        tagline: explained.summary ?? staticContent?.tagline ?? "",
+        sections: explained.sections,
+        keyPoints: staticContent?.keyPoints ?? [],
+      };
+    }
+    if (staticContent) {
+      return {
+        title: staticContent.title,
+        image: staticContent.image,
+        tagline: staticContent.tagline,
+        sections: staticContent.sections,
+        keyPoints: staticContent.keyPoints,
+      };
+    }
+    return null;
+  }, [explained, staticContent]);
 
   useEffect(() => {
     if (quizReady && quiz && (phase === "loading-quiz" || phase === "re-loading-quiz")) {
@@ -117,10 +143,26 @@ export default function Learn() {
   const allAnswered = Object.keys(answers).length === totalQ && totalQ > 0;
 
   if (!content) {
+    if (explainLoading) {
+      return (
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Sparkles className="w-8 h-8 text-primary animate-pulse" />
+            </div>
+            <div>
+              <p className="font-bold text-foreground text-lg">Content load ho raha hai...</p>
+              <p className="text-sm text-muted-foreground mt-1">AI Hinglish mein explain kar raha hai 🤖</p>
+            </div>
+            <Loader2 className="w-5 h-5 text-primary animate-spin" />
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
         <BookOpen className="w-12 h-12 text-muted-foreground/30" />
-        <p className="text-muted-foreground">Is topic ka content abhi available nahi hai.</p>
+        <p className="text-muted-foreground">Is topic ka content load nahi ho saka.</p>
         <Button variant="outline" onClick={() => setLocation("/curriculum")}>
           <ArrowLeft className="w-4 h-4 mr-2" /> Curriculum par wapas jao
         </Button>
