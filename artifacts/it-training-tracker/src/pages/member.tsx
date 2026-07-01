@@ -6,7 +6,8 @@ import {
   useGetMemberProgress,
   useListTopics,
   getGetMemberQueryKey,
-  getGetMemberStatsQueryKey
+  getGetMemberStatsQueryKey,
+  getGetMemberProgressQueryKey,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -25,7 +26,7 @@ export default function Member() {
   });
   const { data: topics } = useListTopics();
   const { data: progress } = useGetMemberProgress(memberId, {
-    query: { enabled: !!memberId }
+    query: { enabled: !!memberId, queryKey: getGetMemberProgressQueryKey(memberId) }
   });
 
   if (loadingMember || loadingStats) {

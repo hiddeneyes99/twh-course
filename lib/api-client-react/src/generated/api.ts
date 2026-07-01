@@ -22,6 +22,7 @@ import type {
 import type {
   DashboardStats,
   HealthStatus,
+  LeaderboardEntry,
   ListTopicsParams,
   Member,
   MemberInput,
@@ -32,7 +33,8 @@ import type {
   QuizQuestionsPayload,
   QuizResult,
   QuizStatus,
-  Topic
+  Topic,
+  TopicExplanation
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -1184,6 +1186,160 @@ export function useGetMemberQuizStatuses<TData = Awaited<ReturnType<typeof getMe
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetMemberQuizStatusesQueryOptions(memberId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getExplainTopicUrl = (topicId: string,) => {
+
+
+
+
+  return `/api/topics/${topicId}/explain`
+}
+
+/**
+ * @summary Get AI-generated Hinglish explanation for a topic
+ */
+export const explainTopic = async (topicId: string, options?: RequestInit): Promise<TopicExplanation> => {
+
+  return customFetch<TopicExplanation>(getExplainTopicUrl(topicId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExplainTopicQueryKey = (topicId: string,) => {
+    return [
+    `/api/topics/${topicId}/explain`
+    ] as const;
+    }
+
+
+export const getExplainTopicQueryOptions = <TData = Awaited<ReturnType<typeof explainTopic>>, TError = ErrorType<unknown>>(topicId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof explainTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExplainTopicQueryKey(topicId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof explainTopic>>> = ({ signal }) => explainTopic(topicId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: topicId !== null && topicId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof explainTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ExplainTopicQueryResult = NonNullable<Awaited<ReturnType<typeof explainTopic>>>
+export type ExplainTopicQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get AI-generated Hinglish explanation for a topic
+ */
+
+export function useExplainTopic<TData = Awaited<ReturnType<typeof explainTopic>>, TError = ErrorType<unknown>>(
+ topicId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof explainTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getExplainTopicQueryOptions(topicId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetLeaderboardUrl = () => {
+
+
+
+
+  return `/api/stats/leaderboard`
+}
+
+/**
+ * @summary Get all members ranked by training completion
+ */
+export const getLeaderboard = async ( options?: RequestInit): Promise<LeaderboardEntry[]> => {
+
+  return customFetch<LeaderboardEntry[]>(getGetLeaderboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLeaderboardQueryKey = () => {
+    return [
+    `/api/stats/leaderboard`
+    ] as const;
+    }
+
+
+export const getGetLeaderboardQueryOptions = <TData = Awaited<ReturnType<typeof getLeaderboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeaderboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLeaderboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLeaderboard>>> = ({ signal }) => getLeaderboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLeaderboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLeaderboardQueryResult = NonNullable<Awaited<ReturnType<typeof getLeaderboard>>>
+export type GetLeaderboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get all members ranked by training completion
+ */
+
+export function useGetLeaderboard<TData = Awaited<ReturnType<typeof getLeaderboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeaderboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLeaderboardQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -21,22 +21,23 @@ interface GeminiQuizQuestion {
   explanation: string;
 }
 
-// In-memory cache for quiz questions with correct answers (server-side only)
 const quizCache = new Map<string, GeminiQuizQuestion[]>();
 
 async function generateQuestionsWithGemini(topicTitle: string, topicDescription: string): Promise<GeminiQuizQuestion[]> {
-  const prompt = `You are an IT training quiz generator. Generate exactly 5 multiple choice questions for this IT topic.
+  const prompt = `Tum ek IT training quiz generator ho. Is IT topic ke liye exactly 5 multiple choice questions banao.
+
+IMPORTANT: Questions aur options HINGLISH mein likho — matlab Hindi aur English mix karo, jaise hum normally baat karte hain. Technical terms English mein rakho (jaise CPU, RAM, IP address) lekin baaki explanation Hindi mein ho.
 
 Topic: "${topicTitle}"
 Description: "${topicDescription}"
 
-Return a JSON array of exactly 5 questions. Each question must have:
-- question: string (the question text)
-- options: array of exactly 4 strings (answer choices)
-- correctIndex: number (0-3, index of the correct option in the options array)
-- explanation: string (brief explanation of the correct answer)
+Return a JSON array of exactly 5 questions. Har question mein:
+- question: string (Hinglish mein poochhna, relatable aur clear)
+- options: array of exactly 4 strings (Hinglish mein answer choices)
+- correctIndex: number (0-3, sahi answer ka index)
+- explanation: string (Hinglish mein brief explanation kyun yeh sahi hai)
 
-Return ONLY a valid JSON array, no markdown, no extra text.`;
+Sirf valid JSON array return karo, koi markdown nahi, koi extra text nahi.`;
 
   const response = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
     method: "POST",
@@ -64,7 +65,6 @@ Return ONLY a valid JSON array, no markdown, no extra text.`;
   return questions.slice(0, 5);
 }
 
-// GET /quiz/generate/:topicId
 router.get("/quiz/generate/:topicId", async (req, res): Promise<void> => {
   const rawId = Array.isArray(req.params.topicId) ? req.params.topicId[0] : req.params.topicId;
   const topic = curriculum.find((t) => t.id === rawId);
@@ -91,7 +91,6 @@ router.get("/quiz/generate/:topicId", async (req, res): Promise<void> => {
   }));
 });
 
-// POST /quiz/submit
 router.post("/quiz/submit", async (req, res): Promise<void> => {
   const parsed = SubmitQuizBody.safeParse(req.body);
   if (!parsed.success) {
@@ -149,7 +148,6 @@ router.post("/quiz/submit", async (req, res): Promise<void> => {
   res.json(SubmitQuizResponse.parse({ passed, score, totalQuestions, percentScore, feedback }));
 });
 
-// GET /quiz/status/:memberId/:topicId
 router.get("/quiz/status/:memberId/:topicId", async (req, res): Promise<void> => {
   const rawMemberId = Array.isArray(req.params.memberId) ? req.params.memberId[0] : req.params.memberId;
   const rawTopicId = Array.isArray(req.params.topicId) ? req.params.topicId[0] : req.params.topicId;
@@ -165,7 +163,6 @@ router.get("/quiz/status/:memberId/:topicId", async (req, res): Promise<void> =>
   res.json(GetQuizStatusResponse.parse({ memberId, topicId: rawTopicId, passed, bestScore, attempts: attempts.length }));
 });
 
-// GET /quiz/member/:memberId
 router.get("/quiz/member/:memberId", async (req, res): Promise<void> => {
   const rawId = Array.isArray(req.params.memberId) ? req.params.memberId[0] : req.params.memberId;
   const memberId = parseInt(rawId, 10);

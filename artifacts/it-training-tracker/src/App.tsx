@@ -1,5 +1,6 @@
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
@@ -7,6 +8,8 @@ import Dashboard from "@/pages/dashboard";
 import Curriculum from "@/pages/curriculum";
 import Team from "@/pages/team";
 import Member from "@/pages/member";
+import Leaderboard from "@/pages/leaderboard";
+import Learn from "@/pages/learn";
 import Layout from "@/components/layout";
 import WhoAreYou from "@/components/who-are-you";
 import { UserProvider, useCurrentUser } from "@/context/UserContext";
@@ -20,6 +23,8 @@ function Router() {
         <Route path="/" component={Dashboard} />
         <Route path="/curriculum" component={Curriculum} />
         <Route path="/team" component={Team} />
+        <Route path="/leaderboard" component={Leaderboard} />
+        <Route path="/learn/:topicId" component={Learn} />
         <Route path="/member/:id" component={Member} />
         <Route component={NotFound} />
       </Switch>
@@ -47,14 +52,16 @@ function AppInner() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <UserProvider>
-          <AppInner />
-          <Toaster />
-        </UserProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <UserProvider>
+            <AppInner />
+            <Toaster />
+          </UserProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

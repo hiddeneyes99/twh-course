@@ -1,8 +1,55 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { GraduationCap, LayoutDashboard, BookOpen, Users, Menu, X, LogOut, ChevronDown } from "lucide-react";
+import { GraduationCap, LayoutDashboard, BookOpen, Users, Menu, X, LogOut, ChevronDown, Trophy, Sun, Moon, Monitor } from "lucide-react";
 import { useCurrentUser } from "@/context/UserContext";
 import { useListMembers } from "@workspace/api-client-react";
+import { useTheme } from "next-themes";
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  const [open, setOpen] = useState(false);
+
+  const options = [
+    { value: "light", label: "Light", icon: Sun },
+    { value: "dark", label: "Dark", icon: Moon },
+    { value: "system", label: "System", icon: Monitor },
+  ];
+
+  const current = options.find(o => o.value === theme) ?? options[2];
+  const Icon = current.icon;
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(prev => !prev)}
+        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-purple-200/60 hover:bg-white/10 hover:text-white transition-colors text-xs"
+        title="Theme change karo"
+      >
+        <Icon className="w-3.5 h-3.5 shrink-0" />
+        <span className="font-medium">{current.label} Mode</span>
+      </button>
+      {open && (
+        <div className="absolute bottom-full left-0 right-0 mb-1 bg-[hsl(263,50%,16%)] border border-white/15 rounded-xl overflow-hidden shadow-xl z-20">
+          {options.map(opt => {
+            const OIcon = opt.icon;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => { setTheme(opt.value); setOpen(false); }}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs transition-colors text-left ${
+                  theme === opt.value ? "bg-white/20 text-white" : "text-purple-200/70 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <OIcon className="w-3.5 h-3.5" />
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -17,6 +64,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
     { href: "/curriculum", label: "Curriculum", icon: BookOpen },
     { href: "/team", label: "Team", icon: Users },
+    { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
   ];
 
   const avatarColors = ["bg-violet-500", "bg-blue-500", "bg-emerald-500", "bg-amber-500", "bg-rose-500"];
@@ -58,8 +106,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         })}
       </nav>
 
-      {/* Current user section */}
-      <div className="p-3 border-t border-white/10">
+      <div className="p-3 border-t border-white/10 space-y-1">
+        <ThemeToggle />
+
         <div className="relative">
           <button
             onClick={() => setShowSwitchMenu(prev => !prev)}
@@ -72,7 +121,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             )}
             <div className="flex-1 min-w-0 text-left">
               <p className="text-white text-xs font-semibold truncate">{currentMember?.name ?? "Unknown"}</p>
-              <p className="text-purple-300/50 text-[10px] truncate">{currentMember?.role ?? ""}</p>
+              <p className="text-purple-300/50 text-[10px] truncate">{currentMember?.role?.split("—")[0]?.trim() ?? ""}</p>
             </div>
             <ChevronDown className={`w-3 h-3 text-purple-300/50 shrink-0 transition-transform ${showSwitchMenu ? "rotate-180" : ""}`} />
           </button>
@@ -129,7 +178,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       )}
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="h-14 flex items-center justify-between px-4 border-b border-border bg-white md:hidden sticky top-0 z-30 shadow-sm">
+        <header className="h-14 flex items-center justify-between px-4 border-b border-border bg-card md:hidden sticky top-0 z-30 shadow-sm">
           <div className="flex items-center gap-2">
             <GraduationCap className="w-5 h-5 text-primary" />
             <span className="font-bold text-sm text-foreground">CYBER_TRACK</span>
@@ -146,7 +195,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto p-5 md:p-8">
+        <div className="flex-1 overflow-auto p-4 md:p-8">
           <div className="max-w-6xl mx-auto">
             {children}
           </div>

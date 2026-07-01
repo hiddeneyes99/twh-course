@@ -91,4 +91,33 @@ router.get("/stats/member/:memberId", async (req, res): Promise<void> => {
   }));
 });
 
+router.get("/stats/leaderboard", async (_req, res): Promise<void> => {
+  const members = await db.select().from(membersTable);
+  const allProgress = await db.select().from(progressTable);
+  const totalTopics = curriculum.length;
+
+  const perMember: Record<number, number> = {};
+  for (const p of allProgress) {
+    perMember[p.memberId] = (perMember[p.memberId] || 0) + 1;
+  }
+
+  const entries = members
+    .map((m) => {
+      const totalCompleted = perMember[m.id] || 0;
+      const completionPercent = Math.round((totalCompleted / totalTopics) * 100);
+      return {
+        memberId: m.id,
+        memberName: m.name,
+        memberRole: m.role ?? null,
+        completionPercent,
+        totalCompleted,
+        totalTopics,
+      };
+    })
+    .sort((a, b) => b.completionPercent - a.completionPercent || b.totalCompleted - a.totalCompleted)
+    .map((entry, idx) => ({ ...entry, rank: idx + 1 }));
+
+  res.json(entries);
+});
+
 export default router;

@@ -5,36 +5,34 @@ import {
   useGetMemberQuizStatuses,
   useListMembers,
   getGetMemberProgressQueryKey,
+  getGetMemberQuizStatusesQueryKey,
 } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { useCurrentUser } from "@/context/UserContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { BookOpen, CheckCircle2, Brain, ChevronDown, ChevronUp, Info } from "lucide-react";
-import QuizModal from "@/components/quiz-modal";
+import { BookOpen, CheckCircle2, Brain, ChevronDown, ChevronUp } from "lucide-react";
 
 const levelColors: Record<string, string> = {
-  beginner: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  intermediate: "bg-amber-50 text-amber-700 border-amber-200",
-  advanced: "bg-red-50 text-red-700 border-red-200",
+  beginner: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800",
+  intermediate: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800",
+  advanced: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800",
 };
 
 export default function Curriculum() {
-  const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const { currentMemberId } = useCurrentUser();
-  const [quizTopic, setQuizTopic] = useState<{ id: string; title: string } | null>(null);
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
-  const [expandedInfo, setExpandedInfo] = useState<Set<string>>(new Set());
 
   const { data: topics, isLoading: isLoadingTopics } = useListTopics();
   const { data: members } = useListMembers();
   const { data: progress } = useGetMemberProgress(currentMemberId || 0, {
-    query: { enabled: !!currentMemberId },
+    query: { enabled: !!currentMemberId, queryKey: getGetMemberProgressQueryKey(currentMemberId || 0) },
   });
-  const { data: quizStatuses, refetch: refetchQuizStatuses } = useGetMemberQuizStatuses(currentMemberId || 0, {
-    query: { enabled: !!currentMemberId },
+  const { data: quizStatuses } = useGetMemberQuizStatuses(currentMemberId || 0, {
+    query: { enabled: !!currentMemberId, queryKey: getGetMemberQuizStatusesQueryKey(currentMemberId || 0) },
   });
 
   const togglePhase = (phase: string) => {
@@ -45,21 +43,12 @@ export default function Curriculum() {
     });
   };
 
-  const toggleInfo = (topicId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setExpandedInfo(prev => {
-      const next = new Set(prev);
-      if (next.has(topicId)) next.delete(topicId); else next.add(topicId);
-      return next;
-    });
-  };
-
   if (isLoadingTopics || !topics) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-          <p className="text-sm text-muted-foreground">Loading curriculum…</p>
+          <p className="text-sm text-muted-foreground">Curriculum load ho raha hai…</p>
         </div>
       </div>
     );
@@ -83,20 +72,6 @@ export default function Curriculum() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-      {quizTopic && currentMemberId && (
-        <QuizModal
-          topicId={quizTopic.id}
-          topicTitle={quizTopic.title}
-          memberId={currentMemberId}
-          onClose={() => setQuizTopic(null)}
-          onPassed={() => {
-            queryClient.invalidateQueries({ queryKey: getGetMemberProgressQueryKey(currentMemberId) });
-            refetchQuizStatuses();
-            setQuizTopic(null);
-          }}
-        />
-      )}
-
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
@@ -104,12 +79,12 @@ export default function Curriculum() {
             Curriculum
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            66 modules, 9 phases. Quiz pass karo → module complete hoga automatically.
+            {totalTopics} modules, {phases.length} phases. AI se padho → Quiz do → Module complete!
           </p>
         </div>
 
         {currentMember && (
-          <div className="flex items-center gap-3 bg-white border border-border rounded-xl px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3 shadow-sm">
             <div className="text-right">
               <p className="text-xs text-muted-foreground">
                 <span className="font-semibold text-foreground">{currentMember.name}</span> ka progress
@@ -140,12 +115,12 @@ export default function Curriculum() {
                       <CardTitle className="text-sm font-semibold text-foreground">{phase}</CardTitle>
                       <Badge variant="secondary" className="text-xs">{phaseTopics.length} modules</Badge>
                       {completedInPhase === phaseTopics.length && phaseTopics.length > 0 && (
-                        <Badge className="text-xs bg-emerald-100 text-emerald-700 border-0">Completed ✓</Badge>
+                        <Badge className="text-xs bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border-0">Complete ✓</Badge>
                       )}
                     </div>
                     <div className="flex items-center gap-3 ml-7 sm:ml-0">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                        completedInPhase === phaseTopics.length ? "bg-emerald-50 text-emerald-700" : "bg-muted text-muted-foreground"
+                        completedInPhase === phaseTopics.length ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400" : "bg-muted text-muted-foreground"
                       }`}>
                         {completedInPhase}/{phaseTopics.length}
                       </span>
@@ -161,21 +136,19 @@ export default function Curriculum() {
                     {phaseTopics.map((topic, idx) => {
                       const isCompleted = completedTopicIds.has(topic.id);
                       const quizPassed = quizPassedIds.has(topic.id);
-                      const infoOpen = expandedInfo.has(topic.id);
 
                       return (
-                        <div key={topic.id} className={`px-5 py-4 transition-colors ${isCompleted ? "bg-emerald-50/40" : "hover:bg-muted/15"}`}>
+                        <div
+                          key={topic.id}
+                          className={`px-5 py-4 transition-colors ${isCompleted ? "bg-emerald-50/40 dark:bg-emerald-950/20" : "hover:bg-muted/15"}`}
+                        >
                           <div className="flex items-start gap-3">
-                            {/* Status indicator */}
                             <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-                              isCompleted
-                                ? "bg-emerald-500"
-                                : "border-2 border-border"
+                              isCompleted ? "bg-emerald-500" : "border-2 border-border"
                             }`}>
                               {isCompleted && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
                             </div>
 
-                            {/* Topic info */}
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-wrap items-center gap-2 mb-0.5">
                                 <span className={`text-sm font-medium ${isCompleted ? "text-muted-foreground line-through" : "text-foreground"}`}>
@@ -185,58 +158,38 @@ export default function Curriculum() {
                                   {topic.level}
                                 </Badge>
                                 {isCompleted && (
-                                  <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200 px-1.5 py-0">
+                                  <Badge variant="outline" className="text-[10px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 px-1.5 py-0">
                                     Complete ✓
                                   </Badge>
                                 )}
                               </div>
-
-                              {/* Short description always visible */}
                               <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
                                 {topic.description}
                               </p>
-
-                              {/* Expanded full description */}
-                              {infoOpen && (
-                                <div className="mt-2 p-3 bg-violet-50 border border-violet-100 rounded-lg">
-                                  <p className="text-xs text-violet-900 leading-relaxed whitespace-pre-wrap">
-                                    {topic.description}
-                                  </p>
-                                </div>
-                              )}
                             </div>
 
-                            {/* Action buttons */}
                             <div className="flex items-center gap-2 shrink-0">
-                              <button
-                                onClick={(e) => toggleInfo(topic.id, e)}
-                                className={`p-1.5 rounded-lg transition-colors ${
-                                  infoOpen ? "bg-violet-100 text-violet-600" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                }`}
-                                title="Topic info padhne ke liye"
-                              >
-                                <Info className="w-3.5 h-3.5" />
-                              </button>
-
                               {!isCompleted ? (
                                 <Button
                                   size="sm"
-                                  className="gap-1.5 text-xs h-7 bg-primary/10 text-primary hover:bg-primary hover:text-white border-0"
-                                  onClick={() => setQuizTopic({ id: topic.id, title: topic.title })}
+                                  className="gap-1.5 text-xs h-8 bg-primary/10 text-primary hover:bg-primary hover:text-white border-0"
+                                  onClick={() => setLocation(`/learn/${topic.id}`)}
                                 >
                                   <Brain className="w-3 h-3" />
-                                  Quiz lo
+                                  <span className="hidden sm:inline">Padho & Quiz do</span>
+                                  <span className="sm:hidden">Quiz</span>
                                 </Button>
                               ) : (
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="gap-1.5 text-xs h-7 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-                                  onClick={() => setQuizTopic({ id: topic.id, title: topic.title })}
-                                  title="Practice ke liye fir se quiz lo"
+                                  className="gap-1.5 text-xs h-8 border-emerald-200 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                                  onClick={() => setLocation(`/learn/${topic.id}`)}
+                                  title="Practice ke liye revise karo"
                                 >
                                   <Brain className="w-3 h-3" />
-                                  Revise
+                                  <span className="hidden sm:inline">Revise</span>
+                                  <span className="sm:hidden">✓</span>
                                 </Button>
                               )}
                             </div>

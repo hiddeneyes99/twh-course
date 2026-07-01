@@ -301,6 +301,40 @@ paths:
                 items:
                   $ref: "#/components/schemas/QuizStatus"
 
+  /topics/{topicId}/explain:
+    get:
+      operationId: explainTopic
+      tags: [topics]
+      summary: Get AI-generated Hinglish explanation for a topic
+      parameters:
+        - name: topicId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Topic explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TopicExplanation"
+
+  /stats/leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [stats]
+      summary: Get all members ranked by training completion
+      responses:
+        "200":
+          description: Leaderboard entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeaderboardEntry"
+
 components:
   schemas:
     HealthStatus:
@@ -576,3 +610,61 @@ components:
         - passed
         - bestScore
         - attempts
+
+    TopicSection:
+      type: object
+      properties:
+        heading:
+          type: string
+        content:
+          type: string
+      required:
+        - heading
+        - content
+
+    TopicExplanation:
+      type: object
+      properties:
+        topicId:
+          type: string
+        topicTitle:
+          type: string
+        imageUrl:
+          type: string
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopicSection"
+        summary:
+          type: string
+      required:
+        - topicId
+        - topicTitle
+        - imageUrl
+        - sections
+        - summary
+
+    LeaderboardEntry:
+      type: object
+      properties:
+        rank:
+          type: integer
+        memberId:
+          type: integer
+        memberName:
+          type: string
+        memberRole:
+          type: ["string", "null"]
+        completionPercent:
+          type: number
+        totalCompleted:
+          type: integer
+        totalTopics:
+          type: integer
+      required:
+        - rank
+        - memberId
+        - memberName
+        - completionPercent
+        - totalCompleted
+        - totalTopics

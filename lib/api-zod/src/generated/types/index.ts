@@ -8,6 +8,7 @@
 
 export * from './dashboardStats';
 export * from './healthStatus';
+export * from './leaderboardEntry';
 export * from './listTopicsParams';
 export * from './member';
 export * from './memberInput';
@@ -23,4 +24,6 @@ export * from './quizQuestionsPayload';
 export * from './quizResult';
 export * from './quizStatus';
 export * from './topic';
+export * from './topicExplanation';
 export * from './topicLevel';
+export * from './topicSection';
