@@ -1,16 +1,26 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { GraduationCap, LayoutDashboard, BookOpen, Users, Menu, X } from "lucide-react";
+import { GraduationCap, LayoutDashboard, BookOpen, Users, Menu, X, LogOut, ChevronDown } from "lucide-react";
+import { useCurrentUser } from "@/context/UserContext";
+import { useListMembers } from "@workspace/api-client-react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showSwitchMenu, setShowSwitchMenu] = useState(false);
+  const { currentMemberId, setCurrentMemberId, clearCurrentMember } = useCurrentUser();
+  const { data: members } = useListMembers();
+
+  const currentMember = members?.find(m => m.id === currentMemberId);
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
     { href: "/curriculum", label: "Curriculum", icon: BookOpen },
     { href: "/team", label: "Team", icon: Users },
   ];
+
+  const avatarColors = ["bg-violet-500", "bg-blue-500", "bg-emerald-500", "bg-amber-500", "bg-rose-500"];
+  const getMemberIdx = (id: number) => (members?.findIndex(m => m.id === id) ?? 0) % avatarColors.length;
 
   const SidebarContent = () => (
     <>
@@ -48,10 +58,56 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         })}
       </nav>
 
-      <div className="p-4 border-t border-white/10">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-xs text-purple-200/60">System Online</span>
+      {/* Current user section */}
+      <div className="p-3 border-t border-white/10">
+        <div className="relative">
+          <button
+            onClick={() => setShowSwitchMenu(prev => !prev)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white/10 hover:bg-white/15 transition-colors group"
+          >
+            {currentMember && (
+              <div className={`w-7 h-7 rounded-full ${avatarColors[getMemberIdx(currentMember.id)]} flex items-center justify-center shrink-0 text-[10px] font-bold text-white`}>
+                {currentMember.name.slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1 min-w-0 text-left">
+              <p className="text-white text-xs font-semibold truncate">{currentMember?.name ?? "Unknown"}</p>
+              <p className="text-purple-300/50 text-[10px] truncate">{currentMember?.role ?? ""}</p>
+            </div>
+            <ChevronDown className={`w-3 h-3 text-purple-300/50 shrink-0 transition-transform ${showSwitchMenu ? "rotate-180" : ""}`} />
+          </button>
+
+          {showSwitchMenu && (
+            <div className="absolute bottom-full left-0 right-0 mb-1 bg-[hsl(263,50%,22%)] rounded-xl border border-white/15 overflow-hidden shadow-xl z-10">
+              <div className="p-2 space-y-0.5">
+                <p className="text-purple-300/50 text-[10px] uppercase tracking-widest px-2 py-1">User switch karo</p>
+                {members?.map((m, idx) => (
+                  <button
+                    key={m.id}
+                    onClick={() => { setCurrentMemberId(m.id); setShowSwitchMenu(false); setMobileOpen(false); }}
+                    className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-colors ${
+                      m.id === currentMemberId ? "bg-white/20 text-white" : "text-purple-200/70 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    <div className={`w-6 h-6 rounded-full ${avatarColors[idx % avatarColors.length]} flex items-center justify-center text-[9px] font-bold text-white shrink-0`}>
+                      {m.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <span className="text-xs font-medium">{m.name}</span>
+                    {m.id === currentMemberId && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-purple-300" />}
+                  </button>
+                ))}
+                <div className="border-t border-white/10 mt-1 pt-1">
+                  <button
+                    onClick={() => { clearCurrentMember(); setShowSwitchMenu(false); }}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-red-300/70 hover:bg-red-500/15 hover:text-red-300 transition-colors"
+                  >
+                    <LogOut className="w-3.5 h-3.5 shrink-0" />
+                    <span className="text-xs font-medium">Logout</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>
@@ -59,7 +115,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground font-sans">
-      <aside className="w-56 bg-[hsl(263,50%,18%)] flex-col hidden md:flex shrink-0">
+      <aside className="w-56 bg-[hsl(263,50%,18%)] flex-col hidden md:flex shrink-0 relative">
         <SidebarContent />
       </aside>
 
@@ -78,9 +134,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <GraduationCap className="w-5 h-5 text-primary" />
             <span className="font-bold text-sm text-foreground">CYBER_TRACK</span>
           </div>
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="p-1.5 rounded-md hover:bg-muted">
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+          <div className="flex items-center gap-2">
+            {currentMember && (
+              <div className={`w-7 h-7 rounded-full ${avatarColors[getMemberIdx(currentMember.id)]} flex items-center justify-center text-[10px] font-bold text-white`}>
+                {currentMember.name.slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <button onClick={() => setMobileOpen(!mobileOpen)} className="p-1.5 rounded-md hover:bg-muted">
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </header>
 
         <div className="flex-1 overflow-auto p-5 md:p-8">

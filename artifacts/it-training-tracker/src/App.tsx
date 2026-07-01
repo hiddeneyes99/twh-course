@@ -8,6 +8,8 @@ import Curriculum from "@/pages/curriculum";
 import Team from "@/pages/team";
 import Member from "@/pages/member";
 import Layout from "@/components/layout";
+import WhoAreYou from "@/components/who-are-you";
+import { UserProvider, useCurrentUser } from "@/context/UserContext";
 
 const queryClient = new QueryClient();
 
@@ -25,14 +27,32 @@ function Router() {
   );
 }
 
+function AppInner() {
+  const { currentMemberId, setCurrentMemberId } = useCurrentUser();
+
+  if (!currentMemberId) {
+    return (
+      <WhoAreYou
+        onSelect={(id) => setCurrentMemberId(id)}
+      />
+    );
+  }
+
+  return (
+    <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+      <Router />
+    </WouterRouter>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-        <Toaster />
+        <UserProvider>
+          <AppInner />
+          <Toaster />
+        </UserProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
