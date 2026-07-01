@@ -183,5 +183,29 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar — desktop only */
+  @media (min-width: 768px) {
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.5); }
+  }
+}
+
+/* iOS safe area for bottom nav */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Smooth page transitions */
+.animate-in {
+  animation-fill-mode: both;
 }
