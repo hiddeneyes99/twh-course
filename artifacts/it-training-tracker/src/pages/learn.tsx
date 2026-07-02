@@ -58,13 +58,33 @@ export default function Learn() {
   const [imgError, setImgError] = useState(false);
 
   const { data: allTopics } = useListTopics();
+  const staticContent = topicContent[topicId];
+
+  // Build per-member headers — each user uses their own Gemini API key
+  const aiHeaders = React.useMemo((): Record<string, string> => {
+    const h: Record<string, string> = {};
+    if (currentMemberId) h["x-member-id"] = String(currentMemberId);
+    if (staticContent?.keyPoints?.length) {
+      // encodeURIComponent handles Unicode/Hinglish — btoa crashes on non-Latin1
+      h["x-key-points"] = encodeURIComponent(JSON.stringify(staticContent.keyPoints));
+    }
+    return h;
+  }, [currentMemberId, staticContent]);
+
   const { data: quiz, isSuccess: quizReady, refetch: refetchQuiz } = useGenerateQuiz(topicId, {
-    query: { enabled: false, queryKey: getGenerateQuizQueryKey(topicId) },
+    query: {
+      enabled: false,
+      queryKey: [...getGenerateQuizQueryKey(topicId), currentMemberId],
+    },
+    request: { headers: aiHeaders },
   });
   const submitQuiz = useSubmitQuiz();
-  const staticContent = topicContent[topicId];
   const { data: explained, isLoading: explainLoading } = useExplainTopic(topicId, {
-    query: { enabled: !!topicId && !staticContent, queryKey: getExplainTopicQueryKey(topicId) },
+    query: {
+      enabled: !!topicId && !staticContent,
+      queryKey: [...getExplainTopicQueryKey(topicId), currentMemberId],
+    },
+    request: { headers: aiHeaders },
   });
 
   const topic = allTopics?.find(t => t.id === topicId);

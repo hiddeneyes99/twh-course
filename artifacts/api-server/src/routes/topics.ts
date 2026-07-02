@@ -1,10 +1,10 @@
 import { Router, type IRouter } from "express";
 import { curriculum } from "../lib/curriculum";
+import { getApiKeyForMember } from "../lib/apiKey";
 import { ListTopicsQueryParams, ListTopicsResponse } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 interface TopicSection {
@@ -17,6 +17,7 @@ interface ExplainResult {
   summary: string;
 }
 
+// Cache keyed by "topicId:memberId" so each member uses their own API quota
 const explainCache = new Map<string, ExplainResult>();
 
 const categoryImages: Record<string, string> = {
@@ -93,7 +94,11 @@ const categoryImages: Record<string, string> = {
 
 const defaultImage = "https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=800&fit=crop&auto=format";
 
-async function generateExplanation(topicTitle: string, topicDescription: string): Promise<ExplainResult> {
+async function generateExplanation(
+  topicTitle: string,
+  topicDescription: string,
+  apiKey: string,
+): Promise<ExplainResult> {
   const prompt = `Tum ek friendly IT trainer ho jo students ko Hinglish mein samjhate ho — jaise ek bade bhai ya dost samjhata hai. Simple, clear, aur engaging language use karo.
 
 Topic: "${topicTitle}"
@@ -107,7 +112,7 @@ Is topic ko 3-4 sections mein samjhao. Return a JSON object with:
 
 Sirf valid JSON return karo, koi markdown nahi, koi extra text nahi.`;
 
-  const response = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+  const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -153,15 +158,25 @@ router.get("/topics/:topicId/explain", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Topic not found" });
     return;
   }
-  if (!GEMINI_API_KEY) {
-    res.status(500).json({ error: "GEMINI_API_KEY not configured" });
+
+  // Read member ID from header
+  const rawMember = req.headers["x-member-id"];
+  const memberIdStr = Array.isArray(rawMember) ? rawMember[0] : rawMember;
+  const memberId = memberIdStr ? parseInt(memberIdStr, 10) : null;
+  const validMemberId = memberId && !isNaN(memberId) ? memberId : null;
+
+  const apiKey = await getApiKeyForMember(validMemberId);
+  if (!apiKey) {
+    res.status(500).json({ error: "Gemini API key not configured" });
     return;
   }
 
-  let result = explainCache.get(rawId);
+  // Cache per member so each uses their own quota
+  const cacheKey = validMemberId ? `${rawId}:${validMemberId}` : rawId;
+  let result = explainCache.get(cacheKey);
   if (!result) {
-    result = await generateExplanation(topic.title, topic.description);
-    explainCache.set(rawId, result);
+    result = await generateExplanation(topic.title, topic.description, apiKey);
+    explainCache.set(cacheKey, result);
   }
 
   const imageUrl = categoryImages[topic.category] ?? defaultImage;
