@@ -7,6 +7,7 @@ import {
   useExplainTopic,
   getGetMemberProgressQueryKey,
   getGenerateQuizQueryKey,
+  getExplainTopicQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCurrentUser } from "@/context/UserContext";
@@ -63,7 +64,7 @@ export default function Learn() {
   const submitQuiz = useSubmitQuiz();
   const staticContent = topicContent[topicId];
   const { data: explained, isLoading: explainLoading } = useExplainTopic(topicId, {
-    query: { enabled: !!topicId && !staticContent },
+    query: { enabled: !!topicId && !staticContent, queryKey: getExplainTopicQueryKey(topicId) },
   });
 
   const topic = allTopics?.find(t => t.id === topicId);
@@ -210,7 +211,7 @@ export default function Learn() {
           <Brain className="w-5 h-5 text-primary shrink-0" />
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">AI Quiz — Hinglish</p>
-            <p className="text-sm font-semibold text-foreground leading-tight">{content.title}</p>
+            <p className="text-sm font-semibold text-foreground leading-tight">{content?.title}</p>
           </div>
         </div>
 

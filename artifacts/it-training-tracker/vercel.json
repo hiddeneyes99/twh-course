@@ -1,0 +1,7 @@
+{
+  "buildCommand": "cd ../.. && pnpm install && BASE_PATH=/ PORT=3000 pnpm --filter @workspace/it-training-tracker build",
+  "outputDirectory": "dist/public",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

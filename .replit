@@ -27,4 +27,4 @@ channel = "stable-25_05"
 [userenv.shared]
 SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNubWxpb2NuaGdic2t3ZHZ6YnBjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5MTU2NzYsImV4cCI6MjA5ODQ5MTY3Nn0.WRkFpxaQf6F67sEKGj9m6AQy8M4VUwRJ8bLhaRcPcxk"
 SUPABASE_URL = "https://snmliocnhgbskwdvzbpc.supabase.co"
-GEMINI_API_KEY = "AQ.Ab8RN6KicidnkpaN_m-g-TmcBydIMdGxLXnxnEqgKCK2-EtR3A"
+GEMINI_API_KEY = "AQ.Ab8RN6JFk7VQeC-Iq2uPsajIguMEuQsqKtL5FW-1SuR5O_S87w"

