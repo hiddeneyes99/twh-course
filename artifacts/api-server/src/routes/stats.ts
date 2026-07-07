@@ -35,7 +35,7 @@ router.get("/stats", async (_req, res): Promise<void> => {
     const phaseIds = new Set(phaseTopics.map((t) => t.id));
     const phaseCompletions = (allProgress ?? []).filter((p) => phaseIds.has(p.topic_id));
     const avgCompleted = totalMembers > 0
-      ? Math.round((phaseCompletions.length / (totalMembers * phaseTopics.length)) * 100)
+      ? Math.round((phaseCompletions.length / totalMembers) * 10) / 10
       : 0;
     return { phase, totalTopics: phaseTopics.length, avgCompleted };
   });
