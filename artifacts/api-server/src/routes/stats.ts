@@ -22,7 +22,8 @@ router.get("/stats", async (_req, res): Promise<void> => {
       perMember[p.member_id] = (perMember[p.member_id] || 0) + 1;
     }
     const total = (members ?? []).reduce((sum, m) => sum + (perMember[m.id] || 0), 0);
-    avgCompletionPercent = Math.round((total / (totalMembers * totalTopics)) * 100);
+    const rawPct = (total / (totalMembers * totalTopics)) * 100;
+    avgCompletionPercent = rawPct > 0 ? Math.max(1, Math.round(rawPct)) : 0;
     for (const m of (members ?? [])) {
       const count = perMember[m.id] || 0;
       if (count > topCount) { topCount = count; topPerformer = m.name; }
