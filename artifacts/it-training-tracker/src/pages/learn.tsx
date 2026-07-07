@@ -17,6 +17,7 @@ import {
   Loader2, Star, Sparkles,
 } from "lucide-react";
 import { topicContent } from "@/data/topicContent";
+import { staticQuizQuestions } from "@/data/staticQuizQuestions";
 import QuizModal from "@/components/quiz-modal";
 
 export default function Learn() {
@@ -223,7 +224,7 @@ export default function Learn() {
           </div>
           <h3 className="font-bold text-foreground text-xl mb-2">Padh liya? Ab Quiz do! 🧠</h3>
           <p className="text-sm text-muted-foreground mb-5 max-w-sm mx-auto">
-            5 sawaal hain. 70% se upar lao to module complete ho jaayega!
+            {staticQuizQuestions[topicId]?.length ?? 0} sawaal hain. 70% se upar lao to module complete ho jaayega!
           </p>
           <Button onClick={() => setShowQuiz(true)} size="lg" className="gap-2 px-10 w-full sm:w-auto text-base">
             <Brain className="w-5 h-5" /> Quiz Shuru Karo
