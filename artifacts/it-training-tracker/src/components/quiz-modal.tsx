@@ -89,9 +89,9 @@ export default function QuizModal({ topicId, topicTitle, memberId, onClose, onPa
   }
 
   function handleSubmit() {
-    const finalAnswers = answerStates.map((a) => {
-      const q = questions[answerStates.indexOf(a)];
-      return q ? q.correctIndex : 0;
+    const finalAnswers = answerStates.map((a, i) => {
+      if (a.firstAttemptCorrect === true) return questions[i].correctIndex;
+      return a.wrongAttempts.length > 0 ? a.wrongAttempts[0] : -1;
     });
 
     const score = answerStates.filter(a => a.firstAttemptCorrect).length;

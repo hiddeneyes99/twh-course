@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { supabase } from "../lib/supabase";
 import { curriculum } from "../lib/curriculum";
 import { getApiKeyForMember } from "../lib/apiKey";
+import { staticCorrectAnswers } from "../lib/staticCorrectAnswers";
 import {
   GenerateQuizResponse,
   SubmitQuizBody,
@@ -133,27 +134,35 @@ router.post("/quiz/submit", async (req, res): Promise<void> => {
 
   // Try member-specific cache first, then generic cache
   let questions = quizCache.get(`${topicId}:${memberId}`) ?? quizCache.get(topicId);
-  if (!questions) {
-    const apiKey = await getApiKeyForMember(memberId);
-    if (apiKey) {
-      questions = await generateQuestionsWithGemini(topic.title, topic.description, [], apiKey);
-      quizCache.set(`${topicId}:${memberId}`, questions);
-    }
-  }
-  if (!questions || questions.length === 0) {
-    res.status(400).json({ error: "Quiz questions not found. Please start the quiz first." });
-    return;
-  }
 
   let score = 0;
-  const feedback = questions.map((q, i) => {
-    const selected = answers[i] ?? -1;
-    const correct = selected === q.correctIndex;
-    if (correct) score++;
-    return { questionIndex: i, correct, correctOption: q.correctIndex, explanation: q.explanation };
-  });
+  let feedback: { questionIndex: number; correct: boolean; correctOption: number; explanation: string }[];
+  let totalQuestions: number;
 
-  const totalQuestions = questions.length;
+  if (questions && questions.length > 0) {
+    feedback = questions.map((q, i) => {
+      const selected = answers[i] ?? -1;
+      const correct = selected === q.correctIndex;
+      if (correct) score++;
+      return { questionIndex: i, correct, correctOption: q.correctIndex, explanation: q.explanation };
+    });
+    totalQuestions = questions.length;
+  } else {
+    // Fallback: use static correct answers (frontend sends firstAttempt-correct signals)
+    const correctIndices = staticCorrectAnswers[topicId];
+    if (!correctIndices || correctIndices.length === 0) {
+      res.status(400).json({ error: "Quiz questions not found for this topic." });
+      return;
+    }
+    feedback = correctIndices.map((correctIndex, i) => {
+      const selected = answers[i] ?? -1;
+      const correct = selected === correctIndex;
+      if (correct) score++;
+      return { questionIndex: i, correct, correctOption: correctIndex, explanation: "" };
+    });
+    totalQuestions = correctIndices.length;
+  }
+
   const percentScore = Math.round((score / totalQuestions) * 100);
   const passed = percentScore >= 70;
 
