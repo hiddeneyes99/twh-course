@@ -157,7 +157,7 @@ export default function QuizModal({ topicId, topicTitle, memberId, onClose, onPa
     return (
       <ModalShell onClose={onClose}>
         <div className="space-y-5">
-          <div className={`rounded-xl p-5 text-center ${result.passed ? "bg-emerald-50 border border-emerald-200" : "bg-red-50 border border-red-200"}`}>
+          <div className={`rounded-xl p-5 text-center ${result.passed ? "bg-emerald-500/10 border border-emerald-500/30" : "bg-red-500/10 border border-red-500/30"}`}>
             {result.passed ? (
               <Trophy className="w-10 h-10 mx-auto text-emerald-600 mb-2" />
             ) : (
@@ -181,11 +181,11 @@ export default function QuizModal({ topicId, topicTitle, memberId, onClose, onPa
           </div>
 
           <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
-            <p className="text-sm font-semibold text-foreground sticky top-0 bg-white pb-1">Question Summary</p>
+            <p className="text-sm font-semibold text-foreground sticky top-0 bg-card pb-1">Question Summary</p>
             {result.feedback.map((fb, i) => {
               const q = questions[i];
               return (
-                <div key={i} className={`rounded-lg border p-3 text-sm ${fb.correct ? "border-emerald-200 bg-emerald-50/50" : "border-red-200 bg-red-50/50"}`}>
+                <div key={i} className={`rounded-lg border p-3 text-sm ${fb.correct ? "border-emerald-500/30 bg-emerald-500/10" : "border-red-500/30 bg-red-500/10"}`}>
                   <div className="flex items-start gap-2 mb-1.5">
                     {fb.correct
                       ? <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
@@ -255,7 +255,7 @@ export default function QuizModal({ topicId, topicTitle, memberId, onClose, onPa
           <Progress value={((currentQ + 1) / totalQ) * 100} className="h-1.5" />
         </div>
 
-        <div className="bg-slate-50 rounded-xl p-4 border border-border">
+        <div className="bg-muted rounded-xl p-4 border border-border">
           <p className="font-semibold text-foreground leading-snug text-sm">{question?.question}</p>
         </div>
 
@@ -265,17 +265,17 @@ export default function QuizModal({ topicId, topicTitle, memberId, onClose, onPa
             const isCorrect = i === question.correctIndex;
             const isWrong = currentState.wrongAttempts.includes(i);
 
-            let btnClass = "border-border bg-white hover:border-primary/40 hover:bg-primary/4";
+            let btnClass = "border-border bg-card hover:border-primary/40 hover:bg-primary/5";
             let circleClass = "bg-muted text-muted-foreground";
 
             if (isCorrectLocked && isCorrect) {
-              btnClass = "border-emerald-400 bg-emerald-50 ring-1 ring-emerald-300";
+              btnClass = "border-emerald-500 bg-emerald-500/15 ring-1 ring-emerald-500/40";
               circleClass = "bg-emerald-500 text-white";
             } else if (isWrong) {
-              btnClass = "border-red-300 bg-red-50/60 opacity-70";
-              circleClass = "bg-red-400 text-white";
+              btnClass = "border-red-500/40 bg-red-500/10 opacity-70";
+              circleClass = "bg-red-500 text-white";
             } else if (isSelected && !currentState.locked) {
-              btnClass = "border-red-400 bg-red-50 ring-1 ring-red-300 animate-shake";
+              btnClass = "border-red-500 bg-red-500/15 ring-1 ring-red-500/40 animate-shake";
               circleClass = "bg-red-500 text-white";
             }
 
@@ -300,13 +300,13 @@ export default function QuizModal({ topicId, topicTitle, memberId, onClose, onPa
         </div>
 
         {isWrongSelected && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-2">
+          <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 space-y-2">
             <div className="flex items-center gap-2">
               <XCircle className="w-4 h-4 text-red-500 shrink-0" />
-              <p className="text-sm font-semibold text-red-700">Galat Jawab!</p>
+              <p className="text-sm font-semibold text-red-500">Galat Jawab!</p>
             </div>
-            <p className="text-xs text-red-600 leading-relaxed">{question?.explanation}</p>
-            <div className="flex items-center gap-1.5 pt-1 text-xs text-red-500">
+            <p className="text-xs text-red-400 leading-relaxed">{question?.explanation}</p>
+            <div className="flex items-center gap-1.5 pt-1 text-xs text-red-400">
               <BookOpen className="w-3.5 h-3.5" />
               <span>Doosra option try karo — topic ko dhyan se padho phir.</span>
             </div>
@@ -314,14 +314,14 @@ export default function QuizModal({ topicId, topicTitle, memberId, onClose, onPa
         )}
 
         {isCorrectLocked && (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 space-y-1.5">
+          <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 space-y-1.5">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <p className="text-sm font-semibold text-emerald-700">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+              <p className="text-sm font-semibold text-emerald-500">
                 {currentState.firstAttemptCorrect ? "Bilkul Sahi! 🎯" : "Sahi — lekin pehli baar nahi mila"}
               </p>
             </div>
-            <p className="text-xs text-emerald-700/80 leading-relaxed">{question?.explanation}</p>
+            <p className="text-xs text-emerald-400 leading-relaxed">{question?.explanation}</p>
           </div>
         )}
 
@@ -373,9 +373,9 @@ export default function QuizModal({ topicId, topicTitle, memberId, onClose, onPa
         </div>
 
         {!currentState.locked && currentState.wrongAttempts.length >= 2 && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 flex items-start gap-2">
-            <BookOpen className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <p className="text-xs text-amber-700">
+          <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 flex items-start gap-2">
+            <BookOpen className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-400">
               <span className="font-semibold">Hint:</span> Sahi jawab hai: <span className="font-bold">"{question?.options[question.correctIndex]}"</span> — is topic ko dobara padho upar se!
             </p>
           </div>
@@ -389,7 +389,7 @@ function ModalShell({ children, onClose }: { children: React.ReactNode; onClose:
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
+      <div className="relative bg-card text-card-foreground rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto border border-border">
         <div className="p-6">
           {children}
         </div>
