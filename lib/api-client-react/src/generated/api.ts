@@ -33,8 +33,7 @@ import type {
   QuizQuestionsPayload,
   QuizResult,
   QuizStatus,
-  Topic,
-  TopicExplanation
+  Topic
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -1186,83 +1185,6 @@ export function useGetMemberQuizStatuses<TData = Awaited<ReturnType<typeof getMe
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetMemberQuizStatusesQueryOptions(memberId,options)
-
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getExplainTopicUrl = (topicId: string,) => {
-
-
-
-
-  return `/api/topics/${topicId}/explain`
-}
-
-/**
- * @summary Get AI-generated Hinglish explanation for a topic
- */
-export const explainTopic = async (topicId: string, options?: RequestInit): Promise<TopicExplanation> => {
-
-  return customFetch<TopicExplanation>(getExplainTopicUrl(topicId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getExplainTopicQueryKey = (topicId: string,) => {
-    return [
-    `/api/topics/${topicId}/explain`
-    ] as const;
-    }
-
-
-export const getExplainTopicQueryOptions = <TData = Awaited<ReturnType<typeof explainTopic>>, TError = ErrorType<unknown>>(topicId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof explainTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getExplainTopicQueryKey(topicId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof explainTopic>>> = ({ signal }) => explainTopic(topicId, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: topicId !== null && topicId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof explainTopic>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type ExplainTopicQueryResult = NonNullable<Awaited<ReturnType<typeof explainTopic>>>
-export type ExplainTopicQueryError = ErrorType<unknown>
-
-
-/**
- * @summary Get AI-generated Hinglish explanation for a topic
- */
-
-export function useExplainTopic<TData = Awaited<ReturnType<typeof explainTopic>>, TError = ErrorType<unknown>>(
- topicId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof explainTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
-  const queryOptions = getExplainTopicQueryOptions(topicId,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

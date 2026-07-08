@@ -301,25 +301,6 @@ paths:
                 items:
                   $ref: "#/components/schemas/QuizStatus"
 
-  /topics/{topicId}/explain:
-    get:
-      operationId: explainTopic
-      tags: [topics]
-      summary: Get AI-generated Hinglish explanation for a topic
-      parameters:
-        - name: topicId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Topic explanation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/TopicExplanation"
-
   /stats/leaderboard:
     get:
       operationId: getLeaderboard
@@ -610,39 +591,6 @@ components:
         - passed
         - bestScore
         - attempts
-
-    TopicSection:
-      type: object
-      properties:
-        heading:
-          type: string
-        content:
-          type: string
-      required:
-        - heading
-        - content
-
-    TopicExplanation:
-      type: object
-      properties:
-        topicId:
-          type: string
-        topicTitle:
-          type: string
-        imageUrl:
-          type: string
-        sections:
-          type: array
-          items:
-            $ref: "#/components/schemas/TopicSection"
-        summary:
-          type: string
-      required:
-        - topicId
-        - topicTitle
-        - imageUrl
-        - sections
-        - summary
 
     LeaderboardEntry:
       type: object

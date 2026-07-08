@@ -24,6 +24,4 @@ export * from './quizQuestionsPayload';
 export * from './quizResult';
 export * from './quizStatus';
 export * from './topic';
-export * from './topicExplanation';
 export * from './topicLevel';
-export * from './topicSection';

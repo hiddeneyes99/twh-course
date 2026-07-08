@@ -249,25 +249,6 @@ export const GetMemberQuizStatusesResponse = zod.array(GetMemberQuizStatusesResp
 
 
 /**
- * @summary Get AI-generated Hinglish explanation for a topic
- */
-export const ExplainTopicParams = zod.object({
-  "topicId": zod.coerce.string()
-})
-
-export const ExplainTopicResponse = zod.object({
-  "topicId": zod.string(),
-  "topicTitle": zod.string(),
-  "imageUrl": zod.string(),
-  "sections": zod.array(zod.object({
-  "heading": zod.string(),
-  "content": zod.string()
-})),
-  "summary": zod.string()
-})
-
-
-/**
  * @summary Get all members ranked by training completion
  */
 export const GetLeaderboardResponseItem = zod.object({

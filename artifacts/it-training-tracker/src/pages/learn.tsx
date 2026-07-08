@@ -1,11 +1,8 @@
 import React, { useState } from "react";
 import { useParams, useLocation, useSearch } from "wouter";
 import {
-  useSubmitQuiz,
   useListTopics,
-  useExplainTopic,
   getGetMemberProgressQueryKey,
-  getExplainTopicQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCurrentUser } from "@/context/UserContext";
@@ -14,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, Brain, Trophy, BookOpen,
-  Loader2, Star, Sparkles,
+  Star, Sparkles,
 } from "lucide-react";
 import { topicContent } from "@/data/topicContent";
 import { staticQuizQuestions } from "@/data/staticQuizQuestions";
@@ -35,71 +32,24 @@ export default function Learn() {
   const { data: allTopics } = useListTopics();
   const staticContent = topicContent[topicId];
 
-  const aiHeaders = React.useMemo((): Record<string, string> => {
-    const h: Record<string, string> = {};
-    if (currentMemberId) h["x-member-id"] = String(currentMemberId);
-    if (staticContent?.keyPoints?.length) {
-      h["x-key-points"] = encodeURIComponent(JSON.stringify(staticContent.keyPoints));
-    }
-    return h;
-  }, [currentMemberId, staticContent]);
-
-  const { data: explained, isLoading: explainLoading } = useExplainTopic(topicId, {
-    query: {
-      enabled: !!topicId && !staticContent,
-      queryKey: [...getExplainTopicQueryKey(topicId), currentMemberId],
-    },
-    request: { headers: aiHeaders },
-  });
-
   const topic = allTopics?.find(t => t.id === topicId);
 
   // Keep the phase accordion the user came from expanded when navigating back.
-  // Prefer the `?phase=` param carried over from Curriculum's link (works immediately,
-  // even before allTopics has loaded); fall back to the topic's own phase otherwise.
   const incomingPhase = new URLSearchParams(searchString).get("phase");
   const phaseForBack = incomingPhase ?? topic?.phase;
   const backToCurriculumHref = phaseForBack ? `/curriculum?phase=${encodeURIComponent(phaseForBack)}` : "/curriculum";
 
-  const content = React.useMemo(() => {
-    if (explained) {
-      return {
-        title: explained.topicTitle,
-        image: explained.imageUrl,
-        tagline: explained.summary ?? staticContent?.tagline ?? "",
-        sections: explained.sections,
-        keyPoints: staticContent?.keyPoints ?? [],
-      };
-    }
-    if (staticContent) {
-      return {
+  const content = staticContent
+    ? {
         title: staticContent.title,
         image: staticContent.image,
         tagline: staticContent.tagline,
         sections: staticContent.sections,
         keyPoints: staticContent.keyPoints,
-      };
-    }
-    return null;
-  }, [explained, staticContent]);
+      }
+    : null;
 
   if (!content) {
-    if (explainLoading) {
-      return (
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="flex flex-col items-center gap-4 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <Sparkles className="w-8 h-8 text-primary animate-pulse" />
-            </div>
-            <div>
-              <p className="font-bold text-foreground text-lg">Content load ho raha hai...</p>
-              <p className="text-sm text-muted-foreground mt-1">AI Hinglish mein explain kar raha hai 🤖</p>
-            </div>
-            <Loader2 className="w-5 h-5 text-primary animate-spin" />
-          </div>
-        </div>
-      );
-    }
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
         <BookOpen className="w-12 h-12 text-muted-foreground/30" />
@@ -200,14 +150,12 @@ export default function Learn() {
                       }
                       if (line.trim() === '') return <br key={j} />;
                       if (inCodeBlock) {
-                        // Code block content — render as plain text (React escapes automatically)
                         return (
                           <code key={j} className="block text-xs font-mono text-foreground/60 bg-muted/50 px-1 rounded whitespace-pre-wrap break-all">
                             {line}
                           </code>
                         );
                       }
-                      // Regular text — escape HTML first, then apply bold markdown only
                       const escaped = line
                         .replace(/&/g, '&amp;')
                         .replace(/</g, '&lt;')

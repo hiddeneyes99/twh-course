@@ -126,19 +126,6 @@ export interface QuizStatus {
   attempts: number;
 }
 
-export interface TopicSection {
-  heading: string;
-  content: string;
-}
-
-export interface TopicExplanation {
-  topicId: string;
-  topicTitle: string;
-  imageUrl: string;
-  sections: TopicSection[];
-  summary: string;
-}
-
 export interface LeaderboardEntry {
   rank: number;
   memberId: number;
