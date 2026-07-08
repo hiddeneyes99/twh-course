@@ -95,9 +95,9 @@ Curriculum description ke concepts count karo:
 | Phase 9: Red Team | red-01 to red-09 | ❌ TODO |
 | Phase 10: Blue Team | blue-01 to blue-09 | ❌ TODO |
 | Phase 11: Advanced | adv-01 to adv-05 | ❌ TODO |
-| Phase 12: Bug Bounty | bug-01 to bug-07 | ❌ TODO |
+| Phase 12: Bug Bounty | bb-01 to bb-07 | ✅ DONE (July 8 2026) — 5→15/18/15/17/15/15/15 questions |
 
-**Next up: Phase 3 OS (os-01 to os-09), Phase 5 Web (web-01 to web-09), Phases 8–12**
+**Next up: Phase 3 OS (os-01 to os-09), Phase 5 Web (web-01 to web-09), Phases 7–11**
 
 ## Completed phases status
 
