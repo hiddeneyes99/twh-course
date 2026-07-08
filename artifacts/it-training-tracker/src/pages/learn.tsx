@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams, useLocation } from "wouter";
+import { useParams, useLocation, useSearch } from "wouter";
 import {
   useSubmitQuiz,
   useListTopics,
@@ -23,6 +23,7 @@ import QuizModal from "@/components/quiz-modal";
 export default function Learn() {
   const params = useParams<{ topicId: string }>();
   const topicId = params?.topicId ?? "";
+  const searchString = useSearch();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { currentMemberId } = useCurrentUser();
@@ -52,6 +53,13 @@ export default function Learn() {
   });
 
   const topic = allTopics?.find(t => t.id === topicId);
+
+  // Keep the phase accordion the user came from expanded when navigating back.
+  // Prefer the `?phase=` param carried over from Curriculum's link (works immediately,
+  // even before allTopics has loaded); fall back to the topic's own phase otherwise.
+  const incomingPhase = new URLSearchParams(searchString).get("phase");
+  const phaseForBack = incomingPhase ?? topic?.phase;
+  const backToCurriculumHref = phaseForBack ? `/curriculum?phase=${encodeURIComponent(phaseForBack)}` : "/curriculum";
 
   const content = React.useMemo(() => {
     if (explained) {
@@ -96,7 +104,7 @@ export default function Learn() {
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
         <BookOpen className="w-12 h-12 text-muted-foreground/30" />
         <p className="text-muted-foreground">Is topic ka content load nahi ho saka.</p>
-        <Button variant="outline" onClick={() => setLocation("/curriculum")}>
+        <Button variant="outline" onClick={() => setLocation(backToCurriculumHref)}>
           <ArrowLeft className="w-4 h-4 mr-2" /> Curriculum par wapas jao
         </Button>
       </div>
@@ -120,7 +128,7 @@ export default function Learn() {
       )}
 
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-400 max-w-3xl">
-        <Button variant="ghost" size="sm" onClick={() => setLocation("/curriculum")} className="gap-1.5 text-muted-foreground hover:text-foreground p-0">
+        <Button variant="ghost" size="sm" onClick={() => setLocation(backToCurriculumHref)} className="gap-1.5 text-muted-foreground hover:text-foreground p-0">
           <ArrowLeft className="w-4 h-4" /> Curriculum
         </Button>
 
@@ -131,7 +139,7 @@ export default function Learn() {
               <p className="font-bold text-emerald-700">Module Complete Ho Gaya! 🎉</p>
               <p className="text-sm text-emerald-600">Bahut badhiya! Curriculum mein progress update ho gaya.</p>
             </div>
-            <Button size="sm" onClick={() => setLocation("/curriculum")} className="ml-auto shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white border-0">
+            <Button size="sm" onClick={() => setLocation(backToCurriculumHref)} className="ml-auto shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white border-0">
               Curriculum
             </Button>
           </div>

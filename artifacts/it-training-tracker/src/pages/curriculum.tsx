@@ -170,8 +170,8 @@ export default function Curriculum() {
                           key={topic.id}
                           role="button"
                           tabIndex={0}
-                          onClick={() => setLocation(`/learn/${topic.id}`)}
-                          onKeyDown={e => e.key === "Enter" && setLocation(`/learn/${topic.id}`)}
+                          onClick={() => setLocation(`/learn/${topic.id}?phase=${encodeURIComponent(phase)}`)}
+                          onKeyDown={e => e.key === "Enter" && setLocation(`/learn/${topic.id}?phase=${encodeURIComponent(phase)}`)}
                           className={`px-5 py-4 transition-colors cursor-pointer ${
                             isCompleted
                               ? "bg-emerald-50/40 dark:bg-emerald-950/20 hover:bg-emerald-50/70 dark:hover:bg-emerald-950/30"
@@ -209,7 +209,7 @@ export default function Curriculum() {
                                 <Button
                                   size="sm"
                                   className="gap-1.5 text-xs h-8 bg-primary/10 text-primary hover:bg-primary hover:text-white border-0"
-                                  onClick={() => setLocation(`/learn/${topic.id}`)}
+                                  onClick={() => setLocation(`/learn/${topic.id}?phase=${encodeURIComponent(phase)}`)}
                                 >
                                   <Brain className="w-3 h-3" />
                                   <span className="hidden sm:inline">Padho & Quiz do</span>
@@ -220,7 +220,7 @@ export default function Curriculum() {
                                   size="sm"
                                   variant="outline"
                                   className="gap-1.5 text-xs h-8 border-emerald-200 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
-                                  onClick={() => setLocation(`/learn/${topic.id}`)}
+                                  onClick={() => setLocation(`/learn/${topic.id}?phase=${encodeURIComponent(phase)}`)}
                                   title="Practice ke liye revise karo"
                                 >
                                   <Brain className="w-3 h-3" />
