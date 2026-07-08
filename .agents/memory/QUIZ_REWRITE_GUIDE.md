@@ -10,7 +10,7 @@
 
 **Old questions**: har module mein sirf 5 generic questions the, jo shallow the.
 
-**New questions**: Curriculum description se har concept dhundho, uski depth ke hisaab se 8-12 strategic questions likho.
+**New questions**: Curriculum description se har concept dhundho, uski depth ke hisaab se jitna bhi caho question rakh sakte ho strategic questions likho.
 
 ## Curriculum kahan milta hai
 
