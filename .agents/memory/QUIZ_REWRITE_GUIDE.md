@@ -89,7 +89,7 @@ Curriculum description ke concepts count karo:
 | Phase 4: Programming | prog-01 to prog-06 | ✅ DONE |
 | Phase 4: Programming | prog-07 to prog-09 | ✅ DONE (July 8 2026) |
 | Phase 5: Web | web-01 to web-09 | ❌ TODO |
-| Phase 6: Security | sec-01 to sec-08 | ❌ TODO |
+| Phase 6: Security | sec-01 to sec-08 | ✅ DONE (July 8 2026) |
 | Phase 7: Ethical Hacking | eth-01 to eth-09 | ❌ TODO |
 | Phase 8: AI Security | ai-01 to ai-06 | ❌ TODO |
 | Phase 9: Red Team | red-01 to red-09 | ❌ TODO |
@@ -97,7 +97,7 @@ Curriculum description ke concepts count karo:
 | Phase 11: Advanced | adv-01 to adv-05 | ❌ TODO |
 | Phase 12: Bug Bounty | bug-01 to bug-07 | ❌ TODO |
 
-**Next up: Phase 3 OS (os-01 to os-09) ya Phase 5 Web (web-01 to web-09)**
+**Next up: Phase 3 OS (os-01 to os-09), Phase 5 Web (web-01 to web-09), ya Phase 7 Ethical Hacking (eth-01 to eth-09)**
 
 ## Workflow — kaise continue karo
 

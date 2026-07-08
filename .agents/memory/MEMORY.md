@@ -1,2 +1,3 @@
 - [Orval schema naming](orval-naming.md) — Orval derives Zod schema names from operationIds, NOT component schema names; both api.ts and types/ export same names causing barrel conflicts.
 - [Quiz route](quiz-route.md) — Quiz uses in-memory Map cache keyed by topicId; correct answers server-side only; pass threshold 70%; auto-inserts progress on pass.
+- [API security gap](api-security.md) — All API routes are open (no auth middleware); x-member-id header is trusted from client for per-member Gemini key routing — impersonation risk. Auth is planned but not implemented.
