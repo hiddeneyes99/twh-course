@@ -86,7 +86,8 @@ Curriculum description ke concepts count karo:
 | Phase 1: Computer Basics | cb-01 to cb-08 | ✅ DONE |
 | Phase 2: Networking | net-01 to net-12 | ✅ DONE |
 | Phase 3: Operating System | os-01 to os-09 | ❌ TODO |
-| Phase 4: Programming | prog-01 to prog-09 | ❌ TODO |
+| Phase 4: Programming | prog-01 to prog-06 | ✅ DONE |
+| Phase 4: Programming | prog-07 to prog-09 | ✅ DONE (July 8 2026) |
 | Phase 5: Web | web-01 to web-09 | ❌ TODO |
 | Phase 6: Security | sec-01 to sec-08 | ❌ TODO |
 | Phase 7: Ethical Hacking | eth-01 to eth-09 | ❌ TODO |
@@ -96,6 +97,8 @@ Curriculum description ke concepts count karo:
 | Phase 11: Advanced | adv-01 to adv-05 | ❌ TODO |
 | Phase 12: Bug Bounty | bug-01 to bug-07 | ❌ TODO |
 
+**Next up: Phase 3 OS (os-01 to os-09) ya Phase 5 Web (web-01 to web-09)**
+
 ## Workflow — kaise continue karo
 
 1. **`curriculum.ts` padho** — next phase ke modules ki descriptions dekho
@@ -103,6 +106,7 @@ Curriculum description ke concepts count karo:
 3. **Questions likho** — 5 types ka mix, Hinglish, 4 options, correctIndex verify karo
 4. **`staticQuizQuestions.ts` mein edit karo** — Phase comment se next Phase comment tak replace karo
 5. **Verify karo**: `grep -n "correctIndex" artifacts/it-training-tracker/src/data/staticQuizQuestions.ts | head -20` se spot check
+6. **Commit karo** har module ke baad
 
 ## Strict rules
 
