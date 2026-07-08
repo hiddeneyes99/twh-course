@@ -85,18 +85,6 @@ export interface MemberStats {
   byPhase: PhaseProgress[];
 }
 
-export interface QuizQuestion {
-  index: number;
-  question: string;
-  options: string[];
-}
-
-export interface QuizQuestionsPayload {
-  topicId: string;
-  topicTitle: string;
-  questions: QuizQuestion[];
-}
-
 export interface QuizAnswerSubmission {
   memberId: number;
   topicId: string;

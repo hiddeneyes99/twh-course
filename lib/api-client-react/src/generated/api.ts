@@ -30,7 +30,6 @@ import type {
   Progress,
   ProgressInput,
   QuizAnswerSubmission,
-  QuizQuestionsPayload,
   QuizResult,
   QuizStatus,
   Topic
@@ -879,83 +878,6 @@ export function useGetMemberStats<TData = Awaited<ReturnType<typeof getMemberSta
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetMemberStatsQueryOptions(memberId,options)
-
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getGenerateQuizUrl = (topicId: string,) => {
-
-
-
-
-  return `/api/quiz/generate/${topicId}`
-}
-
-/**
- * @summary Generate AI quiz questions for a topic
- */
-export const generateQuiz = async (topicId: string, options?: RequestInit): Promise<QuizQuestionsPayload> => {
-
-  return customFetch<QuizQuestionsPayload>(getGenerateQuizUrl(topicId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGenerateQuizQueryKey = (topicId: string,) => {
-    return [
-    `/api/quiz/generate/${topicId}`
-    ] as const;
-    }
-
-
-export const getGenerateQuizQueryOptions = <TData = Awaited<ReturnType<typeof generateQuiz>>, TError = ErrorType<unknown>>(topicId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof generateQuiz>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGenerateQuizQueryKey(topicId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof generateQuiz>>> = ({ signal }) => generateQuiz(topicId, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: topicId !== null && topicId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof generateQuiz>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type GenerateQuizQueryResult = NonNullable<Awaited<ReturnType<typeof generateQuiz>>>
-export type GenerateQuizQueryError = ErrorType<unknown>
-
-
-/**
- * @summary Generate AI quiz questions for a topic
- */
-
-export function useGenerateQuiz<TData = Awaited<ReturnType<typeof generateQuiz>>, TError = ErrorType<unknown>>(
- topicId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof generateQuiz>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
-  const queryOptions = getGenerateQuizQueryOptions(topicId,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

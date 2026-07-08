@@ -19,8 +19,6 @@ export * from './progress';
 export * from './progressInput';
 export * from './quizAnswerSubmission';
 export * from './quizFeedbackItem';
-export * from './quizQuestion';
-export * from './quizQuestionsPayload';
 export * from './quizResult';
 export * from './quizStatus';
 export * from './topic';

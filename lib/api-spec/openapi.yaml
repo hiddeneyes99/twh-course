@@ -218,25 +218,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/MemberStats"
 
-  /quiz/generate/{topicId}:
-    get:
-      operationId: generateQuiz
-      tags: [quiz]
-      summary: Generate AI quiz questions for a topic
-      parameters:
-        - name: topicId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Quiz questions
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/QuizQuestionsPayload"
-
   /quiz/submit:
     post:
       operationId: submitQuiz
@@ -484,38 +465,6 @@ components:
         - phase
         - completed
         - total
-
-    QuizQuestion:
-      type: object
-      properties:
-        index:
-          type: integer
-        question:
-          type: string
-        options:
-          type: array
-          items:
-            type: string
-      required:
-        - index
-        - question
-        - options
-
-    QuizQuestionsPayload:
-      type: object
-      properties:
-        topicId:
-          type: string
-        topicTitle:
-          type: string
-        questions:
-          type: array
-          items:
-            $ref: "#/components/schemas/QuizQuestion"
-      required:
-        - topicId
-        - topicTitle
-        - questions
 
     QuizAnswerSubmission:
       type: object

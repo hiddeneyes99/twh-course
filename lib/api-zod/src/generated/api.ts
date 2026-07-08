@@ -174,24 +174,6 @@ export const GetMemberStatsResponse = zod.object({
 
 
 /**
- * @summary Generate AI quiz questions for a topic
- */
-export const GenerateQuizParams = zod.object({
-  "topicId": zod.coerce.string()
-})
-
-export const GenerateQuizResponse = zod.object({
-  "topicId": zod.string(),
-  "topicTitle": zod.string(),
-  "questions": zod.array(zod.object({
-  "index": zod.number(),
-  "question": zod.string(),
-  "options": zod.array(zod.string())
-}))
-})
-
-
-/**
  * @summary Submit quiz answers and get result
  */
 export const SubmitQuizBody = zod.object({
