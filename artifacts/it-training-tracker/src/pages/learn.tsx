@@ -191,17 +191,36 @@ export default function Learn() {
                   {section.heading}
                 </h3>
                 <div className="text-sm text-foreground/80 leading-relaxed space-y-2">
-                  {section.content.split('\n').map((line, j) => {
-                    if (line.startsWith('```')) return null;
-                    if (line.trim() === '') return <br key={j} />;
-                    const boldFormatted = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                    return (
-                      <p key={j}
-                        dangerouslySetInnerHTML={{ __html: boldFormatted }}
-                        className={line.startsWith('•') || line.startsWith('-') ? 'ml-2' : ''}
-                      />
-                    );
-                  })}
+                  {(() => {
+                    let inCodeBlock = false;
+                    return section.content.split('\n').map((line, j) => {
+                      if (line.startsWith('```')) {
+                        inCodeBlock = !inCodeBlock;
+                        return null;
+                      }
+                      if (line.trim() === '') return <br key={j} />;
+                      if (inCodeBlock) {
+                        // Code block content — render as plain text (React escapes automatically)
+                        return (
+                          <code key={j} className="block text-xs font-mono text-foreground/60 bg-muted/50 px-1 rounded whitespace-pre-wrap break-all">
+                            {line}
+                          </code>
+                        );
+                      }
+                      // Regular text — escape HTML first, then apply bold markdown only
+                      const escaped = line
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;');
+                      const boldFormatted = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                      return (
+                        <p key={j}
+                          dangerouslySetInnerHTML={{ __html: boldFormatted }}
+                          className={line.startsWith('•') || line.startsWith('-') ? 'ml-2' : ''}
+                        />
+                      );
+                    });
+                  })()}
                 </div>
               </CardContent>
             </Card>
