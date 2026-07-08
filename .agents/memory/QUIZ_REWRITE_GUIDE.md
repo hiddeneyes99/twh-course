@@ -77,7 +77,7 @@ Wrong options plausible hone chahiye — sirf random nonsense mat likho.
 Curriculum description ke concepts count karo:
 - ~5-7 concepts → 8 questions
 - ~8-10 concepts → 10 questions  
-- ~11+ concepts → 11-12 questions
+- ~11+ concepts → 11-12 questions matlab jitna chaho tum rakh sakte ho jaise 20 me aur 25 bhi apne hisab se question rakho
 
 ## Current status
 
