@@ -97,7 +97,15 @@ Curriculum description ke concepts count karo:
 | Phase 11: Advanced | adv-01 to adv-05 | ❌ TODO |
 | Phase 12: Bug Bounty | bug-01 to bug-07 | ❌ TODO |
 
-**Next up: Phase 3 OS (os-01 to os-09), Phase 5 Web (web-01 to web-09), ya Phase 7 Ethical Hacking (eth-01 to eth-09)**
+**Next up: Phase 3 OS (os-01 to os-09), Phase 5 Web (web-01 to web-09), Phases 8–12**
+
+## Completed phases status
+
+| Phase | Modules | Status |
+|-------|---------|--------|
+| Phase 4: Security Fundamentals | sec-01 – sec-08 | ✅ Complete |
+| Phase 7: Ethical Hacking | hack-01 – hack-09 | ✅ Complete |
+| All others | Phase 1 (comp), 2 (net), 3 (os), 5 (web), 6 (cloud), 8 (ai), 9 (script), 10 (devops), 11 (incident), 12 (bugbounty) | ⏳ Still shallow (5 generic questions each) |
 
 ## Workflow — kaise continue karo
 
