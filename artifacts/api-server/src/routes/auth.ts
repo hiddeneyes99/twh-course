@@ -1,5 +1,4 @@
 import { Router } from "express";
-import bcrypt from "bcryptjs";
 import { supabase } from "../lib/supabase";
 import { db, memberPinsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
@@ -46,8 +45,7 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     return;
   }
 
-  const valid = await bcrypt.compare(pin, pinRecord.pinHash);
-  if (!valid) {
+  if (pin !== pinRecord.pinHash) {
     res.status(401).json({ error: "Galat PIN hai. Dobara try karo." });
     return;
   }
@@ -98,8 +96,7 @@ router.post("/auth/setup-pin", async (req, res): Promise<void> => {
     return;
   }
 
-  const hash = await bcrypt.hash(pin, 12);
-  await db.insert(memberPinsTable).values({ memberId: member.id, pinHash: hash });
+  await db.insert(memberPinsTable).values({ memberId: member.id, pinHash: pin });
 
   const token = signToken({
     memberId: member.id,
@@ -134,16 +131,14 @@ router.post("/auth/change-pin", requireAuth, async (req, res): Promise<void> => 
     return;
   }
 
-  const valid = await bcrypt.compare(currentPin, pinRecord.pinHash);
-  if (!valid) {
+  if (currentPin !== pinRecord.pinHash) {
     res.status(401).json({ error: "Current PIN galat hai." });
     return;
   }
 
-  const hash = await bcrypt.hash(newPin, 12);
   await db
     .update(memberPinsTable)
-    .set({ pinHash: hash, updatedAt: new Date() })
+    .set({ pinHash: newPin, updatedAt: new Date() })
     .where(eq(memberPinsTable.memberId, auth.memberId));
 
   res.json({ ok: true });
