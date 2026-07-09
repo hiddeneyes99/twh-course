@@ -35,6 +35,17 @@ export default function Curriculum() {
       return new Set();
     }
   });
+
+  // Rehydrate expanded phases when member changes (e.g. after switching accounts)
+  useEffect(() => {
+    if (!expandKey) { setExpandedPhases(new Set()); return; }
+    try {
+      const saved = localStorage.getItem(expandKey);
+      setExpandedPhases(saved ? new Set(JSON.parse(saved) as string[]) : new Set());
+    } catch {
+      setExpandedPhases(new Set());
+    }
+  }, [expandKey]);
   const [search, setSearch] = useState("");
   const [certPhase, setCertPhase] = useState<string | null>(null);
   const phaseRefs = useRef<Record<string, HTMLDivElement | null>>({}); 
@@ -51,6 +62,9 @@ export default function Curriculum() {
     setExpandedPhases(prev => {
       const next = new Set(prev);
       next.add(targetPhase);
+      if (expandKey) {
+        try { localStorage.setItem(expandKey, JSON.stringify([...next])); } catch {}
+      }
       return next;
     });
 

@@ -87,7 +87,8 @@ function AppInner() {
 
   return (
     <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-      <Router memberId={currentMemberId} />
+      {/* key forces full remount when member switches — resets RouteWatcher ref */}
+      <Router key={currentMemberId} memberId={currentMemberId} />
     </WouterRouter>
   );
 }
