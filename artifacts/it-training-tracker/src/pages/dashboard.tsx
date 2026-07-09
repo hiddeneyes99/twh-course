@@ -1,37 +1,59 @@
 import React from "react";
-import { useGetStats } from "@workspace/api-client-react";
+import {
+  useGetMemberStats,
+  useGetLeaderboard,
+  useGetMember,
+  getGetMemberStatsQueryKey,
+  getGetMemberQueryKey,
+} from "@workspace/api-client-react";
+import { useCurrentUser } from "@/context/UserContext";
 import { Progress } from "@/components/ui/progress";
-import { Users, BookOpen, TrendingUp, Trophy, ChevronRight } from "lucide-react";
+import { BookOpen, TrendingUp, Trophy, Target, ChevronRight } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
-  const { data: stats, isLoading } = useGetStats();
+  const { currentMemberId } = useCurrentUser();
 
-  if (isLoading || !stats) {
+  const memberId = currentMemberId ?? 0;
+
+  const { data: stats, isLoading: loadingStats } = useGetMemberStats(memberId, {
+    query: { enabled: !!memberId, queryKey: getGetMemberStatsQueryKey(memberId) },
+  });
+  const { data: member, isLoading: loadingMember } = useGetMember(memberId, {
+    query: { enabled: !!memberId, queryKey: getGetMemberQueryKey(memberId) },
+  });
+  const { data: leaderboard } = useGetLeaderboard();
+
+  const myRank = leaderboard?.find(e => e.memberId === memberId)?.rank ?? null;
+
+  if (loadingStats || loadingMember || !stats || !member) {
     return (
       <div className="flex items-center justify-center h-full min-h-[60vh]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-          <p className="text-sm text-muted-foreground">Loading dashboard…</p>
+          <p className="text-sm text-muted-foreground">Dashboard load ho raha hai…</p>
         </div>
       </div>
     );
   }
 
+  const remaining = stats.totalTopics - stats.totalCompleted;
+
   const statCards = [
     {
-      label: "Team Members",
-      value: stats.totalMembers,
-      icon: Users,
-      gradient: "from-violet-500 to-purple-600",
-      bg: "bg-violet-50 dark:bg-violet-950/30",
-      ring: "ring-violet-200 dark:ring-violet-800/40",
-      text: "text-violet-700 dark:text-violet-300",
+      label: "Meri Progress",
+      value: `${stats.completionPercent}%`,
+      icon: TrendingUp,
+      gradient: "from-emerald-500 to-teal-500",
+      bg: "bg-emerald-50 dark:bg-emerald-950/30",
+      ring: "ring-emerald-200 dark:ring-emerald-800/40",
+      text: "text-emerald-700 dark:text-emerald-300",
+      progress: stats.completionPercent,
     },
     {
-      label: "Total Modules",
-      value: stats.totalTopics,
+      label: "Complete Modules",
+      value: stats.totalCompleted,
       icon: BookOpen,
       gradient: "from-blue-500 to-cyan-500",
       bg: "bg-blue-50 dark:bg-blue-950/30",
@@ -39,18 +61,17 @@ export default function Dashboard() {
       text: "text-blue-700 dark:text-blue-300",
     },
     {
-      label: "Avg. Completion",
-      value: `${Math.round(stats.avgCompletionPercent)}%`,
-      icon: TrendingUp,
-      gradient: "from-emerald-500 to-teal-500",
-      bg: "bg-emerald-50 dark:bg-emerald-950/30",
-      ring: "ring-emerald-200 dark:ring-emerald-800/40",
-      text: "text-emerald-700 dark:text-emerald-300",
-      progress: stats.avgCompletionPercent,
+      label: "Baaki Modules",
+      value: remaining,
+      icon: Target,
+      gradient: "from-violet-500 to-purple-600",
+      bg: "bg-violet-50 dark:bg-violet-950/30",
+      ring: "ring-violet-200 dark:ring-violet-800/40",
+      text: "text-violet-700 dark:text-violet-300",
     },
     {
-      label: "Top Performer",
-      value: stats.topPerformer || "—",
+      label: "Meri Rank",
+      value: myRank ? `#${myRank}` : "—",
       icon: Trophy,
       gradient: "from-amber-400 to-orange-500",
       bg: "bg-amber-50 dark:bg-amber-950/30",
@@ -63,8 +84,12 @@ export default function Dashboard() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
       {/* Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Team Overview</h1>
-        <p className="text-muted-foreground mt-1 text-sm">Track your team's IT training progress across all modules.</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+          {member.name} ka Dashboard 👋
+        </h1>
+        <p className="text-muted-foreground mt-1 text-sm">
+          {stats.totalCompleted} modules complete, {remaining} baaki hain. Chalte raho! 🚀
+        </p>
       </div>
 
       {/* Stat cards */}
@@ -76,11 +101,9 @@ export default function Dashboard() {
               key={s.label}
               className={`relative rounded-2xl p-4 sm:p-5 ${s.bg} ring-1 ${s.ring} overflow-hidden`}
             >
-              {/* Decorative blob */}
               <div className={`absolute -top-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br ${s.gradient} opacity-10 blur-xl`} />
-
               <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${s.gradient} flex items-center justify-center shadow-sm mb-3`}>
-                <Icon className="w-4.5 h-4.5 text-white" />
+                <Icon className="w-4 h-4 text-white" />
               </div>
               <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider leading-none mb-1">{s.label}</p>
               <p className={`text-2xl sm:text-3xl font-bold ${s.text} leading-tight`}>{s.value}</p>
@@ -92,23 +115,21 @@ export default function Dashboard() {
         })}
       </div>
 
-      {/* Phase breakdown */}
+      {/* Phase breakdown — personal */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base sm:text-lg font-semibold text-foreground">Progress by Phase</h2>
+          <h2 className="text-base sm:text-lg font-semibold text-foreground">Mera Phase-wise Progress</h2>
           <button
             onClick={() => setLocation("/curriculum")}
             className="text-xs text-primary font-medium flex items-center gap-1 hover:underline"
           >
-            Sab dekho <ChevronRight className="w-3.5 h-3.5" />
+            Curriculum dekho <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-          {stats.phaseBreakdown.map((phase) => {
-            const pct = phase.totalTopics > 0
-              ? Math.round((phase.avgCompleted / phase.totalTopics) * 100)
-              : 0;
+          {stats.byPhase.map((phase) => {
+            const pct = phase.total > 0 ? Math.round((phase.completed / phase.total) * 100) : 0;
             const color =
               pct >= 75 ? { bar: "bg-emerald-500", badge: "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300" } :
               pct >= 40 ? { bar: "bg-amber-500",   badge: "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300" } :
@@ -128,18 +149,12 @@ export default function Dashboard() {
                     {pct}%
                   </span>
                 </div>
-
-                {/* Progress track */}
                 <div className="h-2 bg-muted rounded-full overflow-hidden mb-2">
-                  <div
-                    className={`h-full ${color.bar} rounded-full transition-all duration-500`}
-                    style={{ width: `${pct}%` }}
-                  />
+                  <div className={`h-full ${color.bar} rounded-full transition-all duration-500`} style={{ width: `${pct}%` }} />
                 </div>
-
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-muted-foreground">
-                    {phase.avgCompleted.toFixed(1)} / {phase.totalTopics} modules
+                    {phase.completed} / {phase.total} modules
                   </p>
                   <span className="text-xs text-primary/60 font-medium group-hover:text-primary transition-colors flex items-center gap-0.5">
                     Dekho <ChevronRight className="w-3 h-3" />
