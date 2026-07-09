@@ -78,7 +78,7 @@ Har topic ka content **sahi hone ke liye yeh sab hona chahiye:**
 
 ### 📏 Content length standard:
 - **Current (bad):** 50-100 words per section → student kuch nahi seekhta
-- **Target (good):** 300-600 words per section with examples, commands, tables
+- **Target (good):** 300-600 yeh isse bhi jada apne hisab se karo words per section with examples, commands, tables
 - Har section mein **kam se kam 1 real example ya code block** hona chahiye
 
 ### ❓ Quiz Question Standard:
