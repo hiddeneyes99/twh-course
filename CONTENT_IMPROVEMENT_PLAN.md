@@ -103,8 +103,8 @@ Har topic ka content **sahi hone ke liye yeh sab hona chahiye:**
 ## 📋 WORK CHECKLIST — Har Topic Ek Ek Karke
 
 ### 🔧 Pre-Work Setup (Pehle Yeh Karo)
-- [ ] `curriculum.ts` mein Phase 13 (AI & ML) ke topics add karo (ai-01 to ai-10)
-- [ ] `curriculum.ts` mein Phase 14 (AI Security & LLM Hacking) ke topics add karo (aisec-01 to aisec-08)
+- [x] `curriculum.ts` mein Phase 13 (AI & ML) ke topics add karo (ai-01 to ai-10)
+- [x] `curriculum.ts` mein Phase 14 (AI Security & LLM Hacking) ke topics add karo (aisec-01 to aisec-08)
 - [ ] `topicContent.ts` mein ai-01 to ai-06 existing content ko rewrite karo (current content bahut shallow hai)
 
 ---
