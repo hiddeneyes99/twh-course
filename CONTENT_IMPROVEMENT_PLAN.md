@@ -374,21 +374,21 @@ Yeh sab topics banana hai (curriculum.ts + topicContent.ts + staticQuizQuestions
   - Rewrite — existing bahut surface level hai
   - Add: Using LLMs for code review, threat intel summarization, report writing
 
-- [ ] **ai-07** — Data Science Fundamentals for Security *(NEW)*
+- [x] **ai-07** — Data Science Fundamentals for Security *(NEW)*
   - Pandas, NumPy basics; Log analysis with Python; Data visualization
   - Security dataset analysis — network traffic logs, authentication logs
 
-- [ ] **ai-08** — Building AI Security Tools *(NEW)*
+- [x] **ai-08** — Building AI Security Tools *(NEW)*
   - Phishing URL detector (ML model banana step by step)
   - Network anomaly detection with isolation forest
   - Malware classification with random forest
 
-- [ ] **ai-09** — MLOps & AI in Production *(NEW)*
+- [x] **ai-09** — MLOps & AI in Production *(NEW)*
   - Model deployment, API serve karna (FastAPI + ML model)
   - Model monitoring, data drift
   - AI pipeline security — poisoning attacks
 
-- [ ] **ai-10** — Generative AI & Prompt Engineering *(NEW)*
+- [x] **ai-10** — Generative AI & Prompt Engineering *(NEW)*
   - Prompt engineering techniques — zero-shot, few-shot, chain-of-thought
   - RAG (Retrieval Augmented Generation) kya hai
   - Using AI for CTF solving, security research
@@ -401,50 +401,50 @@ Yeh sab topics banana hai (curriculum.ts + topicContent.ts + staticQuizQuestions
 
 **Phase name:** `"Phase 14: AI Security & LLM Hacking"`
 
-- [ ] **aisec-01** — AI Attack Surface — Threat Model *(NEW)*
+- [x] **aisec-01** — AI Attack Surface — Threat Model *(NEW)*
   - AI systems pe threats — data poisoning, model theft, adversarial examples
   - AI security vs traditional security differences
   - Real breaches: Samsung ChatGPT data leak, Bing AI jailbreaks
 
-- [ ] **aisec-02** — Prompt Injection Attacks *(NEW)*
+- [x] **aisec-02** — Prompt Injection Attacks *(NEW)*
   - Direct prompt injection — user input se system prompt override
   - Indirect prompt injection — web content mein hidden instructions
   - Actual PoC examples — "Ignore previous instructions and..."
   - Defense: input sanitization, output filtering, privilege separation
 
-- [ ] **aisec-03** — LLM Jailbreaking Techniques *(NEW)*
+- [x] **aisec-03** — LLM Jailbreaking Techniques *(NEW)*
   - DAN (Do Anything Now), roleplay attacks, encoding tricks
   - Jailbreak history — GPT-3 se GPT-4 tak changes
   - Why jailbreaking matters for security professionals
   - Testing your own AI apps for jailbreak resistance
 
-- [ ] **aisec-04** — Data Poisoning & Model Attacks *(NEW)*
+- [x] **aisec-04** — Data Poisoning & Model Attacks *(NEW)*
   - Training data poisoning — backdoor attacks
   - Model extraction — black-box attacks
   - Membership inference attack — kya yeh data training mein tha?
   - Supply chain attacks on open-source models (HuggingFace risks)
 
-- [ ] **aisec-05** — Adversarial Machine Learning *(NEW)*
+- [x] **aisec-05** — Adversarial Machine Learning *(NEW)*
   - Adversarial examples — image ko slightly modify karo, model dhoka kha jaata hai
   - FGSM (Fast Gradient Sign Method) — simple attack
   - Adversarial patches (physical world attacks — Tesla autopilot hack)
   - Defense: adversarial training, input preprocessing
 
-- [ ] **aisec-06** — AI-Powered Offensive Security *(NEW)*
+- [x] **aisec-06** — AI-Powered Offensive Security *(NEW)*
   - FraudGPT, WormGPT, DarkBERT — malicious LLMs
   - AI-generated phishing campaigns — mass personalization
   - Automated vulnerability discovery with AI
   - AI-powered social engineering (deepfakes, voice clones)
   - India mein deepfake scam cases
 
-- [ ] **aisec-07** — Securing AI Systems — Defense *(NEW)*
+- [x] **aisec-07** — Securing AI Systems — Defense *(NEW)*
   - AI red teaming methodology
   - OWASP Top 10 for LLMs
   - AI security frameworks — NIST AI RMF, Google SAIF
   - Responsible disclosure for AI vulnerabilities
   - AI governance aur compliance
 
-- [ ] **aisec-08** — Practical AI Security Lab *(NEW)*
+- [x] **aisec-08** — Practical AI Security Lab *(NEW)*
   - GARAK framework se LLM vulnerability scan karna
   - Gandalf challenge (prompt injection game)
   - Building a safe AI chatbot — guardrails implement karna
@@ -513,11 +513,11 @@ Yeh topics `topicContent.ts` mein hain but `curriculum.ts` mein officially nahi 
 | Phase 10: Cloud Security | 5 | 0 | 5 |
 | Phase 11: Advanced Hacking | 5 | 0 | 5 |
 | Phase 12: Bug Bounty & Career | 7 | 0 | 7 |
-| Phase 13: AI & ML (NEW) | 10 | 6 | 4 |
-| Phase 14: AI Security (NEW) | 8 | 0 | 8 |
+| Phase 13: AI & ML (NEW) | 10 | 10 | 0 |
+| Phase 14: AI Security (NEW) | 8 | 8 | 0 |
 | Termux Topics | 7 | 0 | 7 |
 | Health Topics | 6 | 0 | 6 |
-| **TOTAL** | **141** | **6** | **135** |
+| **TOTAL** | **141** | **24** | **117** |
 
 ---
 
