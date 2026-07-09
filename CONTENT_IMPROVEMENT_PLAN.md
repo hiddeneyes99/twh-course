@@ -121,7 +121,7 @@ Har topic ka content **sahi hone ke liye yeh sab hona chahiye:**
   - Content fix: USB Drop Attack demo steps, Rubber Ducky kaise kaam karta hai, actual hardware IDs
   - Quiz fix: HID attacks, DMA attacks add karo
 
-- [ ] **cb-03** — Operating System Internals
+- [x] **cb-03** — Operating System Internals
   - Content fix: Ring 0-3 explain karo diagram style, actual syscall list, process injection steps
   - Quiz fix: Kernel space vs user space scenarios
 
@@ -501,7 +501,7 @@ Yeh topics `topicContent.ts` mein hain but `curriculum.ts` mein officially nahi 
 
 | Phase | Total Topics | Done | Remaining |
 |-------|-------------|------|-----------|
-| Phase 1: Computer Basics | 10 | 2 | 8 |
+| Phase 1: Computer Basics | 10 | 3 | 7 |
 | Phase 2: Networking | 12 | 0 | 12 |
 | Phase 3: Linux & Windows | 10 | 0 | 10 |
 | Phase 4: Programming | 10 | 0 | 10 |
@@ -517,9 +517,9 @@ Yeh topics `topicContent.ts` mein hain but `curriculum.ts` mein officially nahi 
 | Phase 14: AI Security (NEW) | 8 | 8 | 0 |
 | Termux Topics | 7 | 0 | 7 |
 | Health Topics | 6 | 0 | 6 |
-| **TOTAL** | **141** | **26** | **115** |
+| **TOTAL** | **141** | **27** | **114** |
 
 ---
 
-*Last updated: 2026-07-09 — cb-01, cb-02 complete*  
+*Last updated: 2026-07-09 — cb-01, cb-02, cb-03 complete*  
 *Jab koi topic complete ho, is table ki "Done" column bhi update karo.*

