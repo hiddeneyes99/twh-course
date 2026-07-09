@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   useListTopics,
   useGetMemberProgress,
@@ -25,10 +25,19 @@ export default function Curriculum() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
   const { currentMemberId } = useCurrentUser();
-  const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
+  const expandKey = currentMemberId ? `cybertrack_phases_${currentMemberId}` : null;
+  const [expandedPhases, setExpandedPhases] = useState<Set<string>>(() => {
+    if (!expandKey) return new Set();
+    try {
+      const saved = localStorage.getItem(expandKey);
+      return saved ? new Set(JSON.parse(saved) as string[]) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
   const [search, setSearch] = useState("");
   const [certPhase, setCertPhase] = useState<string | null>(null);
-  const phaseRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const phaseRefs = useRef<Record<string, HTMLDivElement | null>>({}); 
 
   const { data: topics, isLoading: isLoadingTopics } = useListTopics();
 
@@ -59,13 +68,16 @@ export default function Curriculum() {
     query: { enabled: !!currentMemberId, queryKey: getGetMemberQuizStatusesQueryKey(currentMemberId || 0) },
   });
 
-  const togglePhase = (phase: string) => {
+  const togglePhase = useCallback((phase: string) => {
     setExpandedPhases(prev => {
       const next = new Set(prev);
       if (next.has(phase)) next.delete(phase); else next.add(phase);
+      if (expandKey) {
+        try { localStorage.setItem(expandKey, JSON.stringify([...next])); } catch {}
+      }
       return next;
     });
-  };
+  }, [expandKey]);
 
   if (isLoadingTopics || !topics) {
     return (
