@@ -2,11 +2,25 @@ import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
 import {
   GraduationCap, LayoutDashboard, BookOpen, Users, Trophy,
-  LogOut, ChevronDown, Sun, Moon, Monitor, X,
+  LogOut, ChevronDown, Sun, Moon, Monitor, X, KeyRound, Loader2,
 } from "lucide-react";
 import { useCurrentUser } from "@/context/UserContext";
 import { useListMembers } from "@workspace/api-client-react";
 import { useTheme } from "next-themes";
+
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+async function callSwitch(targetMemberId: number, pin?: string, token?: string | null) {
+  const res = await fetch(`${BASE}/api/auth/switch`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ targetMemberId, pin }),
+  });
+  return res.json() as Promise<{ token?: string; memberId?: number; memberName?: string; error?: string; needsPin?: boolean }>;
+}
 
 const avatarColors = [
   "bg-violet-500", "bg-blue-500", "bg-emerald-500", "bg-amber-500", "bg-rose-500",
@@ -61,17 +75,92 @@ function ThemeToggle() {
   );
 }
 
+function PinDialog({ memberName, onConfirm, onCancel }: {
+  memberName: string;
+  onConfirm: (pin: string) => Promise<string | null>;
+  onCancel: () => void;
+}) {
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!pin) return;
+    setLoading(true);
+    setError(null);
+    const err = await onConfirm(pin);
+    if (err) { setError(err); setLoading(false); }
+  }
+
+  return (
+    <div className="px-2 py-2 border-t border-white/10 mt-1">
+      <p className="text-purple-200/70 text-[10px] px-1 mb-1.5">
+        <span className="font-semibold text-white">{memberName}</span> ka PIN daalo
+      </p>
+      <form onSubmit={handleSubmit} className="flex gap-1.5">
+        <input
+          autoFocus
+          type="password"
+          placeholder="PIN"
+          value={pin}
+          onChange={e => { setPin(e.target.value); setError(null); }}
+          className="flex-1 min-w-0 bg-white/10 border border-white/20 rounded-lg px-2.5 py-1.5 text-white text-xs placeholder:text-white/30 outline-none focus:border-purple-400/60"
+        />
+        <button
+          type="submit"
+          disabled={loading || !pin}
+          className="px-3 py-1.5 rounded-lg bg-violet-600/80 hover:bg-violet-600 text-white text-xs font-semibold disabled:opacity-50 transition-colors shrink-0"
+        >
+          {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : "OK"}
+        </button>
+        <button type="button" onClick={onCancel} className="px-2 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/60 text-xs transition-colors">
+          <X className="w-3 h-3" />
+        </button>
+      </form>
+      {error && <p className="text-red-400 text-[10px] mt-1 px-1">{error}</p>}
+    </div>
+  );
+}
+
 function UserSwitcher({ onClose }: { onClose?: () => void }) {
-  const { currentMemberId, setCurrentMemberId, clearCurrentMember } = useCurrentUser();
+  const { currentMemberId, isOwner, applySession, clearCurrentMember } = useCurrentUser();
   const { data: members } = useListMembers();
   const [showSwitch, setShowSwitch] = useState(false);
+  const [pendingMember, setPendingMember] = useState<{ id: number; name: string } | null>(null);
   const currentMember = members?.find(m => m.id === currentMemberId);
   const idx = members?.findIndex(m => m.id === currentMemberId) ?? 0;
+
+  async function handleMemberClick(m: { id: number; name: string }) {
+    if (m.id === currentMemberId) { setShowSwitch(false); onClose?.(); return; }
+    const token = localStorage.getItem("cybertrack_token");
+    if (isOwner) {
+      const result = await callSwitch(m.id, undefined, token);
+      if (result.token && result.memberId != null) {
+        applySession(result.memberId, result.token);
+        setShowSwitch(false); onClose?.();
+      }
+    } else {
+      setPendingMember(m);
+    }
+  }
+
+  async function handlePinConfirm(pin: string): Promise<string | null> {
+    if (!pendingMember) return null;
+    const token = localStorage.getItem("cybertrack_token");
+    const result = await callSwitch(pendingMember.id, pin, token);
+    if (result.token && result.memberId != null) {
+      applySession(result.memberId, result.token);
+      setShowSwitch(false); setPendingMember(null); onClose?.();
+      return null;
+    }
+    return result.error ?? "Kuch galat hua.";
+  }
 
   return (
     <div className="relative">
       <button
-        onClick={() => setShowSwitch(p => !p)}
+        onClick={() => { setShowSwitch(p => !p); setPendingMember(null); }}
         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white/10 hover:bg-white/15 transition-colors"
       >
         <div className={`w-7 h-7 rounded-full ${avatarColors[idx % avatarColors.length]} flex items-center justify-center shrink-0 text-[10px] font-bold text-white`}>
@@ -91,7 +180,7 @@ function UserSwitcher({ onClose }: { onClose?: () => void }) {
             {members?.map((m, i) => (
               <button
                 key={m.id}
-                onClick={() => { setCurrentMemberId(m.id); setShowSwitch(false); onClose?.(); }}
+                onClick={() => handleMemberClick(m)}
                 className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-colors ${
                   m.id === currentMemberId ? "bg-white/20 text-white" : "text-purple-200/70 hover:bg-white/10 hover:text-white"
                 }`}
@@ -100,9 +189,19 @@ function UserSwitcher({ onClose }: { onClose?: () => void }) {
                   {m.name.slice(0, 2).toUpperCase()}
                 </div>
                 <span className="text-xs font-medium">{m.name}</span>
-                {m.id === currentMemberId && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-purple-300" />}
+                {m.id === currentMemberId
+                  ? <div className="ml-auto w-1.5 h-1.5 rounded-full bg-purple-300" />
+                  : !isOwner && m.id !== currentMemberId && <KeyRound className="ml-auto w-3 h-3 text-white/30" />
+                }
               </button>
             ))}
+            {pendingMember && (
+              <PinDialog
+                memberName={pendingMember.name}
+                onConfirm={handlePinConfirm}
+                onCancel={() => setPendingMember(null)}
+              />
+            )}
             <div className="border-t border-white/10 mt-1 pt-1">
               <button
                 onClick={() => { clearCurrentMember(); setShowSwitch(false); onClose?.(); }}
@@ -233,8 +332,9 @@ function MobileBottomNav() {
 /* ── Mobile profile sheet ──────────────────────────────────────────── */
 function MobileProfileSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { theme, setTheme } = useTheme();
-  const { currentMemberId, setCurrentMemberId, clearCurrentMember } = useCurrentUser();
+  const { currentMemberId, isOwner, applySession, clearCurrentMember } = useCurrentUser();
   const { data: members } = useListMembers();
+  const [pendingMember, setPendingMember] = useState<{ id: number; name: string } | null>(null);
   const currentMember = members?.find(m => m.id === currentMemberId);
   const idx = members?.findIndex(m => m.id === currentMemberId) ?? 0;
   const themeOptions = [
@@ -244,6 +344,32 @@ function MobileProfileSheet({ open, onClose }: { open: boolean; onClose: () => v
   ];
 
   if (!open) return null;
+
+  async function handleMemberClick(m: { id: number; name: string }) {
+    if (m.id === currentMemberId) { onClose(); return; }
+    const token = localStorage.getItem("cybertrack_token");
+    if (isOwner) {
+      const result = await callSwitch(m.id, undefined, token);
+      if (result.token && result.memberId != null) {
+        applySession(result.memberId, result.token);
+        setPendingMember(null); onClose();
+      }
+    } else {
+      setPendingMember(m);
+    }
+  }
+
+  async function handlePinConfirm(pin: string): Promise<string | null> {
+    if (!pendingMember) return null;
+    const token = localStorage.getItem("cybertrack_token");
+    const result = await callSwitch(pendingMember.id, pin, token);
+    if (result.token && result.memberId != null) {
+      applySession(result.memberId, result.token);
+      setPendingMember(null); onClose();
+      return null;
+    }
+    return result.error ?? "Kuch galat hua.";
+  }
 
   return (
     <div className="fixed inset-0 z-50 md:hidden" onClick={onClose}>
@@ -278,7 +404,7 @@ function MobileProfileSheet({ open, onClose }: { open: boolean; onClose: () => v
             {members?.map((m, i) => (
               <button
                 key={m.id}
-                onClick={() => { setCurrentMemberId(m.id); onClose(); }}
+                onClick={() => handleMemberClick(m)}
                 className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-colors ${
                   m.id === currentMemberId ? "bg-white/18 text-white" : "text-purple-200/70 hover:bg-white/8"
                 }`}
@@ -287,10 +413,23 @@ function MobileProfileSheet({ open, onClose }: { open: boolean; onClose: () => v
                   {m.name.slice(0, 2).toUpperCase()}
                 </div>
                 <span className="text-sm font-medium">{m.name}</span>
-                {m.id === currentMemberId && <div className="ml-auto w-2 h-2 rounded-full bg-violet-300" />}
+                {m.id === currentMemberId
+                  ? <div className="ml-auto w-2 h-2 rounded-full bg-violet-300" />
+                  : !isOwner && <KeyRound className="ml-auto w-3.5 h-3.5 text-white/30" />
+                }
               </button>
             ))}
           </div>
+          {/* Mobile PIN dialog */}
+          {pendingMember && (
+            <div className="mt-3">
+              <PinDialog
+                memberName={pendingMember.name}
+                onConfirm={handlePinConfirm}
+                onCancel={() => setPendingMember(null)}
+              />
+            </div>
+          )}
         </div>
 
         {/* Theme */}

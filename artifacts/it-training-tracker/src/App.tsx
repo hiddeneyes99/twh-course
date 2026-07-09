@@ -72,14 +72,13 @@ function Router({ memberId }: { memberId: number }) {
 }
 
 function AppInner() {
-  const { currentMemberId, setCurrentMemberId, setToken } = useCurrentUser();
+  const { currentMemberId, applySession } = useCurrentUser();
 
   if (!currentMemberId) {
     return (
       <WhoAreYou
         onSelect={(id, token) => {
-          setToken(token);
-          setCurrentMemberId(id);
+          applySession(id, token);
         }}
       />
     );

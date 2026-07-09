@@ -144,4 +144,83 @@ router.post("/auth/change-pin", requireAuth, async (req, res): Promise<void> => 
   res.json({ ok: true });
 });
 
+/**
+ * POST /api/auth/switch
+ * Owner can switch to any member without PIN.
+ * Non-owner can only switch to a member by providing their PIN.
+ * Body: { targetMemberId: number, pin?: string }
+ */
+router.post("/auth/switch", requireAuth, async (req, res): Promise<void> => {
+  const { auth } = req as AuthenticatedRequest;
+  const { targetMemberId, pin } = req.body as { targetMemberId?: number; pin?: string };
+
+  if (!targetMemberId) {
+    res.status(400).json({ error: "targetMemberId chahiye." });
+    return;
+  }
+
+  // Fetch target member from Supabase
+  const { data: member, error } = await supabase
+    .from("members")
+    .select("id, name")
+    .eq("id", targetMemberId)
+    .single();
+
+  if (error || !member) {
+    res.status(404).json({ error: "Member nahi mila." });
+    return;
+  }
+
+  // Owner can switch freely
+  if (auth.isOwner) {
+    const token = signToken({
+      memberId: member.id,
+      memberName: member.name,
+      isOwner: member.name === "Twh",
+    });
+    res.json({ token, memberId: member.id, memberName: member.name });
+    return;
+  }
+
+  // Same member — allow freely
+  if (auth.memberId === targetMemberId) {
+    const token = signToken({
+      memberId: member.id,
+      memberName: member.name,
+      isOwner: false,
+    });
+    res.json({ token, memberId: member.id, memberName: member.name });
+    return;
+  }
+
+  // Non-owner switching to someone else — PIN required
+  if (!pin) {
+    res.status(403).json({ error: "Doosre account mein jaane ke liye PIN chahiye.", needsPin: true });
+    return;
+  }
+
+  const [pinRecord] = await db
+    .select()
+    .from(memberPinsTable)
+    .where(eq(memberPinsTable.memberId, targetMemberId))
+    .limit(1);
+
+  if (!pinRecord) {
+    res.status(403).json({ error: "Is member ka PIN set nahi hai.", needsPin: true });
+    return;
+  }
+
+  if (pin !== pinRecord.pinHash) {
+    res.status(401).json({ error: "Galat PIN. Dobara try karo." });
+    return;
+  }
+
+  const token = signToken({
+    memberId: member.id,
+    memberName: member.name,
+    isOwner: member.name === "Twh",
+  });
+  res.json({ token, memberId: member.id, memberName: member.name });
+});
+
 export default router;
