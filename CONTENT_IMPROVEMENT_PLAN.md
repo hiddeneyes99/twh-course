@@ -117,7 +117,7 @@ Har topic ka content **sahi hone ke liye yeh sab hona chahiye:**
   - Content fix: Fetch-Decode-Execute, Cache L1/L2/L3, BIOS/UEFI, Von Neumann, Cold Boot Attack add karo
   - Quiz fix: Content se match karo, beginner level bhi cover karo
   
-- [ ] **cb-02** — Input/Output & Peripheral Security  
+- [x] **cb-02** — Input/Output & Peripheral Security  
   - Content fix: USB Drop Attack demo steps, Rubber Ducky kaise kaam karta hai, actual hardware IDs
   - Quiz fix: HID attacks, DMA attacks add karo
 
@@ -501,7 +501,7 @@ Yeh topics `topicContent.ts` mein hain but `curriculum.ts` mein officially nahi 
 
 | Phase | Total Topics | Done | Remaining |
 |-------|-------------|------|-----------|
-| Phase 1: Computer Basics | 10 | 1 | 9 |
+| Phase 1: Computer Basics | 10 | 2 | 8 |
 | Phase 2: Networking | 12 | 0 | 12 |
 | Phase 3: Linux & Windows | 10 | 0 | 10 |
 | Phase 4: Programming | 10 | 0 | 10 |
@@ -517,9 +517,9 @@ Yeh topics `topicContent.ts` mein hain but `curriculum.ts` mein officially nahi 
 | Phase 14: AI Security (NEW) | 8 | 8 | 0 |
 | Termux Topics | 7 | 0 | 7 |
 | Health Topics | 6 | 0 | 6 |
-| **TOTAL** | **141** | **25** | **116** |
+| **TOTAL** | **141** | **26** | **115** |
 
 ---
 
-*Last updated: 2026-07-09 — cb-01 complete*  
+*Last updated: 2026-07-09 — cb-01, cb-02 complete*  
 *Jab koi topic complete ho, is table ki "Done" column bhi update karo.*

