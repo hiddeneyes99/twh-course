@@ -133,7 +133,7 @@ Har topic ka content **sahi hone ke liye yeh sab hona chahiye:**
   - Content fix: Conversion tables, little-endian example with actual memory dump, XOR cipher demo
   - Quiz fix: Actual conversion problems, endianness in buffer overflow context
 
-- [ ] **cb-06** — Encoding, Hashing & Cryptography Basics
+- [x] **cb-06** — Encoding, Hashing & Cryptography Basics
   - Content fix: Base64 decode malware payload example, SHA-256 actual output, rainbow table attack steps
   - Quiz fix: Encoding vs encryption scenarios, hash type identification
 
@@ -501,7 +501,7 @@ Yeh topics `topicContent.ts` mein hain but `curriculum.ts` mein officially nahi 
 
 | Phase | Total Topics | Done | Remaining |
 |-------|-------------|------|-----------|
-| Phase 1: Computer Basics | 10 | 5 | 5 |
+| Phase 1: Computer Basics | 10 | 6 | 4 |
 | Phase 2: Networking | 12 | 0 | 12 |
 | Phase 3: Linux & Windows | 10 | 0 | 10 |
 | Phase 4: Programming | 10 | 0 | 10 |
@@ -517,9 +517,9 @@ Yeh topics `topicContent.ts` mein hain but `curriculum.ts` mein officially nahi 
 | Phase 14: AI Security (NEW) | 8 | 8 | 0 |
 | Termux Topics | 7 | 0 | 7 |
 | Health Topics | 6 | 0 | 6 |
-| **TOTAL** | **141** | **29** | **112** |
+| **TOTAL** | **141** | **30** | **111** |
 
 ---
 
-*Last updated: 2026-07-09 — cb-01 to cb-05 complete*  
+*Last updated: 2026-07-09 — cb-01 to cb-06 complete*  
 *Jab koi topic complete ho, is table ki "Done" column bhi update karo.*
