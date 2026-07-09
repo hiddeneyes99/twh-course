@@ -12,6 +12,7 @@ import {
   Trophy,
   BookOpen,
   RotateCcw,
+  AlertCircle,
 } from "lucide-react";
 import { staticQuizQuestions } from "@/data/staticQuizQuestions";
 
@@ -23,7 +24,7 @@ interface QuizModalProps {
   onPassed: () => void;
 }
 
-type Phase = "quiz" | "submitting" | "result";
+type Phase = "quiz" | "submitting" | "result" | "error";
 
 interface AnswerState {
   selected: number | null;
@@ -118,12 +119,7 @@ export default function QuizModal({ topicId, topicTitle, memberId, onClose, onPa
           }
         },
         onError: () => {
-          setResult({ passed, score, totalQuestions: totalQ, percentScore, feedback });
-          setPhase("result");
-          if (passed) {
-            queryClient.invalidateQueries({ queryKey: getGetMemberProgressQueryKey(memberId) });
-            onPassed();
-          }
+          setPhase("error");
         },
       }
     );
@@ -148,6 +144,57 @@ export default function QuizModal({ topicId, topicTitle, memberId, onClose, onPa
         <div className="flex flex-col items-center justify-center py-16 gap-4">
           <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
           <p className="text-sm text-muted-foreground">Results calculate ho rahe hain…</p>
+        </div>
+      </ModalShell>
+    );
+  }
+
+  if (phase === "error") {
+    return (
+      <ModalShell onClose={onClose}>
+        <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
+          <AlertCircle className="w-10 h-10 text-red-500" />
+          <p className="font-semibold text-foreground">Submit Nahi Ho Saka</p>
+          <p className="text-sm text-muted-foreground">
+            Server se connection mein problem aayi. Tumhare answers safe hain — dobara try karo.
+          </p>
+          <div className="flex gap-3 pt-2">
+            <Button variant="outline" onClick={onClose}>Band Karo</Button>
+            <Button
+              onClick={() => {
+                setPhase("submitting");
+                const finalAnswers = answerStates.map((a, i) => {
+                  if (a.firstAttemptCorrect === true) return questions[i].correctIndex;
+                  return a.wrongAttempts.length > 0 ? a.wrongAttempts[0] : -1;
+                });
+                const score = answerStates.filter(a => a.firstAttemptCorrect).length;
+                const percentScore = Math.round((score / totalQ) * 100);
+                const passed = percentScore >= 70;
+                const feedback = questions.map((q, i) => ({
+                  questionIndex: i,
+                  correct: answerStates[i].firstAttemptCorrect === true,
+                  correctOption: q.correctIndex,
+                  explanation: q.explanation,
+                }));
+                submitQuiz.mutate(
+                  { data: { memberId, topicId, answers: finalAnswers } },
+                  {
+                    onSuccess: () => {
+                      setResult({ passed, score, totalQuestions: totalQ, percentScore, feedback });
+                      setPhase("result");
+                      if (passed) {
+                        queryClient.invalidateQueries({ queryKey: getGetMemberProgressQueryKey(memberId) });
+                        onPassed();
+                      }
+                    },
+                    onError: () => setPhase("error"),
+                  }
+                );
+              }}
+            >
+              <RotateCcw className="w-4 h-4 mr-1.5" /> Dobara Try Karo
+            </Button>
+          </div>
         </div>
       </ModalShell>
     );
