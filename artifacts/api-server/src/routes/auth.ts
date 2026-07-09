@@ -1,7 +1,5 @@
 import { Router } from "express";
 import { supabase } from "../lib/supabase";
-import { db, memberPinsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
 import { signToken, requireAuth, type AuthenticatedRequest } from "../lib/auth";
 
 const router = Router();
@@ -19,25 +17,25 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   }
 
   // Verify member exists in Supabase
-  const { data: member, error } = await supabase
+  const { data: member, error: memberError } = await supabase
     .from("members")
     .select("id, name")
     .eq("id", memberId)
     .single();
 
-  if (error || !member) {
+  if (memberError || !member) {
     res.status(404).json({ error: "Member nahi mila." });
     return;
   }
 
-  // Fetch PIN from Replit DB (drizzle)
-  const [pinRecord] = await db
-    .select()
-    .from(memberPinsTable)
-    .where(eq(memberPinsTable.memberId, memberId))
-    .limit(1);
+  // Fetch PIN from Supabase
+  const { data: pinRecord, error: pinError } = await supabase
+    .from("member_pins")
+    .select("pin_hash")
+    .eq("member_id", memberId)
+    .single();
 
-  if (!pinRecord) {
+  if (pinError || !pinRecord) {
     res.status(403).json({
       error: "PIN abhi set nahi hua. Pehle apna PIN setup karo.",
       needsSetup: true,
@@ -45,7 +43,7 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     return;
   }
 
-  if (pin !== pinRecord.pinHash) {
+  if (pin !== pinRecord.pin_hash) {
     res.status(401).json({ error: "Galat PIN hai. Dobara try karo." });
     return;
   }
@@ -70,24 +68,24 @@ router.post("/auth/setup-pin", async (req, res): Promise<void> => {
     return;
   }
 
-  // Verify member exists in Supabase
-  const { data: member, error } = await supabase
+  // Verify member exists
+  const { data: member, error: memberError } = await supabase
     .from("members")
     .select("id, name")
     .eq("id", memberId)
     .single();
 
-  if (error || !member) {
+  if (memberError || !member) {
     res.status(404).json({ error: "Member nahi mila." });
     return;
   }
 
   // Check if PIN already set
-  const [existing] = await db
-    .select()
-    .from(memberPinsTable)
-    .where(eq(memberPinsTable.memberId, memberId))
-    .limit(1);
+  const { data: existing } = await supabase
+    .from("member_pins")
+    .select("member_id")
+    .eq("member_id", memberId)
+    .single();
 
   if (existing) {
     res.status(409).json({
@@ -96,7 +94,14 @@ router.post("/auth/setup-pin", async (req, res): Promise<void> => {
     return;
   }
 
-  await db.insert(memberPinsTable).values({ memberId: member.id, pinHash: pin });
+  const { error: insertError } = await supabase
+    .from("member_pins")
+    .insert({ member_id: member.id, pin_hash: pin });
+
+  if (insertError) {
+    res.status(500).json({ error: "PIN save nahi hua. Dobara try karo." });
+    return;
+  }
 
   const token = signToken({
     memberId: member.id,
@@ -120,26 +125,31 @@ router.post("/auth/change-pin", requireAuth, async (req, res): Promise<void> => 
     return;
   }
 
-  const [pinRecord] = await db
-    .select()
-    .from(memberPinsTable)
-    .where(eq(memberPinsTable.memberId, auth.memberId))
-    .limit(1);
+  const { data: pinRecord, error: pinError } = await supabase
+    .from("member_pins")
+    .select("pin_hash")
+    .eq("member_id", auth.memberId)
+    .single();
 
-  if (!pinRecord) {
+  if (pinError || !pinRecord) {
     res.status(404).json({ error: "PIN record nahi mila." });
     return;
   }
 
-  if (currentPin !== pinRecord.pinHash) {
+  if (currentPin !== pinRecord.pin_hash) {
     res.status(401).json({ error: "Current PIN galat hai." });
     return;
   }
 
-  await db
-    .update(memberPinsTable)
-    .set({ pinHash: newPin, updatedAt: new Date() })
-    .where(eq(memberPinsTable.memberId, auth.memberId));
+  const { error: updateError } = await supabase
+    .from("member_pins")
+    .update({ pin_hash: newPin, updated_at: new Date().toISOString() })
+    .eq("member_id", auth.memberId);
+
+  if (updateError) {
+    res.status(500).json({ error: "PIN update nahi hua. Dobara try karo." });
+    return;
+  }
 
   res.json({ ok: true });
 });
@@ -160,13 +170,13 @@ router.post("/auth/switch", requireAuth, async (req, res): Promise<void> => {
   }
 
   // Fetch target member from Supabase
-  const { data: member, error } = await supabase
+  const { data: member, error: memberError } = await supabase
     .from("members")
     .select("id, name")
     .eq("id", targetMemberId)
     .single();
 
-  if (error || !member) {
+  if (memberError || !member) {
     res.status(404).json({ error: "Member nahi mila." });
     return;
   }
@@ -199,18 +209,18 @@ router.post("/auth/switch", requireAuth, async (req, res): Promise<void> => {
     return;
   }
 
-  const [pinRecord] = await db
-    .select()
-    .from(memberPinsTable)
-    .where(eq(memberPinsTable.memberId, targetMemberId))
-    .limit(1);
+  const { data: pinRecord, error: pinError } = await supabase
+    .from("member_pins")
+    .select("pin_hash")
+    .eq("member_id", targetMemberId)
+    .single();
 
-  if (!pinRecord) {
+  if (pinError || !pinRecord) {
     res.status(403).json({ error: "Is member ka PIN set nahi hai.", needsPin: true });
     return;
   }
 
-  if (pin !== pinRecord.pinHash) {
+  if (pin !== pinRecord.pin_hash) {
     res.status(401).json({ error: "Galat PIN. Dobara try karo." });
     return;
   }
