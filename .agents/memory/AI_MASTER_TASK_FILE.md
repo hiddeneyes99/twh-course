@@ -32,15 +32,15 @@
 
 | # | Task | Type | Status |
 |---|------|------|--------|
-| 1 | net-02 to net-12 quiz rewrite | Quiz | ❌ TODO |
-| 2 | ai-01 to ai-06 quiz rewrite | Quiz | ❌ TODO |
-| 3 | health-01 to health-06 quiz rewrite | Quiz | ❌ TODO |
-| 4 | ai-02 content fix (code explanation) | Content | ❌ TODO |
-| 5 | ai-03 content fix (real data + explanation) | Content | ❌ TODO |
-| 6 | Naya topic: Indian Cybersecurity Laws | New Topic | ❌ TODO |
-| 7 | Naya topic: Git & GitHub Basics | New Topic | ❌ TODO |
-| 8 | Naya topic: UPI & Digital Payment Security | New Topic | ❌ TODO |
-| 9 | Naya topic: Zero Budget Home Lab (Indian Student) | New Topic | ❌ TODO |
+| 1 | net-02 to net-12 quiz rewrite | Quiz | ✅ DONE |
+| 2 | ai-01 to ai-06 quiz rewrite | Quiz | ✅ DONE |
+| 3 | health-01 to health-06 quiz rewrite | Quiz | ✅ DONE |
+| 4 | ai-02 content fix (code explanation) | Content | ✅ DONE |
+| 5 | ai-03 content fix (real data + explanation) | Content | ✅ DONE |
+| 6 | Naya topic: Indian Cybersecurity Laws | New Topic | ✅ DONE |
+| 7 | Naya topic: Git & GitHub Basics | New Topic | ✅ DONE |
+| 8 | Naya topic: UPI & Digital Payment Security | New Topic | ✅ DONE |
+| 9 | Naya topic: Zero Budget Home Lab (Indian Student) | New Topic | ✅ DONE |
 
 ---
 
