@@ -113,7 +113,7 @@ Har topic ka content **sahi hone ke liye yeh sab hona chahiye:**
 
 **Improve karne ka target:** Curriculum description match karna, hands-on exercises add karna, real India examples.
 
-- [ ] **cb-01** — Computer Architecture & Components
+- [x] **cb-01** — Computer Architecture & Components
   - Content fix: Fetch-Decode-Execute, Cache L1/L2/L3, BIOS/UEFI, Von Neumann, Cold Boot Attack add karo
   - Quiz fix: Content se match karo, beginner level bhi cover karo
   
@@ -501,7 +501,7 @@ Yeh topics `topicContent.ts` mein hain but `curriculum.ts` mein officially nahi 
 
 | Phase | Total Topics | Done | Remaining |
 |-------|-------------|------|-----------|
-| Phase 1: Computer Basics | 10 | 0 | 10 |
+| Phase 1: Computer Basics | 10 | 1 | 9 |
 | Phase 2: Networking | 12 | 0 | 12 |
 | Phase 3: Linux & Windows | 10 | 0 | 10 |
 | Phase 4: Programming | 10 | 0 | 10 |
@@ -517,9 +517,9 @@ Yeh topics `topicContent.ts` mein hain but `curriculum.ts` mein officially nahi 
 | Phase 14: AI Security (NEW) | 8 | 8 | 0 |
 | Termux Topics | 7 | 0 | 7 |
 | Health Topics | 6 | 0 | 6 |
-| **TOTAL** | **141** | **24** | **117** |
+| **TOTAL** | **141** | **25** | **116** |
 
 ---
 
-*Last updated: 2026-07-09*  
+*Last updated: 2026-07-09 — cb-01 complete*  
 *Jab koi topic complete ho, is table ki "Done" column bhi update karo.*

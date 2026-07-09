@@ -25,33 +25,354 @@ export const topicContent: Record<string, TopicContent> = {
   // ─── PHASE 1: COMPUTER BASICS ───────────────────────────────────────────────
 
   "cb-01": {
-    title: "What is a Computer?",
-    image: "https://images.unsplash.com/photo-1593640408182-31c228b24f19?w=900&fit=crop&auto=format",
-    tagline: "Woh magic box jo sab kuch kar sakta hai — samjho asaan bhasha mein!",
+    title: "Computer Architecture & Components",
+    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=900&fit=crop&auto=format",
+    tagline: "CPU andar se kya karta hai, cache kya hoti hai, BIOS/UEFI kya hai — hacker ki nazar se samjho!",
     sections: [
       {
-        heading: "🖥️ Computer Kya Hota Hai?",
-        content: `Computer ek electronic machine hai jo data ko process karke result deta hai. Simple bhasha mein samjho — jab tum calculator mein 2+2 type karte ho aur 4 aata hai, yahi basic principle computer mein bhi kaam karta hai, lekin million guna zyada powerful tarike se.\n\nComputer char kaam karta hai:\n• Input lena (keyboard, mouse se)\n• Data process karna (CPU ke through)\n• Result output dena (screen, printer pe)\n• Data store karna (hard disk mein)\n\nAaj kal computer sirf desktop nahi hota — tumhara smartphone bhi ek computer hai, smartwatch bhi, aur car ka dashboard bhi!`,
+        heading: "🧠 Von Neumann Architecture — Computer Ka Blueprint",
+        content: `Aaj ke almost har computer ka design ek hi blueprint follow karta hai — Von Neumann Architecture, jo John von Neumann ne 1945 mein propose ki thi. Yeh architecture samajhna cybersecurity ke liye foundational hai kyunki jitne bhi classic exploits hain — buffer overflow, shellcode injection, ROP chains — sab isi design ki limitations exploit karte hain.
+
+**Von Neumann ke 4 main components:**
+
+| Component | Kaam kya hai | Security Relevance |
+|-----------|-------------|-------------------|
+| CPU (Processor) | Instructions execute karta hai | Spectre/Meltdown jaise attacks yahan hote hain |
+| Memory (RAM) | Data aur instructions store karta hai | Buffer overflow, heap spray, shellcode injection |
+| Input/Output | Keyboard, disk, network se data aata/jaata hai | Side-channel attacks, HID attacks |
+| Bus (wires) | Sab components ko connect karta hai | Rowhammer (bus pe repeated access) |
+
+**Von Neumann Bottleneck — ek important limitation:**
+CPU aur RAM ek hi shared bus se connected hote hain. Matlab ek waqt pe ya toh instruction fetch ho sakta hai ya data — dono simultaneously nahi. Yahi "Von Neumann Bottleneck" hai.
+
+Modern CPUs isse solve karte hain:
+- **Cache memory** — frequently used data CPU ke andar hi rakho
+- **Prefetching** — CPU predict karta hai kya chahiye hoga aur pehle se fetch kar leta hai
+- **Out-of-order execution** — instructions ko sequence se nahi, jo ready ho woh pehle execute karo
+
+**Rowhammer Attack — bottleneck exploit:**
+DRAM bus pe ek memory row ko repeatedly (90 million+ times/second) access karo. Adjacent rows mein electrical interference se bits flip ho jaate hain — 0 becomes 1. 2015 mein researchers ne Google Chrome pe sirf JavaScript se kernel privileges gain kar li thi isi technique se. Yeh pure hardware design ka exploit hai — koi software fix completely protect nahi kar sakta.`,
       },
       {
-        heading: "⚙️ Computer Ke Main Parts",
-        content: `Computer ke andar kya hota hai, yeh samjna zaroori hai:\n\n**CPU (Central Processing Unit)** — Computer ka "brain". Yeh sab calculations karta hai. Jitna fast CPU, utna fast computer. Intel aur AMD dono popular CPU brands hain.\n\n**RAM (Random Access Memory)** — Computer ki "short-term memory". Jab tum koi app kholte ho, woh RAM mein load hota hai. Laptop band karo — RAM khali ho jaati hai. Isliye RAM mein koi permanent data nahi rehta.\n\n**Storage (HDD/SSD)** — Computer ki "long-term memory". Tumhari photos, videos, documents yahan stored rehte hain. SSD (Solid State Drive) HDD se fast hoti hai.\n\n**Motherboard** — Yeh sab parts ko ek saath connect karta hai. Jaise ek city mein roads — sab jagah path banata hai.\n\n**GPU (Graphics Card)** — Graphics process karta hai. Gaming aur video editing mein khaas kaam aata hai.`,
+        heading: "⚡ Fetch-Decode-Execute Cycle — CPU Kaise Sochta Hai",
+        content: `CPU har kaam ek simple 3-step loop mein karta hai, baar baar, billions of times per second. Isko samjho toh exploit development aur reverse engineering bahut easier ho jaata hai.
+
+**Step 1: FETCH**
+CPU Program Counter (PC) register mein dekha jaata hai — yeh batata hai ki RAM mein kahan se agla instruction laana hai. Instruction RAM se CPU ke Instruction Register (IR) mein copy ho jaata hai. PC automatically increment ho jaata hai — agla instruction ke liye ready.
+
+**Step 2: DECODE**
+IR mein jo binary instruction hai, CPU ka Control Unit usse samajhta hai — "yeh ADD hai, yeh MOV hai, yeh JMP hai." Complex instructions ko simpler micro-operations mein tod deta hai.
+
+**Step 3: EXECUTE**
+ALU (Arithmetic Logic Unit) actual kaam karta hai — addition, comparison, logical operations. Result register mein store hota hai ya memory mein wapas jaata hai.
+
+**Hacking Connection — Instruction Pointer Control:**
+Buffer overflow attack ka goal hota hai EIP (32-bit) ya RIP (64-bit) register — yani Program Counter — ko control karna. Jab tum stack overflow karte ho aur return address overwrite karte ho, actually tum CPU ko bata rahe ho ki next "FETCH" kahan se karo. Woh address tumhara shellcode hoga — aur CPU tumhara code execute karega!
+
+\`\`\`
+Normal execution:        Overflow attack:
+[Program Counter] → 0x401234 (legit code)    [Program Counter] → 0xbffff123 (your shellcode)
+     ↓                                               ↓
+  FETCH instruction                           FETCH shellcode bytes
+     ↓                                               ↓
+  DECODE                                      DECODE (attacker's instructions)
+     ↓                                               ↓
+  EXECUTE (safe code)                         EXECUTE (reverse shell, etc.)
+\`\`\`
+
+**Modern CPU Protections:**
+- **ASLR** (Address Space Layout Randomization) — shellcode ka address predict nahi kar sakte
+- **NX/DEP** (No-Execute bit) — data memory mein code execute nahi hoga  
+- **Stack Canaries** — return address se pehle ek secret value, overflow detect karne ke liye
+- **CFI** (Control Flow Integrity) — valid jump targets restrict karta hai`,
       },
       {
-        heading: "🌍 Computer Ka Itihaas — Briefly",
-        content: `1940s mein pehla computer ENIAC tha — poora kamra bhar deta tha aur sirf simple calculations karta tha! Us time ek computer ka weight 30 ton tha.\n\nPhir slowly computers chote hote gaye:\n• 1970s: Personal computers aaye (Apple, IBM)\n• 1990s: Internet ka zamana aaya\n• 2000s: Laptops common ho gaye\n• 2007: Smartphone revolution (iPhone launch)\n• Ab: Wearables, AI, cloud computing\n\nAaj tumhare haath mein jo phone hai, woh 1969 mein moon pe bheje Apollo mission ke computer se million guna powerful hai! Yeh hai technology ki taakat.`,
+        heading: "🏎️ Cache Memory L1/L2/L3 — Speed aur Secrets",
+        content: `Ek badi problem hai modern computers mein: CPU GHz speed pe kaam karta hai, lekin RAM access mein ~70-100 nanoseconds lagte hain — CPU ke liye yeh eternity hai! Cache memory iss problem ko solve karti hai — aur kuch fascinating aur dangerous attacks ka foundation bhi banti hai.
+
+**Cache Hierarchy — Jitna Paas, Utna Fast:**
+
+| Cache Level | Location | Speed | Size | Kaun use karta hai |
+|-------------|----------|-------|------|-------------------|
+| L1 Cache | CPU core ke andar | ~1 nanosecond | 32–64 KB per core | Sirf woh core |
+| L2 Cache | Core ke theek paas | ~5 nanoseconds | 256 KB – 1 MB | Woh core |
+| L3 Cache | Chip pe, shared | ~20 nanoseconds | 4–32 MB | Sab cores share karte hain |
+| RAM (DRAM) | Motherboard pe | ~70–100 ns | 8–64 GB typical | OS manage karta hai |
+| SSD/NVMe | Separate chip | ~100 microseconds | 256 GB – 4 TB | OS + File system |
+
+**Cache Miss vs Cache Hit:**
+- **Cache Hit** — data already cache mein hai → instant, koi delay nahi
+- **Cache Miss** — cache mein nahi → RAM se laana padega → ~70ns wait
+- Modern programs ka ~99% time "cache miss" se hi waste hota hai
+
+**Spectre & Meltdown — Cache Timing Side-Channel Attacks (2018):**
+Yeh attacks cache timing measure karke secret data read karte hain — koi permission nahi chahiye!
+
+Attack ka idea (simplified):
+\`\`\`
+1. CPU out-of-order execution mein secret memory speculatively access karta hai
+   (agar woh access "not allowed" ho toh bhi)
+2. Secret byte ke based pe koi array element cache mein load hota hai
+3. Attacker measure karta hai: kaunsa array element fast access hota hai?
+   → Fast = cached = secret byte woh value thi!
+4. Repeat 1024 bytes ke liye → kernel memory poori read ho gayi!
+\`\`\`
+
+Spectre/Meltdown ne 2018 mein duniya ke almost 95%+ computers affect kiye — Intel, AMD, ARM sab. Intel stock 10% gir gaya announcement ke din. Fix: OS aur firmware patches, performance 5-30% slow hua kuch workloads pe.
+
+**Practical tip:** CPU-Z software se apne computer ki L1/L2/L3 cache dekho — Windows pe free mein.`,
       },
       {
-        heading: "💡 Real World Mein Computer Ka Role",
-        content: `Sochte hoge — "yeh basic knowledge kya kaam aayegi?" Aao dekhen:\n\n**Hospitals** — Patient ka data, X-ray analysis, operation machines — sab computers se chal rahe hain.\n\n**Banks** — Tumhara bank balance, transactions, UPI payments — pure computer systems pe depend hain.\n\n**Traffic Signals** — Smart cities mein traffic ka pattern dekh ke automatically signals change hote hain.\n\n**Aviation** — Airplane ka autopilot system basically ek powerful computer hai jo har second 1000+ calculations karta hai.\n\nCybersecurity professional banne ke liye computer basics samajhna MUST hai — kyunki jab tum attack ya defense karte ho, tum hardware aur software dono se deal karte ho.`,
+        heading: "💾 RAM — Volatile Memory aur Cold Boot Attack",
+        content: `RAM (Random Access Memory) "volatile" hoti hai — matlab power band karo, data gone. Ya... really?
+
+**RAM Kaise Kaam Karti Hai — DRAM Internals:**
+RAM mein billions of tiny capacitors hote hain. Charged = 1, Discharged = 0. Lekin problem: capacitors slowly discharge ho jaate hain! Isliye RAM ko har ~64 milliseconds mein "refresh" karna padta hai — controller har row ko read karke wapas write karta hai charge maintain karne ke liye. Isi liye isko DRAM — Dynamic RAM — kehte hain.
+
+**Volatile Memory Mein Kya Hota Hai?**
+Running system mein RAM mein hota hai:
+- Full disk encryption keys (BitLocker, VeraCrypt, FileVault)
+- Browser session cookies aur passwords (decrypted)
+- SSH private keys (loaded mein)
+- Database credentials (application memory mein)
+- Running processes ki memory — sab kuch
+
+**Cold Boot Attack — "Freeze Karo, Dump Karo":**
+Yeh attack 2008 mein Princeton University ne discover kiya aur aaj bhi partially effective hai.
+
+\`\`\`
+Step 1: Target laptop pe full disk encryption chal rahi hai (BitLocker/VeraCrypt)
+        Lagta hai data safe hai — wrong!
+
+Step 2: Attacker RAM chips ko -60°C se -196°C (liquid nitrogen) pe cool karta hai
+        → Capacitors aur slowly discharge hote hain
+        → Data retention 10 seconds se 10+ minutes tak badhti hai!
+
+Step 3: System hard reboot — ya RAM chips physically nikaal ke doosre machine mein daalo
+
+Step 4: Custom bootable USB se memory dump karo
+        → Saari RAM dump ek file mein aa gayi
+
+Step 5: Dump analyze karo → AES encryption keys search karo
+        → BitLocker ki 256-bit key mil gayi!
+        → Ab disk decrypt karo bina password ke
+\`\`\`
+
+**Real-World Example:** 2008 mein researchers ne yeh attack 5 alag encryption softwares pe demo kiya — BitLocker, FileVault, TrueCrypt, dm-crypt, all bypassed. Ek laptop pe unhone 2°C regular freezer spray use kiya aur keys mil gayi.
+
+**Defense Methods:**
+- **TPM (Trusted Platform Module)** — encryption key RAM se seedha nahi, TPM chip se aati hai measured boot ke baad
+- **Memory scrubbing on shutdown** — OS RAM wipe karta hai graceful shutdown pe
+- **Encrypted swap** — pagefile mein bhi keys ka residue nahi jaana chahiye
+- **BIOS boot order lock** — USB se boot hi nahi kar sakenge
+- Physical security — laptop unattended mat chhodna (Evil Maid Attack)`,
+      },
+      {
+        heading: "🔧 BIOS vs UEFI — Computer Ka Pehla Kadam",
+        content: `Jab tum power button dabate ho, OS se pehle ek aur software run hota hai — BIOS ya UEFI. Yeh firmware hai — motherboard ke ROM chip pe store hota hai. Aur yeh cybersecurity ke liye ek bahut critical attack surface hai.
+
+**BIOS (Basic Input/Output System) — Old School:**
+- 1981 se use ho raha hai, IBM PC ke saath introduce hua
+- 16-bit code, maximum 1 MB mein run karta hai
+- Simple text-based menu
+- Maximum 2.2 TB disk support (MBR partition table)
+- Koi security features nahi — koi bhi boot sector mein code likh sakta tha
+
+**UEFI (Unified Extensible Firmware Interface) — Modern:**
+- 2007 se modern computers mein
+- 32/64-bit code, full networking bhi ho sakti hai firmware level pe
+- GUI interface, mouse support
+- 9.4 ZB disk support (GPT partition table)
+- **Secure Boot** — game changer for security
+
+**UEFI Secure Boot — Kaise Kaam Karta Hai:**
+\`\`\`
+Power ON
+    ↓
+UEFI firmware start hota hai
+    ↓
+Bootloader ka digital signature check karta hai
+(signature UEFI database mein stored hoti hai)
+    ↓
+Valid signature? → OS load karo → Normal boot
+Invalid/missing?  → BLOCK → Error message
+    ↓
+OS kernel bhi verify hota hai
+    ↓
+Drivers bhi signed hone chahiye
+\`\`\`
+
+**Boot Sequence Complete:**
+1. POST (Power-On Self Test) — hardware check
+2. UEFI firmware initialize — CPU, RAM, storage init
+3. Boot device select (SSD, USB, network)
+4. Bootloader load (Windows: bootmgr, Linux: GRUB)
+5. OS kernel load
+6. Drivers load
+7. Login screen
+
+**Firmware Attacks — Sabse Dangerous Malware:**
+UEFI/firmware malware OS ke "neeche" rahta hai — Ring -1 ya SMM (System Management Mode) mein. Isko destroy karna almost impossible hai:
+
+- OS reinstall karo → firmware virus survive karta hai ✓
+- Disk format karo → still there ✓
+- RAM change karo → still there ✓
+- Antivirus scan karo → usually can't even see it ✓
+
+**Real Cases:**
+- **NSA Equation Group (2015 leak):** Hard drive firmware mein malware — Western Digital, Seagate, Hitachi sab affected. Reprogrammed firmware survive disk formatting aur OS reinstall. 
+- **LoJax (2018):** ESET ne discover kiya — UEFI rootkit jo real-world attack mein use hua. APT28 (Russia-linked) group ka kaam. System reinstall ke baad bhi persist karta tha.
+- **MoonBounce (2022):** Kaspersky ne discover kiya — SPI flash chip pe directly flash hota tha, motherboard replace karne ke baad bhi survive karta.
+
+**Protection:**
+- UEFI Secure Boot ON rakho hamesha
+- BIOS/UEFI password set karo
+- Firmware updates regularly karo (manufacturers security patches dete hain)
+- TPM enable karo — measured boot karta hai, tampering detect karta hai
+- Physical access restrict karo — CMOS battery nikaal ke BIOS reset ho sakti hai`,
+      },
+      {
+        heading: "🔢 32-bit vs 64-bit — Architecture Ka Farak",
+        content: `"64-bit processor" sunne mein cool lagta hai — lekin actually kya matlab hai iska? Aur cybersecurity ke liye iska kya farak padta hai?
+
+**Fundamental Farak — Address Space:**
+
+| Architecture | Max RAM | Memory addresses | Registers |
+|-------------|---------|-----------------|-----------|
+| 32-bit (x86) | 4 GB | 2³² = ~4.2 billion | EAX, EBX, ECX... |
+| 64-bit (x86-64) | 16 Exabytes (theoretical) | 2⁶⁴ = 18.4 quintillion | RAX, RBX, RCX... |
+
+4 GB maximum in 32-bit: aaj kal ek browser tab hi 2+ GB RAM use kar leta hai! 64-bit pe modern Windows 10 128 GB+ RAM support karta hai.
+
+**Register Names Change Hote Hain — Exploit Writing Mein Important:**
+\`\`\`
+32-bit register:  EAX  EBX  ECX  EDX  ESP  EBP  EIP
+64-bit register:  RAX  RBX  RCX  RDX  RSP  RBP  RIP
+                  R8   R9   R10  R11  R12  R13  R14  R15  (extra registers)
+\`\`\`
+EIP → 64-bit mein RIP (Return Instruction Pointer) — overflow attacks mein yahi target hota hai.
+
+**Function Calling Convention — Exploit Development Angle:**
+
+32-bit (x86) mein function arguments stack pe jaate hain:
+\`\`\`
+push arg3
+push arg2  
+push arg1
+call function   ; arguments stack se padhe jaate hain
+\`\`\`
+
+64-bit (x86-64, Linux) mein pehle 6 arguments registers mein:
+\`\`\`
+RDI = arg1, RSI = arg2, RDX = arg3, RCX = arg4, R8 = arg5, R9 = arg6
+call function   ; 7th argument ke baad stack pe jaate hain
+\`\`\`
+
+ROP (Return-Oriented Programming) chains 64-bit mein alag hoti hain kyunki register control karna padta hai stack se pehle.
+
+**ASLR + 64-bit = Attacker ki Problem:**
+32-bit ASLR: sirf ~16 bits entropy → attacker brute force kar sakta tha (65,536 tries)
+64-bit ASLR: 40+ bits entropy → 2⁴⁰ = 1 trillion+ tries → practically unbreakable via brute force
+
+**GPU Password Cracking — Why It Matters:**
+Modern CPUs: 4-32 powerful cores → sequential computation good
+GPUs: 3000-16000 small cores → parallel computation specialist
+
+Hashcat (password cracking tool) GPU use karta hai:
+\`\`\`
+MD5 cracking speed:
+  CPU (Intel i9): ~1-2 billion hashes/second
+  GPU (RTX 4090): ~164 billion hashes/second → 100x faster!
+
+bcrypt cracking speed:
+  GPU (RTX 4090): ~200,000 hashes/second → deliberately slow
+\`\`\`
+
+Isliye MD5/SHA-1 se hashed passwords dangerous hain — GPU se seconds/minutes mein crack ho jaate hain. bcrypt, Argon2, scrypt use karo — GPU acceleration ka benefit bahut kam milta hai inhe.`,
+      },
+      {
+        heading: "🛡️ Cybersecurity Angle — Hardware = Attack Surface",
+        content: `Hardware samajhna sirf computer science nahi hai — yeh tumhara attack surface map hai. Har component mein vulnerabilities hain, aur advanced attackers inhi ka use karte hain.
+
+**Hardware Attack Surface Map:**
+
+**CPU:**
+- Spectre (2018) — out-of-order execution se secret data leak
+- Meltdown (2018) — kernel memory user space se readable
+- Plundervolt (2019) — Intel SGX voltage manipulation
+- ÆPIC Leak (2022) — architectural buffer leak
+
+**RAM:**
+- Rowhammer — bit flips se privilege escalation
+- Cold Boot Attack — encryption keys steal
+- Memory corruption bugs — buffer overflow, use-after-free
+
+**BIOS/UEFI:**
+- Firmware rootkits (LoJax, MoonBounce)
+- Secure Boot bypass attacks
+- UEFI DXE driver vulnerabilities
+
+**Storage:**
+- Firmware vulnerabilities in SSD controllers
+- HPA (Host Protected Area) — hidden partition attackers use karte hain
+- Self-encrypting drive (SED) implementation bugs
+
+**Motherboard/Chipset:**
+- PCH (Platform Controller Hub) vulnerabilities
+- Supply chain implants (Bloomberg "Big Hack" story)
+- JTAG debugging interfaces — chip-level access
+
+**Practical Exercise — Apne Computer Ki Architecture Samjho:**
+
+Windows pe yeh tools use karo:
+\`\`\`
+CPU-Z (free download):
+- CPU details: cores, cache L1/L2/L3, architecture
+- Memory: RAM type, speed, timings
+- Motherboard: chipset, BIOS version
+
+Task Manager → Performance tab:
+- CPU: cores, logical processors, L1/L2/L3 cache
+- Memory: total, available, speed
+
+Command line:
+wmic cpu get name,numberofcores,numberoflogicalprocessors
+wmic memorychip get capacity,speed,manufacturer
+\`\`\`
+
+Linux pe:
+\`\`\`bash
+# CPU info
+cat /proc/cpuinfo | grep "model name" | head -1
+lscpu | grep -E "Architecture|Core|Thread|Cache"
+
+# Memory info  
+free -h
+cat /proc/meminfo | grep -E "MemTotal|MemAvailable|SwapTotal"
+
+# Cache sizes
+getconf LEVEL1_DCACHE_SIZE
+getconf LEVEL2_CACHE_SIZE
+getconf LEVEL3_CACHE_SIZE
+\`\`\`
+
+**Indian Context — Real Attacks:**
+- 2019: Kudankulam Nuclear Power Plant network compromise — hardware supply chain risk highlighted
+- 2020: AIIMS Delhi (2022) ransomware — attackers had months of undetected access, likely firmware-level persistence suspected
+- UPI payment systems: hardware security modules (HSMs) protect transaction keys — tamper karne pe automatically keys wipe ho jaate hain
+
+Yeh module isliye important hai kyunki jab tum malware analyze karo, CTF karo, ya real pentest karo — hardware ki samajh tumhe woh level ki insight deti hai jo sirf software knowledge nahi de sakti.`,
       },
     ],
     keyPoints: [
-      "Computer = Input + Process + Output + Storage",
-      "CPU brain hai, RAM short-term memory, Storage long-term memory",
-      "Hardware = Physical parts, Software = Programs jo chalte hain",
-      "Har smart device ek computer hai — phone, TV, car sab",
-      "Cybersecurity mein computer basics foundation hain",
+      "Von Neumann Architecture = CPU + Memory + I/O + Bus — aaj bhi yahi blueprint use hota hai",
+      "Fetch → Decode → Execute: CPU isi cycle mein kaam karta hai — EIP/RIP control karna = code execution",
+      "L1 cache sabse fast (1ns, CPU andar), L3 slowest (20ns, shared) — Spectre/Meltdown cache timing exploit karte hain",
+      "RAM volatile hai lekin Cold Boot Attack se freeze karke minutes mein encryption keys dump ho sakti hain",
+      "UEFI Secure Boot bootloaders ke signatures verify karta hai — firmware malware (LoJax, MoonBounce) OS reinstall survive karta hai",
+      "32-bit max 4GB RAM, 64-bit = 18 exabytes theoretical — exploit development mein register names aur calling conventions alag hote hain",
+      "GPU 100x faster than CPU for password cracking — MD5/SHA-1 dangerous, bcrypt/Argon2 use karo",
+      "Hardware = attack surface: CPU (Spectre), RAM (Rowhammer), UEFI (firmware rootkits), Storage (HPA hidden partition)",
     ],
   },
 
