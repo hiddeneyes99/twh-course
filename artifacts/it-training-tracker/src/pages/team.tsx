@@ -72,7 +72,7 @@ export default function Team() {
         <p className="text-muted-foreground mt-1 text-sm">
           Team members aur unki training roles.
           {!isOwner && (
-            <span className="ml-2 text-amber-600 font-medium">Naya member sirf Twh (Owner) add kar sakta hai.</span>
+            <span className="ml-2 text-muted-foreground">Naye members add karne ke liye admin se contact karo.</span>
           )}
         </p>
       </div>
@@ -91,10 +91,10 @@ export default function Team() {
             </CardHeader>
             <CardContent>
               {!isOwner ? (
-                <div className="text-center py-6 border-2 border-dashed border-amber-200 rounded-xl bg-amber-50">
-                  <Lock className="w-8 h-8 mx-auto text-amber-400 mb-2" />
-                  <p className="text-sm font-medium text-amber-700">Sirf Twh add kar sakta hai</p>
-                  <p className="text-xs text-amber-600 mt-1">Tum {currentMember?.name} ho — owner nahi ho</p>
+                <div className="text-center py-6 border-2 border-dashed border-border rounded-xl bg-muted/40">
+                  <Lock className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm font-medium">Yeh section admin ke liye hai</p>
+                  <p className="text-xs text-muted-foreground mt-1">Naya member add karne ke liye admin se request karo</p>
                 </div>
               ) : (
                 <Form {...form}>
