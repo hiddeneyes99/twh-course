@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { supabase } from "../lib/supabase";
+import { requireOwner } from "../lib/auth";
 import {
   CreateMemberBody,
   GetMemberParams,
@@ -22,7 +23,7 @@ router.get("/members", async (_req, res): Promise<void> => {
   }))));
 });
 
-router.post("/members", async (req, res): Promise<void> => {
+router.post("/members", requireOwner, async (req, res): Promise<void> => {
   const parsed = CreateMemberBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const { data, error } = await supabase
@@ -45,7 +46,7 @@ router.get("/members/:id", async (req, res): Promise<void> => {
   res.json(GetMemberResponse.parse({ id: data.id, name: data.name, role: data.role ?? null, createdAt: data.created_at }));
 });
 
-router.delete("/members/:id", async (req, res): Promise<void> => {
+router.delete("/members/:id", requireOwner, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = DeleteMemberParams.safeParse({ id: parseInt(raw, 10) });
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }

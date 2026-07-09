@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { supabase } from "../lib/supabase";
 import { curriculum } from "../lib/curriculum";
 import { staticCorrectAnswers } from "../lib/staticCorrectAnswers";
+import { requireAuth, type AuthenticatedRequest } from "../lib/auth";
 import {
   SubmitQuizBody,
   SubmitQuizResponse,
@@ -10,9 +11,16 @@ import {
 
 const router: IRouter = Router();
 
-router.post("/quiz/submit", async (req, res): Promise<void> => {
+// POST — auth required + can only submit for yourself
+router.post("/quiz/submit", requireAuth, async (req, res): Promise<void> => {
   const parsed = SubmitQuizBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+
+  const { auth } = req as AuthenticatedRequest;
+  if (parsed.data.memberId !== auth.memberId) {
+    res.status(403).json({ error: "Sirf apna quiz submit kar sakte ho." });
+    return;
+  }
 
   const { memberId, topicId, answers } = parsed.data;
   const topic = curriculum.find((t) => t.id === topicId);
@@ -35,7 +43,7 @@ router.post("/quiz/submit", async (req, res): Promise<void> => {
   const percentScore = Math.round((score / totalQuestions) * 100);
   const passed = percentScore >= 70;
 
-  await supabase.from("quiz_attempts").insert({
+  const { error: insertError } = await supabase.from("quiz_attempts").insert({
     member_id: memberId,
     topic_id: topicId,
     score,
@@ -43,6 +51,7 @@ router.post("/quiz/submit", async (req, res): Promise<void> => {
     passed,
     answers,
   });
+  if (insertError) { res.status(500).json({ error: insertError.message }); return; }
 
   if (passed) {
     const { data: existing } = await supabase
@@ -52,23 +61,28 @@ router.post("/quiz/submit", async (req, res): Promise<void> => {
       .eq("topic_id", topicId)
       .single();
     if (!existing) {
-      await supabase.from("progress").insert({ member_id: memberId, topic_id: topicId });
+      const { error: progressError } = await supabase
+        .from("progress")
+        .insert({ member_id: memberId, topic_id: topicId });
+      if (progressError) { res.status(500).json({ error: progressError.message }); return; }
     }
   }
 
   res.json(SubmitQuizResponse.parse({ passed, score, totalQuestions, percentScore, feedback }));
 });
 
+// GET — public reads
 router.get("/quiz/status/:memberId/:topicId", async (req, res): Promise<void> => {
   const rawMemberId = Array.isArray(req.params.memberId) ? req.params.memberId[0] : req.params.memberId;
   const rawTopicId = Array.isArray(req.params.topicId) ? req.params.topicId[0] : req.params.topicId;
   const memberId = parseInt(rawMemberId, 10);
 
-  const { data: attempts } = await supabase
+  const { data: attempts, error } = await supabase
     .from("quiz_attempts")
     .select("*")
     .eq("member_id", memberId)
     .eq("topic_id", rawTopicId);
+  if (error) { res.status(500).json({ error: error.message }); return; }
 
   const list = attempts ?? [];
   const passed = list.some((a) => a.passed);
@@ -81,10 +95,11 @@ router.get("/quiz/member/:memberId", async (req, res): Promise<void> => {
   const rawId = Array.isArray(req.params.memberId) ? req.params.memberId[0] : req.params.memberId;
   const memberId = parseInt(rawId, 10);
 
-  const { data: attempts } = await supabase
+  const { data: attempts, error } = await supabase
     .from("quiz_attempts")
     .select("*")
     .eq("member_id", memberId);
+  if (error) { res.status(500).json({ error: error.message }); return; }
 
   const byTopic = new Map<string, { passed: boolean; bestScore: number; attempts: number }>();
   for (const a of (attempts ?? [])) {

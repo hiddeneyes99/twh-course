@@ -1,8 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 import ws from "ws";
 
-const SUPABASE_URL = "https://snmliocnhgbskwdvzbpc.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNubWxpb2NuaGdic2t3ZHZ6YnBjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5MTU2NzYsImV4cCI6MjA5ODQ5MTY3Nn0.WRkFpxaQf6F67sEKGj9m6AQy8M4VUwRJ8bLhaRcPcxk";
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  throw new Error("SUPABASE_URL aur SUPABASE_ANON_KEY env vars required hain.");
+}
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   realtime: {

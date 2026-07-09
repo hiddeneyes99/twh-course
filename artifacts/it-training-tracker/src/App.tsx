@@ -42,12 +42,15 @@ function Router() {
 }
 
 function AppInner() {
-  const { currentMemberId, setCurrentMemberId } = useCurrentUser();
+  const { currentMemberId, setCurrentMemberId, setToken } = useCurrentUser();
 
   if (!currentMemberId) {
     return (
       <WhoAreYou
-        onSelect={(id) => setCurrentMemberId(id)}
+        onSelect={(id, token) => {
+          setToken(token);
+          setCurrentMemberId(id);
+        }}
       />
     );
   }
