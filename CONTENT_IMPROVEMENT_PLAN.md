@@ -350,27 +350,27 @@ Har topic ka content **sahi hone ke liye yeh sab hona chahiye:**
 
 Yeh sab topics banana hai (curriculum.ts + topicContent.ts + staticQuizQuestions.ts teeno mein):
 
-- [ ] **ai-01** — What is AI? History, Types (ANI/AGI/ASI), Real-world Applications
+- [x] **ai-01** — What is AI? History, Types (ANI/AGI/ASI), Real-world Applications
   - Rewrite karo — existing content theek hai but aur deep karo
   - Add: ML pipeline step by step, Indian AI companies (Sarvam AI, Ola Krutrim, etc.)
 
-- [ ] **ai-02** — Machine Learning — How Machines Learn
+- [x] **ai-02** — Machine Learning — How Machines Learn
   - Rewrite karo — supervised/unsupervised/reinforcement with hands-on Python examples
   - Add: Scikit-learn se ek simple classifier banana
 
-- [ ] **ai-03** — Neural Networks & Deep Learning
+- [x] **ai-03** — Neural Networks & Deep Learning
   - Rewrite — neurons, layers, backpropagation simple explanation
   - Add: TensorFlow/Keras Hello World (MNIST digit recognition)
 
-- [ ] **ai-04** — Large Language Models (LLMs) — How ChatGPT Works
+- [x] **ai-04** — Large Language Models (LLMs) — How ChatGPT Works
   - Rewrite — transformer architecture, attention mechanism, training process
   - Add: Ollama se local LLM run karna, API calls Python se
 
-- [ ] **ai-05** — Computer Vision & NLP Basics
+- [x] **ai-05** — Computer Vision & NLP Basics
   - Rewrite — CNNs, image classification, NLP tasks
   - Add: Yolo object detection demo, sentiment analysis
 
-- [ ] **ai-06** — AI Tools for Cybersecurity Professionals
+- [x] **ai-06** — AI Tools for Cybersecurity Professionals
   - Rewrite — existing bahut surface level hai
   - Add: Using LLMs for code review, threat intel summarization, report writing
 
@@ -513,11 +513,11 @@ Yeh topics `topicContent.ts` mein hain but `curriculum.ts` mein officially nahi 
 | Phase 10: Cloud Security | 5 | 0 | 5 |
 | Phase 11: Advanced Hacking | 5 | 0 | 5 |
 | Phase 12: Bug Bounty & Career | 7 | 0 | 7 |
-| Phase 13: AI & ML (NEW) | 10 | 0 | 10 |
+| Phase 13: AI & ML (NEW) | 10 | 6 | 4 |
 | Phase 14: AI Security (NEW) | 8 | 0 | 8 |
 | Termux Topics | 7 | 0 | 7 |
 | Health Topics | 6 | 0 | 6 |
-| **TOTAL** | **141** | **0** | **141** |
+| **TOTAL** | **141** | **6** | **135** |
 
 ---
 
