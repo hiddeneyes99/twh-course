@@ -1905,33 +1905,562 @@ find /home -newer /tmp/reference_time -type f 2>/dev/null
   },
 
   "cb-05": {
-    title: "Binary & Number Systems",
+    title: "Binary, Hex & Number Systems",
     image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=900&fit=crop&auto=format",
-    tagline: "Computer sirf 0 aur 1 samjhta hai — yeh magic kaise kaam karta hai?",
+    tagline: "0x41 = 'A' — binary, hex, endianness, XOR — hacker ki nazar se number systems samjho",
     sections: [
       {
-        heading: "🔢 Number Systems Kya Hote Hain?",
-        content: `Hum roz jo numbers use karte hain woh Decimal system hai — 0 se 9 tak, 10 digits.\n\nLkin computers ke liye yeh system nahi chal sakta. Computer mein electrical current ya toh hoti hai (1) ya nahi hoti (0). Isliye computer Binary system use karta hai — sirf 2 digits: 0 aur 1.\n\n**Char main number systems:**\n\n| System | Base | Digits | Example |\n|--------|------|--------|---------|\n| Binary | 2 | 0,1 | 1010 |\n| Octal | 8 | 0-7 | 12 |\n| Decimal | 10 | 0-9 | 10 |\n| Hexadecimal | 16 | 0-9, A-F | A |\n\nDecimal 10 = Binary 1010 = Octal 12 = Hex A — sab same number!`,
+        heading: "🔢 Number Systems — Conversion Mastery",
+        content: `Computer sirf 0 aur 1 samajhta hai. Lekin hum humans ke liye itne saare zeros aur ones padhna mushkil hai. Isliye different number systems use hote hain — binary (computer ke liye), hex (programmer ke liye), decimal (human ke liye). Inke beech convert karna seekhna essential hai.
+
+**Char Main Number Systems:**
+
+| System | Base | Digits | Example (decimal 255) |
+|--------|------|--------|----------------------|
+| Binary | 2 | 0, 1 | 11111111 |
+| Octal | 8 | 0–7 | 377 |
+| Decimal | 10 | 0–9 | 255 |
+| Hexadecimal | 16 | 0–9, A–F | FF |
+
+**Binary → Decimal (Positional Value Method):**
+\`\`\`
+Binary:   1   0   1   1   0   1   0   1
+Position: 7   6   5   4   3   2   1   0
+Value:   128  0   32  16  0   4   0   1
+
+128 + 32 + 16 + 4 + 1 = 181
+
+Trick: Powers of 2 yaad karo:
+2^7=128, 2^6=64, 2^5=32, 2^4=16, 2^3=8, 2^2=4, 2^1=2, 2^0=1
+\`\`\`
+
+**Decimal → Binary (Division Method):**
+\`\`\`
+Decimal 42 → Binary:
+42 ÷ 2 = 21 remainder 0  ↑ (LSB — pehle nibble)
+21 ÷ 2 = 10 remainder 1  ↑
+10 ÷ 2 = 5  remainder 0  ↑
+5  ÷ 2 = 2  remainder 1  ↑
+2  ÷ 2 = 1  remainder 0  ↑
+1  ÷ 2 = 0  remainder 1  ↑ (MSB — last nibble)
+
+Remainders uthao neeche se: 101010
+42 (decimal) = 101010 (binary) = 0x2A (hex)
+\`\`\`
+
+**Hex ↔ Binary — Fast Conversion (Nibble by Nibble):**
+\`\`\`
+Ek hex digit = 4 binary bits (nibble)
+
+Hex table:
+0=0000  1=0001  2=0010  3=0011
+4=0100  5=0101  6=0110  7=0111
+8=1000  9=1001  A=1010  B=1011
+C=1100  D=1101  E=1110  F=1111
+
+Example: 0xCA = C(1100) A(1010) = 11001010 binary
+Reverse:  10110101 → 1011(B) 0101(5) = 0xB5
+
+Yeh instant karna seekho — shellcode padhte waqt roz kaam aata hai!
+\`\`\`
+
+**Quick Reference — Common Values:**
+\`\`\`
+0x00 = 0   = 00000000 (NULL)
+0x0A = 10  = 00001010 (Newline \n)
+0x0D = 13  = 00001101 (Carriage Return \r)
+0x20 = 32  = 00100000 (Space)
+0x41 = 65  = 01000001 (ASCII 'A')
+0x61 = 97  = 01100001 (ASCII 'a')
+0x7F = 127 = 01111111 (DEL)
+0x80 = 128 = 10000000 (Sign bit in signed 8-bit)
+0xFF = 255 = 11111111 (Max unsigned 8-bit, -1 signed)
+
+ASCII trick: 0x41='A', 0x61='a' — difference = 0x20 = 32
+Uppercase → Lowercase: OR 0x20
+Lowercase → Uppercase: AND 0xDF  (XOR 0x20 bhi kaam karta hai)
+\`\`\``,
       },
       {
-        heading: "⚡ Binary Kaise Kaam Karta Hai?",
-        content: `Binary mein har position ek power of 2 represent karta hai (right se left):\n\n**Binary 1011 ko Decimal mein convert karein:**\n\`\`\`\nPosition:  3   2   1   0\nBits:      1   0   1   1\nValues:    8 + 0 + 2 + 1 = 11\n\`\`\`\nToh Binary 1011 = Decimal 11!\n\n**Decimal se Binary conversion:**\nDecimal 25 ko binary mein:\n25 ÷ 2 = 12 remainder 1\n12 ÷ 2 = 6  remainder 0\n6  ÷ 2 = 3  remainder 0\n3  ÷ 2 = 1  remainder 1\n1  ÷ 2 = 0  remainder 1\nRemainders uthao neeche se: 11001\nToh 25 decimal = 11001 binary ✓\n\n**Bit vs Byte:**\n• 1 Bit = 0 ya 1 (smallest unit)\n• 8 Bits = 1 Byte\n• 1024 Bytes = 1 KB\n• 1024 KB = 1 MB`,
+        heading: "➕ Two's Complement — Negative Numbers",
+        content: `Computer mein negative numbers store karna ek interesting problem hai. Solution: Two's Complement — aur iska galat samjhna buffer overflow vulnerabilities create karta hai.
+
+**Two's Complement Kya Hai:**
+\`\`\`
+8-bit signed range: -128 to +127
+8-bit unsigned range: 0 to 255
+
+Same bit pattern, alag interpretation:
+11111111 = 255 (unsigned)
+11111111 = -1  (signed two's complement)
+
+10000000 = 128 (unsigned)
+10000000 = -128 (signed — most negative!)
+
+MSB (leftmost bit) = sign bit:
+0xxxxxxx = positive (0 to 127)
+1xxxxxxx = negative (-128 to -1)
+\`\`\`
+
+**Two's Complement Calculate Karna:**
+\`\`\`
+Method 1: Flip + Add 1
+-5 kaise banayein:
+  +5 = 00000101
+  Flip: 11111010
+  Add 1: 11111011  ← -5 in two's complement
+
+Check: 11111011 + 00000101 = 100000000 → lower 8 bits = 0 ✓ (overflow ignore)
+
+Method 2: Shortcut
+2^8 - 5 = 256 - 5 = 251 = 11111011 ✓ (same result)
+\`\`\`
+
+**Security Vulnerability — Integer Overflow:**
+\`\`\`c
+// Real vulnerability pattern:
+int length = user_input_length;   // User deta hai -1
+char buffer[100];
+
+if (length < 100) {              // -1 < 100 = TRUE (check pass!)
+    memcpy(buffer, data, length); // memcpy expects unsigned size_t
+                                  // -1 as unsigned = 0xFFFFFFFF = 4GB!
+                                  // Buffer overflow!
+}
+
+// Fix: unsigned int use karo ya length >= 0 check karo
+if (length >= 0 && length < 100) { ... }
+\`\`\`
+
+**Real CVEs — Integer Overflow Attacks:**
+- **CVE-2019-11932 (WhatsApp):** Integer overflow in image parsing → heap buffer overflow → RCE. Billions of devices affected.
+- **CVE-2021-44228 (Log4Shell):** String length calculation overflow → arbitrary code execution.
+- **CVE-2018-1000001 (glibc):** realpath() function integer underflow → arbitrary code execution.
+
+**Python mein Play karo:**
+\`\`\`python
+# Python mein integer overflow nahi hota (arbitrary precision)
+# C behavior simulate karne ke liye:
+import ctypes
+
+x = ctypes.c_int8(-1)   # 8-bit signed -1
+print(x.value)           # -1
+print(ctypes.c_uint8(x.value).value)  # 255 (unsigned interpretation)
+
+# XOR ke saath:
+print(0xFF ^ 0xFF)  # 0 (XOR with itself = always 0)
+print(0x41 ^ 0x20)  # 0x61 = 'a' (uppercase to lowercase)
+\`\`\``,
       },
       {
-        heading: "🔤 Hexadecimal — Hacker's Favourite",
-        content: `Binary bahut long hota hai. 8 bits (1 byte) = 8 zeros aur ones. Isliye hackers aur programmers Hexadecimal (Hex) use karte hain.\n\n**Hex digits:** 0-9 aur A-F (total 16)\n• A=10, B=11, C=12, D=13, E=14, F=15\n\n**1 hex digit = 4 binary bits** — ise "nibble" kehte hain.\n\n**Binary 11001101 = Hex CD:**\n\`\`\`\n1100 = C (12)\n1101 = D (13)\nToh: 0xCD\n\`\`\`\n\n**Kahan use hota hai Hex?**\n• Memory addresses: 0x7FFE4A6B\n• Colors in web: #FF5733\n• MAC addresses: AA:BB:CC:DD:EE:FF\n• File signatures (magic numbers): PDF starts with %PDF = 25 50 44 46\n\nJab tum Wireshark mein network traffic dekho ya memory analysis karo — sab hex mein hoga!`,
+        heading: "🔄 Endianness — Bytes Ka Order",
+        content: `Jab ek multi-byte number (jaise 32-bit address 0x12345678) memory mein store hota hai, toh bytes kaunse order mein store honge? Yeh "endianness" decide karta hai — aur exploit development mein yeh ek common gotcha hai.
+
+**Big-Endian vs Little-Endian:**
+\`\`\`
+Number: 0x12345678
+
+Big-Endian (network byte order):
+Address: 0x100  0x101  0x102  0x103
+Memory:  0x12   0x34   0x56   0x78
+(MSB — Most Significant Byte — pehle)
+Like English reading: left to right, biggest first
+
+Little-Endian (x86/x64 — most PCs):
+Address: 0x100  0x101  0x102  0x103
+Memory:  0x78   0x56   0x34   0x12
+(LSB — Least Significant Byte — pehle)
+Like Hindi/Urdu: ulta!
+\`\`\`
+
+**Memory Dump Example — Endianness Samjhna:**
+\`\`\`
+GDB output (x86 — little-endian):
+(gdb) x/4xb 0x7fffffffe000
+0x7fffffffe000: 0x78  0x56  0x34  0x12
+
+Q: Is address pe kya number store hai?
+A: Little-endian mein read karo — reverse karo: 0x12345678
+
+GDB alternative:
+(gdb) x/1xw 0x7fffffffe000
+0x7fffffffe000: 0x12345678   ← GDB automatically reverse karta hai
+
+Practical application:
+Agar return address inject karna ho 0x08048400:
+  Big-endian pe:    \x08\x04\x84\x00
+  Little-endian pe: \x00\x84\x04\x08  ← x86 pe yeh use karo!
+\`\`\`
+
+**Python/pwntools mein Endianness Handle Karna:**
+\`\`\`python
+import struct
+import pwn
+
+# Manual conversion:
+address = 0x08048400
+
+# Pack as little-endian 32-bit:
+packed = struct.pack('<I', address)   # b'\x00\x84\x04\x08'
+# Pack as big-endian 32-bit:
+packed_be = struct.pack('>I', address)  # b'\x08\x04\x84\x00'
+
+# pwntools (easier):
+from pwn import p32, p64, u32, u64
+p32(0x08048400)      # Little-endian 32-bit pack: b'\x00\x84\x04\x08'
+p64(0x08048400)      # Little-endian 64-bit pack
+u32(b'\x00\x84\x04\x08')  # Unpack → 0x08048400
+
+# Network byte order (big-endian) conversion:
+import socket
+socket.htons(80)    # host to network short
+socket.htonl(192)   # host to network long
+socket.ntohs(0x5000)  # network to host
+\`\`\`
+
+**Rowhammer aur Memory — Bit Flip Attack:**
+\`\`\`
+DRAM row access mechanism:
+- Memory rows pe hammering (repeated read-write) se
+- Adjacent rows mein bit flips ho sakte hain (0→1 ya 1→0)
+- Without direct memory access — sirf timing attacks se
+
+2015 demonstration:
+- JavaScript se alone Rowhammer trigger kiya
+- Flip kiya ek specific bit jo process page table mein tha
+- Bit flip se kernel privileges gain kiye
+- No software vulnerability — pure hardware physics exploit!
+
+Defense:
+- ECC RAM (Error Correcting Code) — bit flips detect aur correct kar sakti hai
+- LPDDR4 Target Row Refresh (TRR) — hardware mitigation
+- Memory scrambling — Intel CPUs pe
+\`\`\``,
       },
       {
-        heading: "🛡️ Cybersecurity Mein Binary/Hex",
-        content: `**File Signatures (Magic Numbers):**\nHar file type ka ek unique hex signature hota hai starting bytes mein:\n• PDF: 25 50 44 46 (%PDF)\n• PNG: 89 50 4E 47 (.PNG)\n• ZIP: 50 4B 03 04 (PK..)\n\nHacker kabhi kabhi file ka extension change kar deta hai (virus.exe → photo.jpg), lekin magic bytes wahi rehte hain. Forensics tools inhi hex bytes se real file type pata karte hain!\n\n**XOR Encryption:**\nSabse basic encryption XOR hoti hai — binary bits pe kaam karta hai:\n0 XOR 0 = 0\n1 XOR 1 = 0\n1 XOR 0 = 1\nData ko key se XOR karo → encrypted. Phir se XOR karo same key se → decrypted!\n\n**IP Addresses bhi Binary hain:**\n192.168.1.1 actually hai:\n11000000.10101000.00000001.00000001\nSubnetting sirf binary mein samajh aati hai — isliye networking seekhne ke pehle binary zaroori hai!`,
+        heading: "⊕ XOR — Hacker Ki Swiss Army Knife",
+        content: `XOR (Exclusive OR) sabse important bitwise operation hai cybersecurity mein. Encryption, obfuscation, CTF challenges, shellcode encoding — har jagah XOR milega.
+
+**XOR Truth Table:**
+\`\`\`
+A  XOR  B  =  Result
+0   ⊕   0  =  0
+0   ⊕   1  =  1
+1   ⊕   0  =  1
+1   ⊕   1  =  0
+
+Memory trick: "Same = 0, Different = 1"
+\`\`\`
+
+**XOR Ka Magic Property — Self-Inverse:**
+\`\`\`
+A XOR Key = Encrypted
+Encrypted XOR Key = A (original back!)
+
+Proof:
+Data = 01001000 (H)
+Key  = 01010101
+
+Encrypt: 01001000 XOR 01010101 = 00011101 (gibberish)
+Decrypt: 00011101 XOR 01010101 = 01001000 (H) ← wapas!
+
+Yahi koi alag decryption algorithm zaroori nahi hota
+XOR symmetric hai — same operation encrypt aur decrypt dono
+\`\`\`
+
+**XOR Uses in Cybersecurity:**
+
+**1. Malware Obfuscation:**
+\`\`\`python
+# Simple XOR obfuscation (common in malware):
+shellcode = b"\x31\xc0\x50\x68\x2f\x2f\x73\x68"  # actual shellcode
+key = 0x41  # XOR key
+
+encoded = bytes([b ^ key for b in shellcode])
+# Antivirus is pattern mein original shellcode nahi dhundh sakta
+
+# Runtime decode:
+decoded = bytes([b ^ key for b in encoded])
+# Execute decoded shellcode → original
+
+# Multi-byte key (harder to detect):
+key = b"ABCD"
+encoded = bytes([shellcode[i] ^ key[i % len(key)] for i in range(len(shellcode))])
+\`\`\`
+
+**2. CTF — XOR Cipher Breaking:**
+\`\`\`python
+# Single-byte XOR crack karna:
+ciphertext = bytes.fromhex("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736")
+
+def single_byte_xor(ciphertext, key):
+    return bytes([b ^ key for b in ciphertext])
+
+# Brute force all 256 keys:
+for key in range(256):
+    decrypted = single_byte_xor(ciphertext, key)
+    if all(32 <= b <= 126 for b in decrypted):  # Printable ASCII?
+        print(f"Key {key}: {decrypted.decode()}")
+
+# Repeating-key XOR (Vigenère cipher equivalent):
+# 1. Key length dhundho: Kasiski test ya index of coincidence
+# 2. Break into groups by position modulo key_length
+# 3. Each group single-byte XOR hai → frequency analysis
+\`\`\`
+
+**3. Bitwise Tricks in Shellcode:**
+\`\`\`asm
+; x86 assembly mein register zero karna:
+; Avoid: MOV EAX, 0  → \xb8\x00\x00\x00\x00 (NULL bytes hain!)
+; Better: XOR EAX, EAX → \x31\xc0 (no NULL bytes)
+
+; Check if register is zero:
+TEST EAX, EAX    ; EAX AND EAX — ZF flag set if zero
+JZ label         ; Jump if zero
+
+; Swap two registers without temp:
+XOR EAX, EBX
+XOR EBX, EAX
+XOR EAX, EBX   ; EAX aur EBX values swap ho gayi!
+\`\`\`
+
+**4. File Signature Check Bypass:**
+\`\`\`python
+# Malware sometimes XOR-encodes itself to avoid file signature detection:
+import os
+
+# Read malware
+with open("malware.exe", "rb") as f:
+    data = f.read()
+
+# XOR encode karo with key 0xFF:
+encoded = bytes([b ^ 0xFF for b in data])
+
+# Antivirus scan karo encoded version → no signature match
+# Runtime: decode karo → execute
+\`\`\``,
+      },
+      {
+        heading: "💻 CPU Registers aur Assembly Basics",
+        content: `Exploit development ke liye CPU registers aur basic assembly samajhna zaroori hai. Buffer overflow, ROP chains, shellcode — sab iske bina nahi hota.
+
+**x86 (32-bit) Key Registers:**
+\`\`\`
+EAX — Accumulator: arithmetic, return values, syscall number
+EBX — Base: memory addressing
+ECX — Counter: loops
+EDX — Data: I/O, multiply/divide
+ESP — Stack Pointer: stack top ka address (roz badlta rehta hai)
+EBP — Base Pointer: current stack frame ka base (anchor point)
+EIP — Instruction Pointer: next execute hone wali instruction ka address
+ESI — Source Index: string/memory copy source
+EDI — Destination Index: string/memory copy destination
+
+32-bit register: EAX
+  Lower 16 bits: AX
+    Lower 8 bits: AL
+    Upper 8 bits: AH
+64-bit equivalent: RAX (yeh 64-bit hai), EAX lower 32 bits
+\`\`\`
+
+**Stack Frame — Buffer Overflow Ka Target:**
+\`\`\`
+Function call hone pe:
+                    HIGH MEMORY
+┌──────────────────────────────┐
+│   Previous Stack Frames      │
+├──────────────────────────────┤
+│   Function Arguments         │ ← [EBP + 8], [EBP + 12]...
+├──────────────────────────────┤
+│   RETURN ADDRESS  ← TARGET!  │ ← [EBP + 4] ← yeh overwrite karna hai!
+├──────────────────────────────┤
+│   Saved EBP                  │ ← [EBP]
+├──────────────────────────────┤
+│   Local Variables            │ ← [EBP - 4], [EBP - 8]...
+│   (buffer[100] here)         │
+├──────────────────────────────┤
+│   ESP → Stack Top            │
+└──────────────────────────────┘
+                    LOW MEMORY
+
+Buffer overflow: input itna bada do ki buffer overflow ho,
+saved EBP overwrite ho, aur return address tumhare shellcode pe point kare.
+\`\`\`
+
+**NOP Sled — Landing Zone:**
+\`\`\`
+NOP (0x90) = No Operation Instruction
+CPU sirf program counter increment karta hai, kuch nahi karta
+
+Buffer overflow payload structure:
+[AAAA...AAAA] + [Overwritten EIP → NOP sled] + [NOP × 100] + [Shellcode]
+ ↑ padding      ↑ this address               ↑ anywhere here land karo ↑ actual code
+
+Kyu NOP sled? ASLR ke bina exact shellcode address guess karna mushkil
+NOP sled ek bada "target area" banata hai
+Jump to anywhere in sled → slide through NOPs → shellcode!
+pwntools: payload = b"A" * offset + p32(nop_sled_addr) + b"\x90" * 200 + shellcode
+\`\`\`
+
+**GDB — Registers Inspect Karna:**
+\`\`\`bash
+# Program load karo:
+gdb ./vulnerable_program
+
+# Breakpoint set karo:
+(gdb) break main
+(gdb) run
+
+# Registers dekho:
+(gdb) info registers
+# eax: 0x1    ebx: 0x0    ecx: 0xff   edx: 0x0
+# esp: 0xffffd4f0  ebp: 0xffffd518  eip: 0x08048456
+
+# Stack dekho:
+(gdb) x/20x $esp        # 20 hex words from stack top
+(gdb) x/20x $ebp-20     # 20 bytes around base pointer
+
+# Pattern se offset dhundho:
+(gdb) pattern create 200
+(gdb) run < pattern.txt
+# EIP pe pattern bytes dhundh ke offset pata karo
+(gdb) pattern offset 0x41414141   # EIP mein jo value hai
+
+# PEDA/pwndbg (GDB plugins) — zyada helpful output format
+\`\`\`
+
+**Shellcode — Assembly se Machine Code:**
+\`\`\`asm
+; Linux x86 — execve("/bin/sh") syscall
+; Goal: shell spawn karna
+
+section .text
+global _start
+
+_start:
+    ; EAX = syscall number (11 = execve on x86 Linux)
+    xor eax, eax        ; EAX = 0 (no null bytes!)
+    push eax            ; NULL terminator for string
+    
+    ; "/bin/sh" string stack pe push karo (reverse, little-endian):
+    push 0x68732f6e     ; "hs/n" (reversed "n/sh")
+    push 0x69622f2f     ; "ib//" (reversed "//bi")
+    
+    mov ebx, esp        ; EBX = "/bin/sh" address (argv[0])
+    
+    push eax            ; argv[1] = NULL
+    push ebx            ; argv[0] = "/bin/sh"
+    mov ecx, esp        ; ECX = argv array
+    
+    xor edx, edx        ; EDX = NULL (envp)
+    
+    mov al, 11          ; EAX = 11 (execve syscall)
+    int 0x80            ; Kernel ko call karo!
+
+; Machine code (hex bytes):
+; \x31\xc0\x50\x68\x6e\x2f\x73\x68\x68\x2f\x2f\x62\x69\x89\xe3\x50\x53\x89\xe1\x31\xd2\xb0\x0b\xcd\x80
+; 25 bytes — classic shellcode!
+\`\`\``,
+      },
+      {
+        heading: "🔬 File Signatures aur Steganography",
+        content: `Har file type ka ek unique "magic bytes" signature hota hai. Forensics mein yeh file type identify karne ke liye use hota hai — extension change karne se type nahi badlti.
+
+**Common File Signatures (Magic Bytes):**
+\`\`\`
+File Type    Extension    Magic Bytes (Hex)           ASCII
+─────────────────────────────────────────────────────────
+PDF          .pdf         25 50 44 46                 %PDF
+PNG          .png         89 50 4E 47 0D 0A 1A 0A     .PNG....
+JPEG         .jpg         FF D8 FF E0                 ....
+GIF          .gif         47 49 46 38 39 61           GIF89a
+ZIP          .zip         50 4B 03 04                 PK..
+RAR          .rar         52 61 72 21 1A 07 00         Rar!...
+ELF (Linux)  (no ext)    7F 45 4C 46                 .ELF
+PE (Windows) .exe         4D 5A                       MZ
+Word docx    .docx        50 4B 03 04 (ZIP inside!)   PK..
+\`\`\`
+
+**xxd — Hex Dump Tool:**
+\`\`\`bash
+# File ke pehle bytes dekho:
+xxd suspicious_file.jpg | head -5
+# 00000000: ffd8 ffe0 0010 4a46 4946 0001 0100 0001  ......JFIF......
+# 00000010: 0001 0000 ffdb 0043 0008 0606 0706 0508  .......C........
+
+# File signature check:
+xxd file.exe | head -1 | cut -c10-20
+# 4d5a → MZ → Windows PE executable!
+
+# String dhundho binary file mein:
+strings suspicious_file | grep -i "http\|ftp\|password\|admin"
+# Malware mein hardcoded C2 URLs, passwords milte hain
+\`\`\`
+
+**Steganography — Data Hiding in Images:**
+\`\`\`
+LSB (Least Significant Bit) Steganography:
+  Har pixel 3 bytes hota hai: R, G, B (0-255 each)
+  
+  Original pixel: R=11001010, G=01101100, B=11010001
+  Secret bit '1': R=11001011, G=01101100, B=11010001
+                           ↑
+                    Last bit change karo (0→1)
+  
+  Human eye ka fark nahi pata (1 bit change = 1/255 color change)
+  Ek 1MP image (1 million pixels) mein: 3 million bits = 375 KB data hide!
+
+Tools:
+  steghide: steghide embed -cf image.jpg -sf secret.txt -p password
+  stegsolve: bit plane analysis
+  binwalk: file mein hidden files dhundho
+  
+CTF mein common: image download karo → binwalk/steghide/strings run karo
+\`\`\`
+
+**Practical Exercise — Python mein Hex Operations:**
+\`\`\`python
+# Hex conversions:
+print(hex(255))        # 0xff
+print(int("ff", 16))  # 255
+print(bin(255))        # 0b11111111
+print(int("11111111", 2))  # 255
+
+# XOR karo:
+data = b"Hello"
+key = 0x42
+encoded = bytes([b ^ key for b in data])
+print(encoded.hex())   # 2a272d2d2d
+
+# Decode:
+decoded = bytes([b ^ key for b in encoded])
+print(decoded)         # b'Hello'
+
+# File magic bytes check:
+with open("mystery_file", "rb") as f:
+    header = f.read(8).hex()
+print(header)
+# 89504e47 → PNG!
+# 4d5a → MZ → Windows EXE
+# ffd8ffe0 → JPEG
+
+# Struct — C data types handle karna:
+import struct
+# Pack 4 bytes as little-endian integer:
+struct.pack("<I", 0x41424344)  # b'DCBA'
+struct.unpack("<I", b"ABCD")  # (0x44434241,)
+\`\`\``,
       },
     ],
     keyPoints: [
-      "Computer sirf Binary (0,1) samjhta hai",
-      "8 bits = 1 byte, 1024 bytes = 1 KB",
-      "Hex: 0-9 aur A-F, programmers favourite",
-      "File signatures hex bytes hote hain — forensics mein kaam aate hain",
-      "IP addressing aur subnetting binary pe based hai",
+      "Binary → Hex fast: nibble by nibble (4 bits = 1 hex digit); 0xCA = 1100 1010",
+      "Two's complement: -1 = 0xFF, -128 = 0x80 — signed/unsigned confusion = integer overflow vulnerability",
+      "Little-endian (x86): 0x12345678 memory mein 78 56 34 12 — return address inject karte waqt reverse karo",
+      "XOR: self-inverse (A⊕K=C, C⊕K=A), shellcode mein `XOR EAX, EAX` = zero (no null bytes), malware obfuscation",
+      "EIP = Instruction Pointer — buffer overflow ka goal: EIP overwrite karke apna shellcode pe point karo",
+      "NOP sled (0x90 × many): shellcode se pehle landing zone banao — exact address guess karna zaroori nahi",
+      "File magic bytes: PDF=25504446, PNG=89504E47, MZ=4D5A (EXE) — extension se nahi type se type pata chalti hai",
+      "Steganography: LSB method se image mein data chhupate hain — binwalk/steghide CTF mein use karo",
     ],
   },
 
